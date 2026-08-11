@@ -13,6 +13,11 @@ Supabase (ou via `supabase db push` / CLI) **nesta ordem**:
 5. `005_seed.sql` — dados de configuração: as 10 conquistas e os 6 módulos
    educacionais base. Idempotente (`on conflict do nothing`), pode ser
    reexecutado.
+6. `006_gamification_rpc.sql` — extrai `calculate_level()` (reaproveitada pela
+   trigger de escovação), adiciona o trigger de `flossing_logs` (que faltava)
+   e cria a função `unlock_achievement()` — a única forma de o backend
+   registrar o desbloqueio de uma conquista, já que `user_stats` e
+   `user_achievements` são somente-leitura para o usuário via RLS.
 
 ## Notas
 
