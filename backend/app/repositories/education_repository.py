@@ -62,7 +62,7 @@ class SupabaseEducationRepository(SupabaseRepository):
                 .maybe_single()
                 .execute()
             )
-            return response.data
+            return self._maybe_single_data(response)
 
         row = self._run("Módulo educacional", operation)
         return _to_module_record(row) if row else None
@@ -76,7 +76,7 @@ class SupabaseEducationRepository(SupabaseRepository):
                 .maybe_single()
                 .execute()
             )
-            return response.data
+            return self._maybe_single_data(response)
 
         row = self._run("Módulo educacional", operation)
         return _to_module_record(row) if row else None
@@ -104,7 +104,7 @@ class SupabaseEducationRepository(SupabaseRepository):
                 .maybe_single()
                 .execute()
             )
-            return response.data
+            return self._maybe_single_data(response)
 
         row = self._run("Progresso de módulo", operation)
         return _to_progress_record(row) if row else None

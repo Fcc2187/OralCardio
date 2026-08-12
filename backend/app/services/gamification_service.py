@@ -3,13 +3,10 @@ from datetime import datetime
 from uuid import UUID
 
 from app.core.exceptions import EntityNotFoundError
-from app.domain.achievements import AchievementEvaluator, AchievementSnapshot
-from app.repositories.interfaces import (
-    EducationRepository,
-    GamificationRepository,
-    HealthProfileRepository,
-)
+from app.domain.achievements import AchievementEvaluator
+from app.repositories.interfaces import GamificationRepository
 from app.repositories.records import AchievementRecord, UserStatsRecord
+from app.services.achievement_snapshot_builder import AchievementSnapshotBuilder
 
 
 @dataclass(frozen=True)
@@ -22,22 +19,20 @@ class AchievementStatus:
 class GamificationService:
     """Orquestra estatísticas e o ciclo de desbloqueio de conquistas.
 
-    É o único service que agrega dados de outros domínios (educação, perfil
-    de saúde) porque a avaliação de conquistas é inerentemente transversal —
-    concentrar essa composição aqui evita espalhar a regra "o que desbloqueia
-    o quê" pelos demais services.
+    A composição do estado usado para avaliar conquistas (módulos concluídos,
+    perfil de saúde, consultas agendadas...) fica no `AchievementSnapshotBuilder`
+    — este service cuida só de buscar stats, decidir o que desbloquear e
+    persistir o resultado.
     """
 
     def __init__(
         self,
         gamification_repository: GamificationRepository,
-        education_repository: EducationRepository,
-        health_profile_repository: HealthProfileRepository,
+        snapshot_builder: AchievementSnapshotBuilder,
         evaluator: AchievementEvaluator,
     ) -> None:
         self._gamification_repository = gamification_repository
-        self._education_repository = education_repository
-        self._health_profile_repository = health_profile_repository
+        self._snapshot_builder = snapshot_builder
         self._evaluator = evaluator
 
     def get_stats(self, user_id: UUID) -> UserStatsRecord:
@@ -65,7 +60,7 @@ class GamificationService:
 
         Chamado pelos demais services após qualquer ação que possa desbloquear
         uma conquista (concluir escovação, registrar fio dental, completar
-        módulo educacional, completar o perfil de saúde).
+        módulo educacional, completar o perfil de saúde, agendar consulta).
         """
         stats = self._gamification_repository.get_stats(user_id)
         if stats is None:
@@ -75,21 +70,7 @@ class GamificationService:
         unlocked = self._gamification_repository.list_unlocked_achievements(user_id)
         already_unlocked_ids = {ua.achievement_id for ua in unlocked}
 
-        active_modules = self._education_repository.list_active_modules()
-        progress = self._education_repository.list_progress_by_user(user_id)
-        completed_modules_count = sum(1 for entry in progress if entry.is_completed)
-
-        health_profile = self._health_profile_repository.get_by_user_id(user_id)
-
-        snapshot = AchievementSnapshot(
-            total_brushings=stats.total_brushings,
-            current_streak_days=stats.current_streak_days,
-            total_flossings=stats.total_flossings,
-            completed_modules_count=completed_modules_count,
-            total_active_modules=len(active_modules),
-            has_completed_health_profile=bool(health_profile and health_profile.is_completed),
-            has_scheduled_appointment=False,  # Agenda de consultas fica para a v2.
-        )
+        snapshot = self._snapshot_builder.build(user_id, stats)
 
         newly_unlocked = self._evaluator.evaluate(achievements, snapshot, already_unlocked_ids)
         for achievement in newly_unlocked:

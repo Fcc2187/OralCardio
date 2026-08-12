@@ -18,13 +18,21 @@ Supabase (ou via `supabase db push` / CLI) **nesta ordem**:
    e cria a função `unlock_achievement()` — a única forma de o backend
    registrar o desbloqueio de uma conquista, já que `user_stats` e
    `user_achievements` são somente-leitura para o usuário via RLS.
+7. `007_caregiver_access.sql` — políticas de RLS que liberam **SELECT** ao
+   cuidador (via `is_active_caregiver()`) sobre os dados do paciente que ele
+   acompanha, respeitando as permissões granulares (`can_view_reports` /
+   `can_view_appointments`); e as funções `list_pending_caregiver_invitations()`
+   / `accept_caregiver_invitation()` que resolvem o fluxo de aceite de convite
+   (o RLS padrão de `caregivers` não deixa o cuidador ver o próprio convite
+   pendente antes de aceitá-lo).
 
 ## Notas
 
-- O acesso de **cuidadores** a `brushing_sessions`, `flossing_logs`,
-  `appointments` e `user_stats` **não** é feito via RLS direto — o backend
-  FastAPI usa a `service_role` key e valida as permissões granulares da tabela
-  `caregivers` antes de expor esses dados (ver seção 6 da documentação técnica).
+- O acesso de **cuidadores** aos dados do paciente é garantido inteiramente
+  por **RLS** (`007_caregiver_access.sql`), não pela `service_role` no
+  FastAPI — ver seção 6 da documentação técnica. O backend nunca usa a
+  `service_role` para ler dado de paciente; sempre opera com o JWT de quem
+  está autenticado, seja paciente ou cuidador.
 - Após rodar os scripts, copie a **Project URL**, a **anon key** e a
   **service_role key** do painel do Supabase (Settings → API) para os arquivos
   `backend/.env` e `frontend/.env` (veja os respectivos `.env.example`).

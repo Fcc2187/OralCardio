@@ -1,10 +1,12 @@
 from typing import Protocol
 from uuid import UUID
 
-from app.domain.enums import BrushingZone
+from app.domain.enums import AppointmentStatus, AppointmentType, BrushingZone
 from app.repositories.records import (
     AchievementRecord,
+    AppointmentRecord,
     BrushingSessionRecord,
+    CaregiverRecord,
     EducationModuleRecord,
     FlossingLogRecord,
     HealthProfileRecord,
@@ -91,3 +93,60 @@ class GamificationRepository(Protocol):
     def list_unlocked_achievements(self, user_id: UUID) -> list[UserAchievementRecord]: ...
 
     def unlock_achievement(self, achievement_id: UUID) -> None: ...
+
+
+class AppointmentRepository(Protocol):
+    def create(
+        self,
+        user_id: UUID,
+        scheduled_at: str,
+        appointment_type: AppointmentType,
+        dentist_name: str,
+        clinic_name: str | None,
+        clinic_address: str | None,
+        clinic_phone: str | None,
+        notes: str | None,
+    ) -> AppointmentRecord: ...
+
+    def get_by_id(self, appointment_id: UUID, user_id: UUID) -> AppointmentRecord | None: ...
+
+    def update(self, appointment_id: UUID, user_id: UUID, values: dict) -> AppointmentRecord: ...
+
+    def delete(self, appointment_id: UUID, user_id: UUID) -> None: ...
+
+    def list_by_user(
+        self,
+        user_id: UUID,
+        limit: int,
+        offset: int,
+        status: AppointmentStatus | None,
+    ) -> list[AppointmentRecord]: ...
+
+    def has_any(self, user_id: UUID) -> bool: ...
+
+
+class CaregiverRepository(Protocol):
+    def invite(
+        self,
+        patient_id: UUID,
+        caregiver_email: str,
+        can_view_reports: bool,
+        can_view_appointments: bool,
+        receive_alerts: bool,
+    ) -> CaregiverRecord: ...
+
+    def list_by_patient(self, patient_id: UUID) -> list[CaregiverRecord]: ...
+
+    def get_by_id(self, caregiver_link_id: UUID, patient_id: UUID) -> CaregiverRecord | None: ...
+
+    def update_permissions(
+        self, caregiver_link_id: UUID, patient_id: UUID, values: dict
+    ) -> CaregiverRecord: ...
+
+    def revoke(self, caregiver_link_id: UUID, patient_id: UUID) -> CaregiverRecord: ...
+
+    def list_pending_invitations_for_current_user(self) -> list[CaregiverRecord]: ...
+
+    def accept_invitation(self, invitation_id: UUID) -> CaregiverRecord: ...
+
+    def list_active_patients_for_current_user(self) -> list[CaregiverRecord]: ...

@@ -30,3 +30,15 @@ class SupabaseRepository:
             if exc.code == _NOT_FOUND:
                 raise EntityNotFoundError(entity) from exc
             raise
+
+    @staticmethod
+    def _maybe_single_data(response: object) -> dict | None:
+        """Extrai `.data` de uma resposta de `.maybe_single().execute()`.
+
+        Peculiaridade do postgrest-py: quando zero linhas são encontradas,
+        `.execute()` retorna `None` diretamente, não um objeto de resposta
+        com `.data = None`. Acessar `.data` sem essa checagem lança
+        `AttributeError`. Centralizar aqui evita repetir a checagem (e o bug)
+        em cada repositório que usa `maybe_single()`.
+        """
+        return response.data if response is not None else None

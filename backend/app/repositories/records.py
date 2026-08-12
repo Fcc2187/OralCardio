@@ -9,7 +9,14 @@ from dataclasses import dataclass, field
 from datetime import date, datetime
 from uuid import UUID
 
-from app.domain.enums import AchievementConditionType, BrushingZone, CardiacCondition
+from app.domain.enums import (
+    AchievementConditionType,
+    AppointmentStatus,
+    AppointmentType,
+    BrushingZone,
+    CardiacCondition,
+    CaregiverStatus,
+)
 
 
 @dataclass(frozen=True)
@@ -120,3 +127,35 @@ class UserAchievementRecord:
     achievement_id: UUID
     earned_at: datetime
     achievement: AchievementRecord = field(repr=False)
+
+
+@dataclass(frozen=True)
+class AppointmentRecord:
+    id: UUID
+    user_id: UUID
+    scheduled_at: datetime
+    appointment_type: AppointmentType
+    dentist_name: str
+    clinic_name: str | None
+    clinic_address: str | None
+    clinic_phone: str | None
+    notes: str | None
+    status: AppointmentStatus
+    reminder_sent: bool
+    created_at: datetime
+    updated_at: datetime
+
+
+@dataclass(frozen=True)
+class CaregiverRecord:
+    id: UUID
+    patient_id: UUID
+    caregiver_email: str
+    caregiver_user_id: UUID | None
+    status: CaregiverStatus
+    can_view_reports: bool
+    can_view_appointments: bool
+    receive_alerts: bool
+    invited_at: datetime
+    accepted_at: datetime | None
+    revoked_at: datetime | None

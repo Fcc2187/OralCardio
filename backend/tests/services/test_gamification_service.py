@@ -4,7 +4,9 @@ from uuid import UUID, uuid4
 from app.domain.achievements import AchievementEvaluator
 from app.domain.enums import AchievementConditionType
 from app.repositories.records import AchievementRecord, UserStatsRecord
+from app.services.achievement_snapshot_builder import AchievementSnapshotBuilder
 from app.services.gamification_service import GamificationService
+from tests.fakes.appointment_repository import FakeAppointmentRepository
 from tests.fakes.education_repository import FakeEducationRepository
 from tests.fakes.gamification_repository import FakeGamificationRepository
 from tests.fakes.health_profile_repository import FakeHealthProfileRepository
@@ -13,12 +15,16 @@ from tests.fakes.health_profile_repository import FakeHealthProfileRepository
 def _build_service(
     stats: UserStatsRecord, achievements: list[AchievementRecord]
 ) -> GamificationService:
+    snapshot_builder = AchievementSnapshotBuilder(
+        education_repository=FakeEducationRepository(),
+        health_profile_repository=FakeHealthProfileRepository(),
+        appointment_repository=FakeAppointmentRepository(),
+    )
     return GamificationService(
         gamification_repository=FakeGamificationRepository(
             stats=stats, achievements=achievements
         ),
-        education_repository=FakeEducationRepository(),
-        health_profile_repository=FakeHealthProfileRepository(),
+        snapshot_builder=snapshot_builder,
         evaluator=AchievementEvaluator(),
     )
 

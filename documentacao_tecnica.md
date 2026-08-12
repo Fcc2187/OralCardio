@@ -515,19 +515,32 @@ Todas as tabelas possuem **RLS habilitado** no Supabase. Isso garante que cada u
 
 | Tabela | Acesso do Próprio Usuário | Acesso do Cuidador |
 |---|---|---|
-| `users` | SELECT, UPDATE | ❌ |
+| `users` | SELECT, UPDATE | SELECT (se vínculo ativo, qualquer permissão) |
 | `health_profiles` | ALL (SELECT, INSERT, UPDATE, DELETE) | ❌ |
-| `brushing_sessions` | ALL | ❌ (via FastAPI com permissão) |
-| `flossing_logs` | ALL | ❌ (via FastAPI com permissão) |
-| `appointments` | ALL | ❌ (via FastAPI com permissão) |
-| `user_stats` | SELECT | SELECT (via FastAPI) |
+| `brushing_sessions` | ALL | SELECT (se `can_view_reports`) |
+| `flossing_logs` | ALL | SELECT (se `can_view_reports`) |
+| `appointments` | ALL | SELECT (se `can_view_appointments`) |
+| `user_stats` | SELECT | SELECT (se `can_view_reports`) |
 | `user_module_progress` | ALL | ❌ |
 | `user_achievements` | SELECT | ❌ |
 | `caregivers` | ALL (como `patient_id`) | SELECT (como `caregiver_user_id`) |
 | `education_modules` | SELECT (público autenticado) | SELECT |
 | `achievements` | SELECT (público autenticado) | SELECT |
 
-> **Nota:** O FastAPI atua como uma camada intermediária que verifica as permissões de cuidador antes de expor os dados do paciente.
+> **Nota (v2):** Diferente da v1 desta documentação, o acesso do cuidador aos
+> dados do paciente é garantido por **políticas de RLS** (função
+> `is_active_caregiver()`, ver `database/007_caregiver_access.sql`), e não
+> mediado pela `service_role` no FastAPI. O banco continua sendo a
+> autoridade final de autorização: um bug de validação no backend não expõe
+> prontuário de paciente nenhum, e revogar um cuidador corta o acesso
+> instantaneamente, no próximo `SELECT`. O FastAPI nunca usa a `service_role`
+> para leitura de dados de paciente — sempre opera com o JWT de quem está
+> autenticado (paciente ou cuidador), deixando o RLS decidir o que é visível.
+>
+> O fluxo de convite (paciente convida por e-mail → cuidador aceita) também é
+> resolvido no banco, por duas funções `SECURITY DEFINER`
+> (`list_pending_caregiver_invitations()` e `accept_caregiver_invitation()`)
+> que exigem e-mail confirmado no Supabase Auth como prova de identidade.
 
 ---
 
@@ -564,8 +577,8 @@ users ────────────────────────�
 
 ## 8. Próximos Passos de Desenvolvimento
 
-- [ ] **Fase 1 — Infraestrutura**: Criar projeto no Supabase, aplicar o schema SQL, configurar variáveis de ambiente
-- [ ] **Fase 2 — Back-end (FastAPI)**: Criar as rotas de API (autenticação, usuários, escovação, consultas, cuidadores)
+- [x] **Fase 1 — Infraestrutura**: Criar projeto no Supabase, aplicar o schema SQL, configurar variáveis de ambiente
+- [x] **Fase 2 — Back-end (FastAPI)**: Criar as rotas de API (autenticação, usuários, escovação, consultas, cuidadores)
 - [ ] **Fase 3 — Front-end (React + Vite)**: Criar estrutura PWA mobile-first, telas e componentes
-- [ ] **Fase 4 — Integrações**: Notificações push (para lembretes e alertas de cuidadores)
+- [ ] **Fase 4 — Integrações**: Notificações push (para lembretes e alertas de cuidadores); envio real de e-mail de convite de cuidador (hoje `LoggingEmailSender` apenas registra em log)
 - [ ] **Fase 5 — Testes e Deploy**: Testes de integração e publicação

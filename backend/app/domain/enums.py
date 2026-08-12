@@ -36,3 +36,24 @@ class AchievementConditionType(StrEnum):
     APPOINTMENT_SCHEDULED = "appointment_scheduled"
     HEALTH_PROFILE_COMPLETED = "health_profile_completed"
     FLOSSING_COUNT = "flossing_count"
+
+
+class AppointmentType(StrEnum):
+    ROUTINE_CHECKUP = "routine_checkup"
+    CLEANING = "cleaning"
+    EMERGENCY = "emergency"
+    FOLLOW_UP = "follow_up"
+    PROCEDURE = "procedure"
+
+
+class AppointmentStatus(StrEnum):
+    SCHEDULED = "scheduled"
+    COMPLETED = "completed"
+    CANCELLED = "cancelled"
+    RESCHEDULED = "rescheduled"
+
+
+class CaregiverStatus(StrEnum):
+    PENDING = "pending"
+    ACTIVE = "active"
+    REVOKED = "revoked"

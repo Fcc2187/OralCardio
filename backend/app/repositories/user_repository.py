@@ -30,7 +30,7 @@ class SupabaseUserRepository(SupabaseRepository):
                 .maybe_single()
                 .execute()
             )
-            return response.data
+            return self._maybe_single_data(response)
 
         row = self._run("Usuário", operation)
         return _to_record(row) if row else None
