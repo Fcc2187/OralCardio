@@ -1,26 +1,187 @@
-:root {
-  color-scheme: light;
-  font-family:
-    system-ui,
-    -apple-system,
-    "Segoe UI",
-    sans-serif;
+@import "tailwindcss";
+@import "@fontsource-variable/inter";
+@import "@fontsource/eb-garamond/400.css";
+
+/**
+ * Design tokens — adaptados de DESIGN.md (sistema editorial da Anthropic,
+ * originalmente desenhado para marketing desktop) para um app de saúde
+ * mobile-first usado por pacientes cardíacos, muitos idosos. As cores em si
+ * não mudaram; o que muda é COMO são aplicadas. Cada desvio está anotado.
+ *
+ * Adaptações de acessibilidade (todas documentadas no plano de implementação):
+ * 1. --color-primary-action usa #a9583e (era #cc785c em botões) — #cc785c
+ *    com texto branco dá 3.28:1, reprova WCAG AA (mínimo 4.5:1 p/ texto
+ *    normal). #a9583e dá 4.79:1 e já existe no sistema como "primary-active".
+ * 2. #cc785c continua em callout-card-coral: ali o texto é display (>=28px),
+ *    onde o mínimo AA cai para 3:1 — o coral original passa e a marca fica
+ *    preservada onde é seguro.
+ * 3. Captions/badges sobem de 12-13px para o piso de 14px.
+ * 4. Alvos de toque mínimos de 44px (o documento original admite 36px).
+ * 5. --color-muted-soft (3.26:1 sobre o canvas) fica reservado para uso
+ *    puramente decorativo — nunca texto informativo.
+ *
+ * @theme registra cada token como utilitário Tailwind: --color-* vira
+ * bg-primary-action/text-ink/border-hairline, --font-* vira font-display,
+ * --text-* vira text-display-lg, --spacing-* vira p-lg/gap-md, --radius-*
+ * vira rounded-lg. Nada aqui é reescrito à mão em cada componente.
+ */
+@theme {
+  /* Cores — extraídas de DESIGN.md sem alteração de valor */
+  --color-primary: #cc785c;
+  --color-primary-action: #a9583e; /* botões: usa o "active" original como padrão, ver nota 1 */
+  --color-primary-pressed: #8a4732;
+  --color-primary-disabled: #e6dfd8;
+
+  --color-ink: #141413;
+  --color-body: #3d3d3a;
+  --color-body-strong: #252523;
+  --color-muted: #6c6a64;
+  --color-muted-soft: #8e8b82; /* decorativo apenas, ver nota 5 */
+
+  --color-hairline: #e6dfd8;
+  --color-hairline-soft: #ebe6df;
+
+  --color-canvas: #faf9f5;
+  --color-surface-soft: #f5f0e8;
+  --color-surface-card: #efe9de;
+  --color-surface-cream-strong: #e8e0d2;
+
+  --color-surface-dark: #181715;
+  --color-surface-dark-elevated: #252320;
+  --color-surface-dark-soft: #1f1e1b;
+
+  --color-on-primary: #ffffff;
+  --color-on-dark: #faf9f5;
+  --color-on-dark-soft: #a09d96;
+
+  --color-accent-teal: #5db8a6;
+  --color-accent-amber: #e8a55a;
+  --color-success: #5db872;
+  --color-warning: #d4a017;
+  --color-error: #c64545;
+
+  /* Tipografia — display serifado (EB Garamond, substituto documentado de
+     Copernicus), corpo/UI em Inter. Escala em clamp() a partir do mobile. */
+  --font-display: "EB Garamond", "Tiempos Headline", Georgia, serif;
+  --font-body: "Inter Variable", Inter, -apple-system, "Segoe UI", sans-serif;
+  --font-code: "JetBrains Mono", ui-monospace, monospace;
+
+  --text-display-lg: clamp(1.75rem, 1.4rem + 1.5vw, 3rem); /* h1 de tela */
+  --text-display-md: clamp(1.5rem, 1.3rem + 0.8vw, 2.25rem); /* h2 de seção */
+  --text-display-sm: clamp(1.25rem, 1.15rem + 0.4vw, 1.75rem); /* h3, valores em destaque */
+
+  --text-title-lg: 1.375rem; /* 22px */
+  --text-title-md: 1.125rem; /* 18px */
+  --text-title-sm: 1rem; /* 16px */
+
+  --text-body-md: 1rem; /* 16px */
+  --text-body-sm: 0.875rem; /* 14px */
+  --text-caption: 0.875rem; /* 14px — piso elevado de 13px, ver nota 3 */
+  --text-badge: 0.875rem; /* 14px — piso elevado de 12px, ver nota 3 */
+
+  --leading-display: 1.15;
+  --leading-title: 1.35;
+  --leading-body: 1.55;
+
+  --tracking-display: -0.02em;
+
+  /* Espaçamento — base 4px, ritmo de seção reduzido para mobile-first
+     (96px é ritmo de página de marketing desktop; vira rolagem vazia numa
+     coluna estreita de app). --space-section fica fora do @theme porque
+     seu valor muda em breakpoint — ver bloco @media abaixo. */
+  --spacing-xxs: 0.25rem; /* 4px */
+  --spacing-xs: 0.5rem; /* 8px */
+  --spacing-sm: 0.75rem; /* 12px */
+  --spacing-md: 1rem; /* 16px */
+  --spacing-lg: 1.5rem; /* 24px */
+  --spacing-xl: 2rem; /* 32px */
+  --spacing-xxl: 3rem; /* 48px */
+
+  /* Raios */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-pill: 9999px;
+
+  /* Alvos de toque — mínimo 44px, ver nota 4 */
+  --spacing-tap-target-min: 44px;
+
+  /* Elevação — o sistema original é "color-block first, shadow rare" */
+  --shadow-soft: 0 1px 3px rgba(20, 20, 19, 0.08);
+
+  /* Bottom nav / safe area (PWA mobile) */
+  --spacing-bottom-nav-height: 64px;
 }
 
-* {
-  box-sizing: border-box;
+/* --space-section não entra no @theme (não pode variar por media query
+   dentro de @theme); fica como custom property comum, consumida via
+   arbitrary value (p-(--space-section)) onde for preciso. */
+:root {
+  --space-section: 3rem; /* 48px no mobile */
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+@media (min-width: 768px) {
+  :root {
+    --space-section: 6rem; /* 96px — ritmo original do DESIGN.md em telas maiores */
+  }
+}
+
+:root {
+  color-scheme: light;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
 }
 
 body {
-  margin: 0;
   min-height: 100dvh;
-  background-color: #f8fafc;
-  color: #0f172a;
+  background-color: var(--color-canvas);
+  color: var(--color-body);
+  font-family: var(--font-body);
+  font-size: var(--text-body-md);
+  line-height: var(--leading-body);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.app-shell {
-  max-width: 480px;
-  margin: 0 auto;
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: var(--tracking-display);
+  line-height: var(--leading-display);
+  color: var(--color-ink);
+  margin: 0;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+a {
+  color: var(--color-primary-action);
+}
+
+#root {
   min-height: 100dvh;
-  padding: 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Foco visível consistente em toda a aplicação — essencial para navegação
+   por teclado, e o público do app inclui muitos usuários idosos. */
+:focus-visible {
+  outline: 2px solid var(--color-primary-action);
+  outline-offset: 2px;
 }

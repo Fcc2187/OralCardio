@@ -3,7 +3,7 @@ from uuid import UUID
 from app.domain.enums import CardiacCondition
 from app.repositories.interfaces import HealthProfileRepository
 from app.repositories.records import HealthProfileRecord
-from app.services.gamification_service import GamificationService
+from app.services.gamification_service import GamificationService, GamifiedResult
 
 
 class HealthProfileService:
@@ -30,7 +30,7 @@ class HealthProfileService:
         dentist_name: str | None,
         dentist_phone: str | None,
         cardiologist_name: str | None,
-    ) -> HealthProfileRecord:
+    ) -> GamifiedResult[HealthProfileRecord]:
         # is_completed é derivado no servidor: se os campos obrigatórios do
         # questionário chegaram até aqui, é porque já passaram pela validação
         # do schema de entrada — o cliente nunca decide esse valor.
@@ -50,5 +50,5 @@ class HealthProfileService:
         }
 
         profile = self._repository.upsert(user_id, values)
-        self._gamification_service.evaluate_and_unlock(user_id)
-        return profile
+        unlocked = self._gamification_service.evaluate_and_unlock(user_id)
+        return GamifiedResult(value=profile, unlocked_achievements=unlocked)

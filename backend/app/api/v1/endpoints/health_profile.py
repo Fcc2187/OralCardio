@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends
 
 from app.api.deps import get_health_profile_service
 from app.core.security import CurrentUser, get_current_user
+from app.schemas.gamification import WithUnlockedAchievements, unlocked_achievements_output
 from app.schemas.health_profile import HealthProfileInput, HealthProfileOutput
 from app.services.health_profile_service import HealthProfileService
 
@@ -17,13 +18,13 @@ def get_health_profile(
     return HealthProfileOutput.from_record(profile) if profile else None
 
 
-@router.put("/health-profile", response_model=HealthProfileOutput)
+@router.put("/health-profile", response_model=WithUnlockedAchievements[HealthProfileOutput])
 def submit_health_profile(
     payload: HealthProfileInput,
     current_user: CurrentUser = Depends(get_current_user),
     service: HealthProfileService = Depends(get_health_profile_service),
-) -> HealthProfileOutput:
-    profile = service.submit_questionnaire(
+) -> WithUnlockedAchievements[HealthProfileOutput]:
+    result = service.submit_questionnaire(
         user_id=current_user.id,
         cardiac_condition=payload.cardiac_condition,
         cardiac_condition_detail=payload.cardiac_condition_detail,
@@ -39,4 +40,7 @@ def submit_health_profile(
         dentist_phone=payload.dentist_phone,
         cardiologist_name=payload.cardiologist_name,
     )
-    return HealthProfileOutput.from_record(profile)
+    return WithUnlockedAchievements(
+        data=HealthProfileOutput.from_record(result.value),
+        unlocked_achievements=unlocked_achievements_output(result.unlocked_achievements),
+    )

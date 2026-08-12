@@ -7,18 +7,21 @@ from app.core.security import CurrentUser, get_current_user
 from app.domain.enums import AppointmentStatus
 from app.schemas.appointment import AppointmentInput, AppointmentOutput, AppointmentPatchInput
 from app.schemas.common import Page
+from app.schemas.gamification import WithUnlockedAchievements, unlocked_achievements_output
 from app.services.appointment_service import AppointmentService
 
 router = APIRouter()
 
 
-@router.post("/appointments", response_model=AppointmentOutput, status_code=201)
+@router.post(
+    "/appointments", response_model=WithUnlockedAchievements[AppointmentOutput], status_code=201
+)
 def create_appointment(
     payload: AppointmentInput,
     current_user: CurrentUser = Depends(get_current_user),
     service: AppointmentService = Depends(get_appointment_service),
-) -> AppointmentOutput:
-    appointment = service.create_appointment(
+) -> WithUnlockedAchievements[AppointmentOutput]:
+    result = service.create_appointment(
         user_id=current_user.id,
         scheduled_at=payload.scheduled_at.isoformat(),
         appointment_type=payload.appointment_type,
@@ -28,7 +31,10 @@ def create_appointment(
         clinic_phone=payload.clinic_phone,
         notes=payload.notes,
     )
-    return AppointmentOutput.from_record(appointment)
+    return WithUnlockedAchievements(
+        data=AppointmentOutput.from_record(result.value),
+        unlocked_achievements=unlocked_achievements_output(result.unlocked_achievements),
+    )
 
 
 @router.get("/appointments", response_model=Page[AppointmentOutput])

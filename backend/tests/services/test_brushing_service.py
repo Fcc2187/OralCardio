@@ -9,12 +9,13 @@ from tests.fakes.brushing_repository import FakeBrushingRepository
 
 
 class _SpyGamificationService:
-    def __init__(self) -> None:
+    def __init__(self, unlocked: list | None = None) -> None:
         self.evaluate_calls: list[UUID] = []
+        self._unlocked = unlocked or []
 
     def evaluate_and_unlock(self, user_id: UUID) -> list:
         self.evaluate_calls.append(user_id)
-        return []
+        return self._unlocked
 
 
 @pytest.fixture
@@ -43,10 +44,23 @@ def test_complete_session_succeeds_after_all_zones_marked(
     for zone in BrushingZone:
         session = service.mark_zone_completed(session.id, user_id, zone)
 
-    completed = service.complete_session(session.id, user_id)
+    result = service.complete_session(session.id, user_id)
 
-    assert completed.is_completed is True
+    assert result.value.is_completed is True
     assert gamification_spy.evaluate_calls == [user_id]
+
+
+def test_complete_session_propagates_newly_unlocked_achievements(user_id: UUID) -> None:
+    fake_achievement = object()
+    spy = _SpyGamificationService(unlocked=[fake_achievement])
+    service = BrushingService(FakeBrushingRepository(), spy)
+    session = service.start_session(user_id)
+    for zone in BrushingZone:
+        service.mark_zone_completed(session.id, user_id, zone)
+
+    result = service.complete_session(session.id, user_id)
+
+    assert result.unlocked_achievements == [fake_achievement]
 
 
 def test_complete_session_is_idempotent(service: BrushingService, user_id: UUID) -> None:

@@ -5,7 +5,7 @@ from app.domain.appointments import validate_status_transition
 from app.domain.enums import AppointmentStatus, AppointmentType
 from app.repositories.interfaces import AppointmentRepository
 from app.repositories.records import AppointmentRecord
-from app.services.gamification_service import GamificationService
+from app.services.gamification_service import GamificationService, GamifiedResult
 
 
 class AppointmentService:
@@ -25,7 +25,7 @@ class AppointmentService:
         clinic_address: str | None,
         clinic_phone: str | None,
         notes: str | None,
-    ) -> AppointmentRecord:
+    ) -> GamifiedResult[AppointmentRecord]:
         appointment = self._repository.create(
             user_id,
             scheduled_at,
@@ -36,8 +36,8 @@ class AppointmentService:
             clinic_phone,
             notes,
         )
-        self._gamification_service.evaluate_and_unlock(user_id)
-        return appointment
+        unlocked = self._gamification_service.evaluate_and_unlock(user_id)
+        return GamifiedResult(value=appointment, unlocked_achievements=unlocked)
 
     def get_appointment(self, appointment_id: UUID, user_id: UUID) -> AppointmentRecord:
         appointment = self._repository.get_by_id(appointment_id, user_id)

@@ -6,7 +6,7 @@ from app.domain.brushing import is_session_complete, validate_zone_transition
 from app.domain.enums import BrushingZone
 from app.repositories.interfaces import BrushingRepository
 from app.repositories.records import BrushingSessionRecord
-from app.services.gamification_service import GamificationService
+from app.services.gamification_service import GamificationService, GamifiedResult
 
 _DEFAULT_TARGET_DURATION_SECONDS = 120
 
@@ -32,11 +32,13 @@ class BrushingService:
         updated_zones = validate_zone_transition(set(session.zones_completed), zone)
         return self._repository.update_zones(session_id, user_id, sorted(updated_zones, key=str))
 
-    def complete_session(self, session_id: UUID, user_id: UUID) -> BrushingSessionRecord:
+    def complete_session(
+        self, session_id: UUID, user_id: UUID
+    ) -> GamifiedResult[BrushingSessionRecord]:
         session = self._get_owned_session(session_id, user_id)
 
         if session.is_completed:
-            return session
+            return GamifiedResult(value=session, unlocked_achievements=[])
 
         if not is_session_complete(set(session.zones_completed)):
             raise BusinessRuleViolationError(
@@ -45,8 +47,8 @@ class BrushingService:
 
         duration_seconds = self._calculate_duration_seconds(session)
         completed = self._repository.complete(session_id, user_id, duration_seconds)
-        self._gamification_service.evaluate_and_unlock(user_id)
-        return completed
+        unlocked = self._gamification_service.evaluate_and_unlock(user_id)
+        return GamifiedResult(value=completed, unlocked_achievements=unlocked)
 
     def list_sessions(
         self, user_id: UUID, limit: int, offset: int
