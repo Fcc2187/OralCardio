@@ -107,6 +107,8 @@ def get_caregiver_panel_service(
     paciente esse client enxerga.
     """
     return CaregiverPanelService(
+        caregiver_repository=SupabaseCaregiverRepository(client),
+        user_repository=SupabaseUserRepository(client),
         gamification_repository=SupabaseGamificationRepository(client),
         brushing_repository=SupabaseBrushingRepository(client),
         appointment_repository=SupabaseAppointmentRepository(client),

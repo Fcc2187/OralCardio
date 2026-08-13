@@ -159,3 +159,18 @@ class CaregiverRecord:
     invited_at: datetime
     accepted_at: datetime | None
     revoked_at: datetime | None
+
+
+@dataclass(frozen=True)
+class CaregiverPatientView:
+    """Um vínculo do lado do cuidador, com o nome do paciente já resolvido.
+
+    `patient_name` é `None` quando o RLS de `users_select_caregiver` não
+    deixou o cuidador ler a linha do paciente (as duas permissões,
+    `can_view_reports` e `can_view_appointments`, desligadas) — e pode ser
+    `""` quando a leitura funcionou mas `handle_new_user` só tinha um nome
+    vazio para gravar. Os dois casos exigem tratamento no front.
+    """
+
+    link: CaregiverRecord
+    patient_name: str | None

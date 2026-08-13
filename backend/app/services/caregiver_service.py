@@ -21,16 +21,21 @@ class CaregiverService:
         can_view_appointments: bool,
         receive_alerts: bool,
     ) -> CaregiverRecord:
-        if patient_email and _normalize_email(patient_email) == _normalize_email(caregiver_email):
+        normalized_caregiver_email = _normalize_email(caregiver_email)
+        if patient_email and _normalize_email(patient_email) == normalized_caregiver_email:
             raise BusinessRuleViolationError(
                 "Você não pode se convidar como seu próprio cuidador"
             )
 
         caregiver = self._repository.invite(
-            patient_id, caregiver_email, can_view_reports, can_view_appointments, receive_alerts
+            patient_id,
+            normalized_caregiver_email,
+            can_view_reports,
+            can_view_appointments,
+            receive_alerts,
         )
         self._email_sender.send_caregiver_invitation(
-            to_email=caregiver_email, patient_name=patient_name
+            to_email=normalized_caregiver_email, patient_name=patient_name
         )
         return caregiver
 
@@ -65,15 +70,6 @@ class CaregiverService:
 
     def revoke(self, caregiver_link_id: UUID, patient_id: UUID) -> CaregiverRecord:
         return self._repository.revoke(caregiver_link_id, patient_id)
-
-    def list_pending_invitations(self) -> list[CaregiverRecord]:
-        return self._repository.list_pending_invitations_for_current_user()
-
-    def accept_invitation(self, invitation_id: UUID) -> CaregiverRecord:
-        return self._repository.accept_invitation(invitation_id)
-
-    def list_my_patients(self) -> list[CaregiverRecord]:
-        return self._repository.list_active_patients_for_current_user()
 
 
 def _normalize_email(email: str) -> str:

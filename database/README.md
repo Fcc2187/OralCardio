@@ -25,6 +25,11 @@ Supabase (ou via `supabase db push` / CLI) **nesta ordem**:
    / `accept_caregiver_invitation()` que resolvem o fluxo de aceite de convite
    (o RLS padrão de `caregivers` não deixa o cuidador ver o próprio convite
    pendente antes de aceitá-lo).
+8. `008_caregiver_email_normalization.sql` — deduplica e normaliza
+   `caregiver_email` para `lower(trim(...))`, trocando a constraint única
+   case-sensitive por um índice único funcional equivalente. Necessário para
+   o fluxo de reconvite (Fatia 3 / Modo Cuidador) não duplicar vínculos por
+   diferença de maiúsculas.
 
 ## Notas
 

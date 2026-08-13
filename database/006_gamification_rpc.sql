@@ -15,6 +15,11 @@
 -- Também extrai a tabela de níveis (antes inline em handle_new_brushing_session)
 -- para `calculate_level()`, reaproveitada por essa trigger e pela nova RPC —
 -- eliminando a duplicação da regra de progressão em dois lugares.
+--
+-- CONTRATO: `SupabaseRepository._run` (backend) traduz SQLSTATE P0001 em
+-- `BusinessRuleViolationError` e repassa a mensagem de `raise exception`
+-- **verbatim** ao cliente. Toda mensagem de erro nas funções abaixo deve
+-- ser pt-BR apropriada para o paciente ler diretamente.
 -- =============================================================================
 
 create type level_info as (level smallint, name text);

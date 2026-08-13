@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import { healthProfileQueryKey } from "@/shared/api/queryKeys";
 import { invalidateGamifiedQueries } from "@/shared/api/invalidateGamifiedQueries";
@@ -15,6 +15,8 @@ import { Screen } from "@/shared/components/layout/Screen";
 import { CARDIAC_CONDITION_LABELS, type CardiacCondition } from "@/shared/types/healthProfile";
 import { HttpError } from "@/shared/api/httpClient";
 
+import { useInvitationsQuery } from "@/features/caregivers/api/useCaregiverQueries";
+
 import { submitHealthProfile } from "../api/healthProfileMutationApi";
 import { buildHealthProfilePayload, INITIAL_QUESTIONNAIRE_STATE } from "../buildHealthProfilePayload";
 
@@ -22,6 +24,11 @@ export function HealthQuestionnairePage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const announce = useAnnounceAchievements();
+  // Escape hatch para quem só é cuidador (nunca paciente): sem isso, a
+  // filha adulta que só quer acompanhar o pai cardíaco ficaria presa aqui,
+  // sem meio de chegar em /acompanhando sem inventar uma condição cardíaca
+  // sobre si mesma (ver "bloqueador #4" no plano da fatia de Modo Cuidador).
+  const invitationsQuery = useInvitationsQuery();
 
   const [form, setForm] = useState(INITIAL_QUESTIONNAIRE_STATE);
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -171,6 +178,15 @@ export function HealthQuestionnairePage() {
           {mutation.isPending ? "Salvando…" : "Concluir"}
         </Button>
       </form>
+
+      {(invitationsQuery.data?.length ?? 0) > 0 ? (
+        <Link
+          to="/acompanhando"
+          className="flex min-h-tap-target-min items-center justify-center font-body text-body-sm text-primary-action"
+        >
+          Você foi convidado para acompanhar alguém → Ver convites
+        </Link>
+      ) : null}
     </Screen>
   );
 }

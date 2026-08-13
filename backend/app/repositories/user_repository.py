@@ -58,3 +58,21 @@ class SupabaseUserRepository(SupabaseRepository):
         if not rows:
             raise EntityNotFoundError("Usuário", str(user_id))
         return _to_record(rows[0])
+
+    def list_by_ids(self, user_ids: list[UUID]) -> list[UserRecord]:
+        if not user_ids:
+            # PostgREST devolve 400 para `in.()` vazio — guard evita a
+            # chamada em vez de tratar o erro.
+            return []
+
+        def operation():
+            response = (
+                self._client.table(_TABLE)
+                .select("*")
+                .in_("id", [str(user_id) for user_id in user_ids])
+                .execute()
+            )
+            return response.data
+
+        rows = self._run("Usuário", operation)
+        return [_to_record(row) for row in rows]

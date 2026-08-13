@@ -8,10 +8,18 @@ from app.repositories.records import CaregiverRecord
 
 
 class FakeCaregiverRepository:
-    """Simula, em memória, tanto o CRUD do lado do paciente quanto as RPCs
-    `SECURITY DEFINER` do lado do cuidador — por isso recebe explicitamente a
-    identidade do "usuário autenticado" atual, que no banco real vem de
-    `auth.uid()`/`auth.users.email` dentro da função.
+    """Simula, em memória, tanto o CRUD do lado do paciente quanto as
+    consultas do lado do cuidador (RPCs `SECURITY DEFINER` e o SELECT sujeito
+    a RLS de `list_active_patients_for_current_user`) — por isso recebe
+    explicitamente a identidade do "usuário autenticado" atual, que no banco
+    real vem de `auth.uid()`/`auth.users.email`.
+
+    Regra geral: o fake modela a permissão do datastore, não a intenção de
+    quem chama. `list_active_patients_for_current_user` é o exemplo concreto
+    — o parâmetro `caregiver_user_id` é o único filtro que decide "sou eu o
+    cuidador daquele vínculo", espelhando exatamente o `.eq(...)` que o
+    repositório real aplica por cima do RLS (que sozinho não filtraria,
+    porque também libera os vínculos em que o usuário é o PACIENTE).
     """
 
     def __init__(self, current_user_id: UUID, current_user_email: str) -> None:
@@ -27,12 +35,35 @@ class FakeCaregiverRepository:
         can_view_appointments: bool,
         receive_alerts: bool,
     ) -> CaregiverRecord:
-        for link in self._links.values():
-            if (
-                link.patient_id == patient_id
+        # Mesmo resultado observável do insert-first-then-reactivate real
+        # (ver SupabaseCaregiverRepository.invite), mas implementado como
+        # select-then-branch: o fake é single-threaded, não há TOCTOU real
+        # para evitar aqui.
+        existing = next(
+            (
+                link
+                for link in self._links.values()
+                if link.patient_id == patient_id
                 and link.caregiver_email.lower() == caregiver_email.lower()
-            ):
+            ),
+            None,
+        )
+        if existing is not None:
+            if existing.status != CaregiverStatus.REVOKED:
                 raise ConflictError("Vínculo de cuidador já existe")
+            reactivated = replace(
+                existing,
+                status=CaregiverStatus.PENDING,
+                caregiver_user_id=None,
+                accepted_at=None,
+                revoked_at=None,
+                invited_at=datetime.now(UTC),
+                can_view_reports=can_view_reports,
+                can_view_appointments=can_view_appointments,
+                receive_alerts=receive_alerts,
+            )
+            self._links[existing.id] = reactivated
+            return reactivated
 
         link_id = uuid4()
         record = CaregiverRecord(
@@ -102,10 +133,12 @@ class FakeCaregiverRepository:
         self._links[invitation_id] = updated
         return updated
 
-    def list_active_patients_for_current_user(self) -> list[CaregiverRecord]:
+    def list_active_patients_for_current_user(
+        self, caregiver_user_id: UUID
+    ) -> list[CaregiverRecord]:
         return [
             link
             for link in self._links.values()
             if link.status == CaregiverStatus.ACTIVE
-            and link.caregiver_user_id == self._current_user_id
+            and link.caregiver_user_id == caregiver_user_id
         ]

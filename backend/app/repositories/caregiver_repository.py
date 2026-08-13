@@ -1,7 +1,7 @@
 from datetime import UTC, datetime
 from uuid import UUID
 
-from app.core.exceptions import EntityNotFoundError
+from app.core.exceptions import ConflictError, EntityNotFoundError
 from app.domain.enums import CaregiverStatus
 from app.repositories.base import SupabaseRepository
 from app.repositories.parsing import parse_datetime, parse_required_datetime
@@ -35,6 +35,16 @@ class SupabaseCaregiverRepository(SupabaseRepository):
         can_view_appointments: bool,
         receive_alerts: bool,
     ) -> CaregiverRecord:
+        """Cria o vínculo — ou reativa um vínculo revogado com o mesmo e-mail.
+
+        Insert-first, não select-then-branch: o índice único
+        `caregivers_unique_invite` (patient_id, lower(caregiver_email)) é o
+        árbitro de conflito, não um `if` em Python. O caminho feliz (primeiro
+        convite, o caso dominante) custa um round trip só; um select prévio
+        custaria dois sempre, e ainda teria uma corrida real contra o INSERT.
+        `caregiver_email` já deve chegar normalizado (lower/trim) — quem
+        normaliza é o service, na escrita.
+        """
         payload = {
             "patient_id": str(patient_id),
             "caregiver_email": caregiver_email,
@@ -47,8 +57,57 @@ class SupabaseCaregiverRepository(SupabaseRepository):
             response = self._client.table(_TABLE).insert(payload).execute()
             return response.data
 
+        try:
+            rows = self._run("Vínculo de cuidador", operation)
+            return _to_record(rows[0])
+        except ConflictError:
+            reactivated = self._reactivate_revoked(
+                patient_id,
+                caregiver_email,
+                can_view_reports,
+                can_view_appointments,
+                receive_alerts,
+            )
+            if reactivated is None:
+                raise
+            return reactivated
+
+    def _reactivate_revoked(
+        self,
+        patient_id: UUID,
+        caregiver_email: str,
+        can_view_reports: bool,
+        can_view_appointments: bool,
+        receive_alerts: bool,
+    ) -> CaregiverRecord | None:
+        # O UPDATE se auto-protege contra corrida: dois reconvites
+        # concorrentes só encontram UMA linha com status='revoked' — o
+        # segundo casa zero linhas (o primeiro já mudou o status) e volta
+        # `None`, propagando o 409 original, que é verdade naquele instante.
+        payload = {
+            "status": CaregiverStatus.PENDING.value,
+            "caregiver_user_id": None,
+            "accepted_at": None,
+            "revoked_at": None,
+            "invited_at": datetime.now(UTC).isoformat(),
+            "can_view_reports": can_view_reports,
+            "can_view_appointments": can_view_appointments,
+            "receive_alerts": receive_alerts,
+        }
+
+        def operation():
+            response = (
+                self._client.table(_TABLE)
+                .update(payload)
+                .eq("patient_id", str(patient_id))
+                .eq("caregiver_email", caregiver_email)
+                .eq("status", CaregiverStatus.REVOKED.value)
+                .execute()
+            )
+            return response.data
+
         rows = self._run("Vínculo de cuidador", operation)
-        return _to_record(rows[0])
+        return _to_record(rows[0]) if rows else None
 
     def list_by_patient(self, patient_id: UUID) -> list[CaregiverRecord]:
         def operation():
@@ -136,12 +195,20 @@ class SupabaseCaregiverRepository(SupabaseRepository):
         row = self._run("Convite de cuidador", operation)
         return _to_record(row)
 
-    def list_active_patients_for_current_user(self) -> list[CaregiverRecord]:
+    def list_active_patients_for_current_user(
+        self, caregiver_user_id: UUID
+    ) -> list[CaregiverRecord]:
+        # `caregivers` tem duas políticas de RLS permissivas em OR
+        # (patient_id = auth.uid() OU caregiver_user_id = auth.uid()) — RLS
+        # sozinho não filtra "meus pacientes" aqui, porque também libera os
+        # vínculos em que o usuário atual é o PACIENTE. O `.eq()` abaixo é o
+        # único filtro que restringe ao lado cuidador.
         def operation():
             response = (
                 self._client.table(_TABLE)
                 .select("*")
                 .eq("status", CaregiverStatus.ACTIVE.value)
+                .eq("caregiver_user_id", str(caregiver_user_id))
                 .execute()
             )
             return response.data

@@ -10,6 +10,11 @@
 -- Isso diverge da seção 6 original da documentação técnica (que sugeria
 -- mediar via FastAPI); a documentação foi atualizada para refletir esta
 -- decisão mais segura.
+--
+-- CONTRATO: `SupabaseRepository._run` (backend) traduz SQLSTATE P0001 em
+-- `BusinessRuleViolationError` e repassa a mensagem de `raise exception`
+-- **verbatim** ao cliente. Toda mensagem de erro nas funções abaixo deve
+-- ser pt-BR apropriada para o paciente ler diretamente.
 -- =============================================================================
 
 -- -----------------------------------------------------------------------------

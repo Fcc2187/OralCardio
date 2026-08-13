@@ -4,7 +4,7 @@ from uuid import UUID
 from pydantic import BaseModel, EmailStr
 
 from app.domain.enums import CaregiverStatus
-from app.repositories.records import CaregiverRecord
+from app.repositories.records import CaregiverPatientView, CaregiverRecord
 
 
 class CaregiverInviteInput(BaseModel):
@@ -36,3 +36,17 @@ class CaregiverOutput(BaseModel):
     @classmethod
     def from_record(cls, record: CaregiverRecord) -> "CaregiverOutput":
         return cls(**record.__dict__)
+
+
+class CaregiverPatientOutput(CaregiverOutput):
+    """Vínculo do lado do cuidador, com o nome do paciente anexado.
+
+    Herda de `CaregiverOutput` em vez de duplicar os 11 campos como classe
+    irmã — os dois contratos divergiriam com o tempo.
+    """
+
+    patient_name: str | None
+
+    @classmethod
+    def from_view(cls, view: CaregiverPatientView) -> "CaregiverPatientOutput":
+        return cls(**view.link.__dict__, patient_name=view.patient_name)

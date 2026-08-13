@@ -23,3 +23,6 @@ class FakeUserRepository:
         )
         self._users[user_id] = updated
         return updated
+
+    def list_by_ids(self, user_ids: list[UUID]) -> list[UserRecord]:
+        return [self._users[user_id] for user_id in user_ids if user_id in self._users]

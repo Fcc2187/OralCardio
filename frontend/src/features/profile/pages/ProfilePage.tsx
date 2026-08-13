@@ -9,6 +9,7 @@ import { TextField } from "@/shared/components/ui/TextField";
 import { Screen } from "@/shared/components/layout/Screen";
 
 import { userProfileQueryKey } from "@/shared/api/queryKeys";
+import { CaregiverProfileEntries } from "@/features/caregivers/components/CaregiverProfileEntries";
 
 import { fetchUserProfile, updateUserProfile, type UserProfile } from "../api/userApi";
 
@@ -93,6 +94,8 @@ function ProfileForm({ profile }: { profile: UserProfile }) {
           {mutation.isPending ? "Salvando…" : "Salvar"}
         </Button>
       </form>
+
+      <CaregiverProfileEntries />
 
       <Button variant="secondary" onClick={handleSignOut}>
         Sair
