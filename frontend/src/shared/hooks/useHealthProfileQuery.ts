@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { fetchHealthProfile, healthProfileQueryKey } from "@/shared/api/healthProfileApi";
+import { fetchHealthProfile } from "@/shared/api/healthProfileApi";
+import { healthProfileQueryKey } from "@/shared/api/queryKeys";
 import { useAuth } from "@/shared/auth/AuthProvider";
 
 export function useHealthProfileQuery() {

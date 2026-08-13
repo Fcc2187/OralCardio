@@ -1,7 +1,7 @@
 import type { Session, User } from "@supabase/supabase-js";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 
-import { supabaseClient } from "@/lib/supabaseClient";
+import { setCurrentAccessToken, supabaseClient } from "@/lib/supabaseClient";
 
 interface SignUpParams {
   email: string;
@@ -30,6 +30,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     supabaseClient.auth.getSession().then(({ data }) => {
+      setCurrentAccessToken(data.session?.access_token ?? null);
       setSession(data.session);
       setIsLoading(false);
     });
@@ -37,6 +38,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const {
       data: { subscription },
     } = supabaseClient.auth.onAuthStateChange((_event, newSession) => {
+      setCurrentAccessToken(newSession?.access_token ?? null);
       setSession(newSession);
     });
 

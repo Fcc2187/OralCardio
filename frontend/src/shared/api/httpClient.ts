@@ -1,4 +1,4 @@
-import { supabaseClient } from "@/lib/supabaseClient";
+import { getCurrentAccessToken, supabaseClient } from "@/lib/supabaseClient";
 import { env } from "@/config/env";
 
 export class HttpError extends Error {
@@ -39,14 +39,13 @@ function extractErrorMessage(body: unknown, fallbackMessage: string): string {
   return fallbackMessage;
 }
 
-async function buildAuthHeader(): Promise<Record<string, string>> {
-  const { data } = await supabaseClient.auth.getSession();
-  const accessToken = data.session?.access_token;
+function buildAuthHeader(): Record<string, string> {
+  const accessToken = getCurrentAccessToken();
   return accessToken ? { Authorization: `Bearer ${accessToken}` } : {};
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const authHeader = await buildAuthHeader();
+  const authHeader = buildAuthHeader();
 
   const response = await fetch(`${env.apiBaseUrl}${path}`, {
     ...init,
@@ -86,6 +85,8 @@ export const httpClient = {
   get: <T>(path: string) => request<T>(path, { method: "GET" }),
   post: <T>(path: string, body?: unknown) =>
     request<T>(path, { method: "POST", body: serializeBody(body) }),
+  put: <T>(path: string, body?: unknown) =>
+    request<T>(path, { method: "PUT", body: serializeBody(body) }),
   patch: <T>(path: string, body?: unknown) =>
     request<T>(path, { method: "PATCH", body: serializeBody(body) }),
   delete: <T>(path: string) => request<T>(path, { method: "DELETE" }),

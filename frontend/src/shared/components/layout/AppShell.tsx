@@ -1,9 +1,18 @@
-import type { PropsWithChildren } from "react";
+import { Outlet } from "react-router-dom";
+
+import { BottomNav } from "./BottomNav";
 
 /**
- * Casco visual mobile-first da aplicação. As telas futuras (dashboard, timer,
- * módulos, agenda, cuidador) serão renderizadas dentro deste shell.
+ * Casco visual das rotas autenticadas com perfil completo: conteúdo rolável
+ * com espaço reservado para a navegação inferior fixa.
  */
-export function AppShell({ children }: PropsWithChildren) {
-  return <div className="app-shell">{children}</div>;
+export function AppShell() {
+  return (
+    <div className="flex min-h-dvh flex-col">
+      <main className="flex-1 pb-[calc(var(--spacing-bottom-nav-height)+var(--spacing-lg))]">
+        <Outlet />
+      </main>
+      <BottomNav />
+    </div>
+  );
 }

@@ -12,6 +12,7 @@ class DashboardSummary:
     full_name: str
     health_profile_completed: bool
     brushed_today: bool
+    flossed_today: bool
     current_streak_days: int
     total_points: int
     level: int
@@ -42,6 +43,7 @@ class DashboardService:
             full_name=user.full_name,
             health_profile_completed=bool(health_profile and health_profile.is_completed),
             brushed_today=stats.last_brushing_date == date.today(),
+            flossed_today=stats.last_flossing_date == date.today(),
             current_streak_days=stats.current_streak_days,
             total_points=stats.total_points,
             level=stats.level,

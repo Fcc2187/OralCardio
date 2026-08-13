@@ -88,7 +88,14 @@
   /* Espaçamento — base 4px, ritmo de seção reduzido para mobile-first
      (96px é ritmo de página de marketing desktop; vira rolagem vazia numa
      coluna estreita de app). --space-section fica fora do @theme porque
-     seu valor muda em breakpoint — ver bloco @media abaixo. */
+     seu valor muda em breakpoint — ver bloco @media abaixo.
+
+     Atenção: sm/md/lg/xl aqui colidem em nome com a escala nomeada que o
+     Tailwind usa para --container-* (a origem de max-w-md, max-w-lg...).
+     Como max-width também aceita a escala de spacing, esses nomes vencem
+     a escala de container e "sequestram" max-w-md/max-w-sm silenciosamente
+     (max-w-md virava 1rem em vez dos 28rem esperados). Por isso max-width
+     nas telas usa valores arbitrários (max-w-[28rem]) em vez do nome. */
   --spacing-xxs: 0.25rem; /* 4px */
   --spacing-xs: 0.5rem; /* 8px */
   --spacing-sm: 0.75rem; /* 12px */
@@ -113,6 +120,7 @@
 
   /* Bottom nav / safe area (PWA mobile) */
   --spacing-bottom-nav-height: 64px;
+  --spacing-safe-area-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 /* --space-section não entra no @theme (não pode variar por media query
@@ -120,7 +128,6 @@
    arbitrary value (p-(--space-section)) onde for preciso. */
 :root {
   --space-section: 3rem; /* 48px no mobile */
-  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 @media (min-width: 768px) {
@@ -129,59 +136,67 @@
   }
 }
 
-:root {
-  color-scheme: light;
-}
+/* @layer base: qualquer regra fora de um @layer é, por definição do CSS
+   Cascade Layers, mais forte que TUDO que está dentro de um @layer —
+   inclusive @layer utilities do Tailwind, não importa a especificidade.
+   Sem este wrap, "a { color: ... }" abaixo vencia .text-muted/.text-* em
+   qualquer <a>, e foi exatamente isso que quebrava o estado inativo do
+   BottomNav (todo item aparecia coral, o :not(.active) nunca vencia). */
+@layer base {
+  :root {
+    color-scheme: light;
+  }
 
-html,
-body {
-  margin: 0;
-  padding: 0;
-}
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+  }
 
-body {
-  min-height: 100dvh;
-  background-color: var(--color-canvas);
-  color: var(--color-body);
-  font-family: var(--font-body);
-  font-size: var(--text-body-md);
-  line-height: var(--leading-body);
-  -webkit-font-smoothing: antialiased;
-  -webkit-tap-highlight-color: transparent;
-}
+  body {
+    min-height: 100dvh;
+    background-color: var(--color-canvas);
+    color: var(--color-body);
+    font-family: var(--font-body);
+    font-size: var(--text-body-md);
+    line-height: var(--leading-body);
+    -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
+  }
 
-h1,
-h2,
-h3 {
-  font-family: var(--font-display);
-  font-weight: 400;
-  letter-spacing: var(--tracking-display);
-  line-height: var(--leading-display);
-  color: var(--color-ink);
-  margin: 0;
-}
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    letter-spacing: var(--tracking-display);
+    line-height: var(--leading-display);
+    color: var(--color-ink);
+    margin: 0;
+  }
 
-button,
-input,
-select,
-textarea {
-  font-family: inherit;
-  font-size: inherit;
-}
+  button,
+  input,
+  select,
+  textarea {
+    font-family: inherit;
+    font-size: inherit;
+  }
 
-a {
-  color: var(--color-primary-action);
-}
+  a {
+    color: var(--color-primary-action);
+  }
 
-#root {
-  min-height: 100dvh;
-  display: flex;
-  flex-direction: column;
-}
+  #root {
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+  }
 
-/* Foco visível consistente em toda a aplicação — essencial para navegação
-   por teclado, e o público do app inclui muitos usuários idosos. */
-:focus-visible {
-  outline: 2px solid var(--color-primary-action);
-  outline-offset: 2px;
+  /* Foco visível consistente em toda a aplicação — essencial para navegação
+     por teclado, e o público do app inclui muitos usuários idosos. */
+  :focus-visible {
+    outline: 2px solid var(--color-primary-action);
+    outline-offset: 2px;
+  }
 }
