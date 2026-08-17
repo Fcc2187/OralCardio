@@ -5,7 +5,6 @@ from fastapi import APIRouter, Depends
 from app.api.deps import get_education_service
 from app.core.security import CurrentUser, get_current_user
 from app.schemas.education import EducationModuleOutput, ModuleCompleteInput
-from app.schemas.gamification import WithUnlockedAchievements, unlocked_achievements_output
 from app.services.education_service import EducationService
 
 router = APIRouter()
@@ -42,16 +41,13 @@ def start_module(
 
 @router.post(
     "/education/modules/{module_id}/complete",
-    response_model=WithUnlockedAchievements[EducationModuleOutput],
+    response_model=EducationModuleOutput,
 )
 def complete_module(
     module_id: UUID,
     payload: ModuleCompleteInput,
     current_user: CurrentUser = Depends(get_current_user),
     service: EducationService = Depends(get_education_service),
-) -> WithUnlockedAchievements[EducationModuleOutput]:
+) -> EducationModuleOutput:
     result = service.complete_module(current_user.id, module_id, payload.read_time_seconds)
-    return WithUnlockedAchievements(
-        data=EducationModuleOutput.from_module_with_progress(result.value),
-        unlocked_achievements=unlocked_achievements_output(result.unlocked_achievements),
-    )
+    return EducationModuleOutput.from_module_with_progress(result)

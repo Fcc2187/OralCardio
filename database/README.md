@@ -4,7 +4,7 @@ Scripts SQL para o projeto Supabase (PostgreSQL 15+). Aplique no **SQL Editor** 
 Supabase (ou via `supabase db push` / CLI) **nesta ordem**:
 
 1. `001_extensions_and_enums.sql` — extensões e tipos ENUM usados pelas tabelas.
-2. `002_schema.sql` — as 11 tabelas do domínio, com PKs, FKs, constraints e índices.
+2. `002_schema.sql` — schema-base histórico, com PKs, FKs, constraints e índices.
 3. `003_triggers.sql` — funções e triggers automáticas (`handle_new_user`,
    `handle_updated_at`, `handle_new_brushing_session`).
 4. `004_rls_policies.sql` — habilita Row Level Security e cria as políticas de
@@ -18,26 +18,36 @@ Supabase (ou via `supabase db push` / CLI) **nesta ordem**:
    e cria a função `unlock_achievement()` — a única forma de o backend
    registrar o desbloqueio de uma conquista, já que `user_stats` e
    `user_achievements` são somente-leitura para o usuário via RLS.
-7. `007_caregiver_access.sql` — políticas de RLS que liberam **SELECT** ao
-   cuidador (via `is_active_caregiver()`) sobre os dados do paciente que ele
-   acompanha, respeitando as permissões granulares (`can_view_reports` /
-   `can_view_appointments`); e as funções `list_pending_caregiver_invitations()`
-   / `accept_caregiver_invitation()` que resolvem o fluxo de aceite de convite
-   (o RLS padrão de `caregivers` não deixa o cuidador ver o próprio convite
-   pendente antes de aceitá-lo).
-8. `008_caregiver_email_normalization.sql` — deduplica e normaliza
-   `caregiver_email` para `lower(trim(...))`, trocando a constraint única
-   case-sensitive por um índice único funcional equivalente. Necessário para
-   o fluxo de reconvite (Fatia 3 / Modo Cuidador) não duplicar vínculos por
-   diferença de maiúsculas.
+7. `007_caregiver_access.sql` — migração histórica do antigo modo cuidador.
+8. `008_caregiver_email_normalization.sql` — migração histórica de normalização
+   dos convites do antigo modo cuidador.
+9. `009_habit_scoring.sql` — centraliza o calendário de negócio em
+   `America/Sao_Paulo`, torna a pontuação de escovação e fio dental ilimitada,
+   adiciona contadores diários e reconcilia os dados históricos uma única vez.
+10. `010_delayed_achievement_reveals.sql` — concede o bônus de conquistas no
+    desbloqueio, agenda sua visibilidade para o dia seguinte e cria as RPCs
+    idempotentes de claim/acknowledge com lease.
+11. `011_remove_caregivers.sql` — remove definitivamente políticas, funções,
+    dados, tabela e enum do antigo modo cuidador.
+
+> Faça backup do projeto Supabase antes de aplicar a `011`; os vínculos
+> excluídos só poderão ser recuperados a partir desse backup.
+
+## Ordem de rollout em produção
+
+1. Criar e validar o backup.
+2. Aplicar as migrações aditivas `009` e `010`.
+3. Publicar backend e frontend de forma coordenada.
+4. Aplicar a migração destrutiva `011` somente após retirar o código antigo.
 
 ## Notas
 
-- O acesso de **cuidadores** aos dados do paciente é garantido inteiramente
-  por **RLS** (`007_caregiver_access.sql`), não pela `service_role` no
-  FastAPI — ver seção 6 da documentação técnica. O backend nunca usa a
-  `service_role` para ler dado de paciente; sempre opera com o JWT de quem
-  está autenticado, seja paciente ou cuidador.
-- Após rodar os scripts, copie a **Project URL**, a **anon key** e a
-  **service_role key** do painel do Supabase (Settings → API) para os arquivos
-  `backend/.env` e `frontend/.env` (veja os respectivos `.env.example`).
+- As migrações são sequenciais e imutáveis. Os arquivos `007` e `008`
+  permanecem no histórico; o estado final do schema é definido pela `011`.
+- Todas as tabelas de paciente usam RLS para permitir acesso somente ao próprio
+  usuário. Catálogos permanecem disponíveis para leitura autenticada.
+- Após rodar os scripts, copie a **Project URL** e a **anon key** do painel do
+  Supabase (Settings → API) para os arquivos `backend/.env` e `frontend/.env`
+  (veja os respectivos `.env.example`).
+- O teste transacional do estado final está documentado em
+  [`tests/README.md`](tests/README.md).

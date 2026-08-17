@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 
-import { useAnnounceAchievements } from "@/shared/achievements/AchievementUnlockProvider";
 import { invalidateGamifiedQueries } from "@/shared/api/invalidateGamifiedQueries";
 import { appointmentsListQueryKey } from "@/shared/api/queryKeys";
 import { Screen } from "@/shared/components/layout/Screen";
@@ -16,15 +15,13 @@ import { AppointmentForm } from "../components/AppointmentForm";
 export function NewAppointmentPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const announce = useAnnounceAchievements();
   const [validationError, setValidationError] = useState<string | null>(null);
 
   const mutation = useMutation({
     mutationFn: createAppointment,
-    onSuccess: (result) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: appointmentsListQueryKey });
       invalidateGamifiedQueries(queryClient);
-      announce(result.unlocked_achievements);
       navigate("/agenda", { replace: true });
     },
   });

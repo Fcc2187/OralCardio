@@ -10,13 +10,11 @@ from tests.fakes.education_repository import FakeEducationRepository
 
 
 class _SpyGamificationService:
-    def __init__(self, unlocked: list | None = None) -> None:
+    def __init__(self) -> None:
         self.evaluate_calls: list[UUID] = []
-        self._unlocked = unlocked or []
 
-    def evaluate_and_unlock(self, user_id: UUID) -> list:
+    def evaluate_and_unlock(self, user_id: UUID) -> None:
         self.evaluate_calls.append(user_id)
-        return self._unlocked
 
 
 @pytest.fixture
@@ -55,21 +53,9 @@ def test_complete_module_unlocks_progress_and_triggers_evaluation(
 ) -> None:
     result = service.complete_module(user_id, module.id, read_time_seconds=120)
 
-    assert result.value.progress is not None
-    assert result.value.progress.is_completed is True
+    assert result.progress is not None
+    assert result.progress.is_completed is True
     assert gamification_spy.evaluate_calls == [user_id]
-
-
-def test_complete_module_propagates_newly_unlocked_achievements(
-    module: EducationModuleRecord, user_id: UUID
-) -> None:
-    fake_achievement = object()
-    spy = _SpyGamificationService(unlocked=[fake_achievement])
-    service = EducationService(FakeEducationRepository([module]), spy)
-
-    result = service.complete_module(user_id, module.id, read_time_seconds=120)
-
-    assert result.unlocked_achievements == [fake_achievement]
 
 
 def test_complete_module_twice_does_not_recount(

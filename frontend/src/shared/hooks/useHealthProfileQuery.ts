@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { fetchHealthProfile } from "@/shared/api/healthProfileApi";
 import { healthProfileQueryKey } from "@/shared/api/queryKeys";
-import { useAuth } from "@/shared/auth/AuthProvider";
+import { useAuth } from "@/shared/auth/authContext";
 
 export function useHealthProfileQuery() {
   const { session } = useAuth();

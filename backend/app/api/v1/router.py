@@ -3,8 +3,6 @@ from fastapi import APIRouter
 from app.api.v1.endpoints import (
     appointments,
     brushing,
-    caregiver_panel,
-    caregivers,
     dashboard,
     education,
     flossing,
@@ -24,5 +22,3 @@ api_router.include_router(education.router, tags=["education"])
 api_router.include_router(gamification.router, tags=["gamification"])
 api_router.include_router(dashboard.router, tags=["dashboard"])
 api_router.include_router(appointments.router, tags=["appointments"])
-api_router.include_router(caregivers.router, tags=["caregivers"])
-api_router.include_router(caregiver_panel.router, tags=["caregiver-panel"])

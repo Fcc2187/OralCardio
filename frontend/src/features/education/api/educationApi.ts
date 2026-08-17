@@ -1,5 +1,4 @@
 import { httpClient } from "@/shared/api/httpClient";
-import type { WithUnlockedAchievements } from "@/shared/types/gamification";
 
 import type { EducationModule } from "../types";
 
@@ -18,8 +17,8 @@ export function startModule(moduleId: string): Promise<EducationModule> {
 export function completeModule(
   moduleId: string,
   readTimeSeconds: number,
-): Promise<WithUnlockedAchievements<EducationModule>> {
-  return httpClient.post<WithUnlockedAchievements<EducationModule>>(
+): Promise<EducationModule> {
+  return httpClient.post<EducationModule>(
     `/api/v1/education/modules/${moduleId}/complete`,
     { read_time_seconds: readTimeSeconds },
   );

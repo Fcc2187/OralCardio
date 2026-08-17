@@ -6,7 +6,6 @@ from app.repositories.records import (
     AchievementRecord,
     AppointmentRecord,
     BrushingSessionRecord,
-    CaregiverRecord,
     EducationModuleRecord,
     FlossingLogRecord,
     HealthProfileRecord,
@@ -96,6 +95,10 @@ class GamificationRepository(Protocol):
 
     def unlock_achievement(self, achievement_id: UUID) -> None: ...
 
+    def claim_due_achievement_reveals(self) -> list[AchievementRecord]: ...
+
+    def acknowledge_achievement_reveals(self, achievement_ids: list[UUID]) -> None: ...
+
 
 class AppointmentRepository(Protocol):
     def create(
@@ -125,32 +128,3 @@ class AppointmentRepository(Protocol):
     ) -> list[AppointmentRecord]: ...
 
     def has_any(self, user_id: UUID) -> bool: ...
-
-
-class CaregiverRepository(Protocol):
-    def invite(
-        self,
-        patient_id: UUID,
-        caregiver_email: str,
-        can_view_reports: bool,
-        can_view_appointments: bool,
-        receive_alerts: bool,
-    ) -> CaregiverRecord: ...
-
-    def list_by_patient(self, patient_id: UUID) -> list[CaregiverRecord]: ...
-
-    def get_by_id(self, caregiver_link_id: UUID, patient_id: UUID) -> CaregiverRecord | None: ...
-
-    def update_permissions(
-        self, caregiver_link_id: UUID, patient_id: UUID, values: dict
-    ) -> CaregiverRecord: ...
-
-    def revoke(self, caregiver_link_id: UUID, patient_id: UUID) -> CaregiverRecord: ...
-
-    def list_pending_invitations_for_current_user(self) -> list[CaregiverRecord]: ...
-
-    def accept_invitation(self, invitation_id: UUID) -> CaregiverRecord: ...
-
-    def list_active_patients_for_current_user(
-        self, caregiver_user_id: UUID
-    ) -> list[CaregiverRecord]: ...

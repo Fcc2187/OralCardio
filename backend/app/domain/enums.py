@@ -51,9 +51,3 @@ class AppointmentStatus(StrEnum):
     COMPLETED = "completed"
     CANCELLED = "cancelled"
     RESCHEDULED = "rescheduled"
-
-
-class CaregiverStatus(StrEnum):
-    PENDING = "pending"
-    ACTIVE = "active"
-    REVOKED = "revoked"

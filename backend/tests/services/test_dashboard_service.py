@@ -6,6 +6,9 @@ import pytest
 
 from app.repositories.records import UserStatsRecord
 from app.services.dashboard_service import DashboardService
+from tests.fakes.clock import FakeBusinessClock
+
+_TODAY = date(2026, 8, 17)
 
 
 @dataclass(frozen=True)
@@ -60,33 +63,40 @@ def _build_service(
         total_flossings=1,
         last_brushing_date=last_brushing_date,
         last_flossing_date=last_flossing_date,
+        brushings_on_last_date=3,
+        flossings_on_last_date=2,
     )
     return DashboardService(
         user_service=_StubUserService(_StubUser(full_name="Maria Silva")),
         health_profile_service=_StubHealthProfileService(health_profile),
         gamification_service=_StubGamificationService(stats),
+        clock=FakeBusinessClock(_TODAY),
     )
 
 
 def test_brushed_and_flossed_today_are_true_when_dates_match_today(user_id: UUID) -> None:
     service = _build_service(
-        user_id, last_brushing_date=date.today(), last_flossing_date=date.today()
+        user_id, last_brushing_date=_TODAY, last_flossing_date=_TODAY
     )
 
     summary = service.get_summary(user_id)
 
     assert summary.brushed_today is True
     assert summary.flossed_today is True
+    assert summary.brushings_today == 3
+    assert summary.flossings_today == 2
 
 
 def test_brushed_and_flossed_today_are_false_when_dates_are_in_the_past(user_id: UUID) -> None:
-    yesterday = date.today() - timedelta(days=1)
+    yesterday = _TODAY - timedelta(days=1)
     service = _build_service(user_id, last_brushing_date=yesterday, last_flossing_date=yesterday)
 
     summary = service.get_summary(user_id)
 
     assert summary.brushed_today is False
     assert summary.flossed_today is False
+    assert summary.brushings_today == 0
+    assert summary.flossings_today == 0
 
 
 def test_brushed_and_flossed_today_are_false_when_never_logged(user_id: UUID) -> None:
@@ -99,12 +109,32 @@ def test_brushed_and_flossed_today_are_false_when_never_logged(user_id: UUID) ->
 
 
 def test_brushed_and_flossed_today_are_independent_of_each_other(user_id: UUID) -> None:
-    service = _build_service(user_id, last_brushing_date=date.today(), last_flossing_date=None)
+    service = _build_service(user_id, last_brushing_date=_TODAY, last_flossing_date=None)
 
     summary = service.get_summary(user_id)
 
     assert summary.brushed_today is True
     assert summary.flossed_today is False
+
+
+def test_daily_counts_use_the_aggregates_from_the_last_business_date(user_id: UUID) -> None:
+    service = _build_service(user_id, last_brushing_date=_TODAY, last_flossing_date=_TODAY)
+    summary = service.get_summary(user_id)
+    assert (summary.brushings_today, summary.flossings_today) == (3, 2)
+
+
+def test_stale_daily_aggregates_are_hidden_after_the_date_changes(user_id: UUID) -> None:
+    yesterday = _TODAY - timedelta(days=1)
+    service = _build_service(user_id, last_brushing_date=yesterday, last_flossing_date=yesterday)
+    summary = service.get_summary(user_id)
+    assert (summary.brushings_today, summary.flossings_today) == (0, 0)
+
+
+def test_boolean_compatibility_fields_are_derived_from_daily_counts(user_id: UUID) -> None:
+    service = _build_service(user_id, last_brushing_date=_TODAY, last_flossing_date=None)
+    summary = service.get_summary(user_id)
+    assert summary.brushed_today is (summary.brushings_today > 0)
+    assert summary.flossed_today is (summary.flossings_today > 0)
 
 
 @pytest.mark.parametrize(

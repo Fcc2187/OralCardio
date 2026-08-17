@@ -5,7 +5,7 @@ import { Button } from "@/shared/components/ui/Button";
 import { ErrorFeedback } from "@/shared/components/ui/Feedback";
 import { TextField } from "@/shared/components/ui/TextField";
 import { Screen } from "@/shared/components/layout/Screen";
-import { useAuth } from "@/shared/auth/AuthProvider";
+import { useAuth } from "@/shared/auth/authContext";
 
 import { translateAuthError } from "../authErrorMessages";
 
@@ -40,7 +40,7 @@ export function SignInPage() {
   }
 
   return (
-    <Screen title="Entrar" subtitle="Acesse sua conta do CardioCare Connect">
+    <Screen title="Entrar" subtitle="Acesse sua conta do OralCardio">
       <form onSubmit={handleSubmit} className="flex flex-col gap-lg" noValidate>
         <TextField
           label="E-mail"

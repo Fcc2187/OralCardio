@@ -1,60 +1,37 @@
-import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 
-import { invalidateGamifiedQueries } from "@/shared/api/invalidateGamifiedQueries";
-import { useAnnounceAchievements } from "@/shared/achievements/AchievementUnlockProvider";
 import { Button } from "@/shared/components/ui/Button";
 import { Card } from "@/shared/components/ui/Card";
 import { ErrorFeedback } from "@/shared/components/ui/Feedback";
 import { Screen } from "@/shared/components/layout/Screen";
 import { cn } from "@/shared/utils/cn";
 
-import { completeBrushingSession, markZoneCompleted, startBrushingSession } from "../api/brushingApi";
 import { BRUSHING_ZONE_LABELS, BRUSHING_ZONE_ORDER } from "../brushingZones";
-import type { BrushingZone } from "../types";
+import { MouthQuadrantMap } from "../components/MouthQuadrantMap";
+import { useBrushingSessionController } from "../useBrushingSessionController";
 import { useBrushingTimer } from "../useBrushingTimer";
 
 export function BrushingTimerPage() {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const announce = useAnnounceAchievements();
-
-  const [sessionId, setSessionId] = useState<string | null>(null);
-
-  const startMutation = useMutation({
-    mutationFn: startBrushingSession,
-    onSuccess: (session) => {
-      setSessionId(session.id);
-      timer.start();
-    },
-  });
-
-  const zoneMutation = useMutation({
-    mutationFn: ({ sessionId: id, zone }: { sessionId: string; zone: BrushingZone }) =>
-      markZoneCompleted(id, zone),
-  });
-
-  const completeMutation = useMutation({
-    mutationFn: completeBrushingSession,
-    onSuccess: (result) => {
-      invalidateGamifiedQueries(queryClient);
-      announce(result.unlocked_achievements);
-    },
-  });
+  const session = useBrushingSessionController();
 
   const timer = useBrushingTimer({
     onZoneComplete: (zone) => {
-      if (sessionId) {
-        zoneMutation.mutate({ sessionId, zone });
-      }
+      session.persistZone(zone);
     },
     onAllZonesComplete: () => {
-      if (sessionId) {
-        completeMutation.mutate(sessionId);
-      }
+      void session.finish(BRUSHING_ZONE_ORDER);
     },
   });
+
+  async function handleStart() {
+    try {
+      await session.start();
+      timer.start();
+    } catch {
+      // O controller já expõe uma mensagem segura para a tela.
+    }
+  }
 
   if (timer.status === "idle") {
     return (
@@ -65,11 +42,11 @@ export function BrushingTimerPage() {
             a escovação.
           </p>
         </Card>
-        {startMutation.isError ? (
-          <ErrorFeedback message="Não foi possível iniciar a sessão. Tente novamente." />
+        {session.startError ? (
+          <ErrorFeedback message={session.startError} />
         ) : null}
-        <Button onClick={() => startMutation.mutate()} disabled={startMutation.isPending}>
-          {startMutation.isPending ? "Iniciando…" : "Começar"}
+        <Button onClick={() => void handleStart()} disabled={session.isStarting}>
+          {session.isStarting ? "Iniciando…" : "Começar"}
         </Button>
       </Screen>
     );
@@ -78,22 +55,22 @@ export function BrushingTimerPage() {
   if (timer.status === "finished") {
     return (
       <Screen title="Escovação concluída!">
-        {completeMutation.isPending ? (
+        {session.isSaving ? (
           <Card variant="canvas">
             <p className="font-body text-body-md text-body">Salvando sua sessão…</p>
           </Card>
         ) : null}
 
-        {completeMutation.isError ? (
+        {session.saveError && !session.isSaving ? (
           <>
-            <ErrorFeedback message="Não foi possível salvar sua sessão. Seus dados de escovação não foram perdidos — tente novamente." />
-            <Button onClick={() => sessionId && completeMutation.mutate(sessionId)}>
+            <ErrorFeedback message={`${session.saveError} Seu progresso foi preservado.`} />
+            <Button onClick={() => void session.retryFinish()}>
               Tentar novamente
             </Button>
           </>
         ) : null}
 
-        {completeMutation.isSuccess ? (
+        {session.isComplete ? (
           <>
             <Card variant="coral">
               <p className="text-display-sm">Muito bem!</p>
@@ -117,6 +94,11 @@ export function BrushingTimerPage() {
           {timer.secondsRemainingInZone}
         </p>
 
+        <MouthQuadrantMap
+          currentZone={timer.currentZone}
+          completedZones={timer.completedZones}
+        />
+
         <div className="flex gap-sm" role="list" aria-label="Progresso por zona">
           {BRUSHING_ZONE_ORDER.map((zone) => {
             const isCompleted = timer.completedZones.includes(zone);
@@ -136,6 +118,15 @@ export function BrushingTimerPage() {
             );
           })}
         </div>
+
+        {session.saveError ? (
+          <div className="w-full">
+            <ErrorFeedback message="A sincronização foi interrompida, mas o timer continua preservado." />
+            <Button variant="secondary" onClick={() => void session.retryPendingZones()}>
+              Tentar sincronizar
+            </Button>
+          </div>
+        ) : null}
 
         <Button
           variant="secondary"

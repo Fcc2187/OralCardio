@@ -6,7 +6,7 @@ import { Card } from "@/shared/components/ui/Card";
 import { ErrorFeedback } from "@/shared/components/ui/Feedback";
 import { TextField } from "@/shared/components/ui/TextField";
 import { Screen } from "@/shared/components/layout/Screen";
-import { useAuth } from "@/shared/auth/AuthProvider";
+import { useAuth } from "@/shared/auth/authContext";
 
 import { translateAuthError } from "../authErrorMessages";
 

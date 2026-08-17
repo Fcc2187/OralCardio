@@ -2,7 +2,6 @@ import { useRef } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
 
-import { useAnnounceAchievements } from "@/shared/achievements/AchievementUnlockProvider";
 import { HttpError } from "@/shared/api/httpClient";
 import { invalidateGamifiedQueries } from "@/shared/api/invalidateGamifiedQueries";
 import { educationModuleQueryKey, educationModulesQueryKey } from "@/shared/api/queryKeys";
@@ -21,7 +20,6 @@ import { useModuleStart } from "../useModuleStart";
 export function EducationModulePage() {
   const { slug = "" } = useParams<{ slug: string }>();
   const queryClient = useQueryClient();
-  const announce = useAnnounceAchievements();
   const readingStartedAtRef = useRef(Date.now());
 
   const query = useQuery({
@@ -36,10 +34,9 @@ export function EducationModulePage() {
     mutationFn: (moduleId: string) =>
       completeModule(moduleId, computeReadTimeSeconds(readingStartedAtRef.current, Date.now())),
     onSuccess: (result) => {
-      queryClient.setQueryData(educationModuleQueryKey(slug), result.data);
+      queryClient.setQueryData(educationModuleQueryKey(slug), result);
       queryClient.invalidateQueries({ queryKey: educationModulesQueryKey });
       invalidateGamifiedQueries(queryClient);
-      announce(result.unlocked_achievements);
     },
   });
 

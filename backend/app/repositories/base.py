@@ -26,7 +26,7 @@ class SupabaseRepository:
     deste repositório deve escrever suas mensagens de `raise exception` em
     pt-BR voltado ao paciente, porque elas chegam **verbatim** ao cliente
     como o corpo de um `BusinessRuleViolationError` (422). Ver os cabeçalhos
-    de `database/006_gamification_rpc.sql` e `database/007_caregiver_access.sql`.
+    das RPCs de domínio versionadas em `database/`.
     """
 
     def __init__(self, client: Client) -> None:

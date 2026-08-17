@@ -1,5 +1,4 @@
 import { httpClient } from "@/shared/api/httpClient";
-import type { WithUnlockedAchievements } from "@/shared/types/gamification";
 
 export interface FlossingLog {
   id: string;
@@ -10,6 +9,6 @@ export interface FlossingLog {
 
 // Corpo obrigatório: FlossingLogInput não tem default no FastAPI, então uma
 // requisição sem body vira 422.
-export function logFlossing(notes: string | null = null): Promise<WithUnlockedAchievements<FlossingLog>> {
-  return httpClient.post<WithUnlockedAchievements<FlossingLog>>("/api/v1/flossing-logs", { notes });
+export function logFlossing(notes: string | null = null): Promise<FlossingLog> {
+  return httpClient.post<FlossingLog>("/api/v1/flossing-logs", { notes });
 }

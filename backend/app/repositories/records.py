@@ -15,7 +15,6 @@ from app.domain.enums import (
     AppointmentType,
     BrushingZone,
     CardiacCondition,
-    CaregiverStatus,
 )
 
 
@@ -28,7 +27,6 @@ class UserRecord:
     date_of_birth: date | None
     created_at: datetime
     updated_at: datetime
-
 
 @dataclass(frozen=True)
 class HealthProfileRecord:
@@ -109,6 +107,8 @@ class UserStatsRecord:
     total_flossings: int
     last_brushing_date: date | None
     last_flossing_date: date | None
+    brushings_on_last_date: int = 0
+    flossings_on_last_date: int = 0
 
 
 @dataclass(frozen=True)
@@ -126,6 +126,9 @@ class AchievementRecord:
 class UserAchievementRecord:
     achievement_id: UUID
     earned_at: datetime
+    visible_on: date
+    reveal_claimed_at: datetime | None
+    revealed_at: datetime | None
     achievement: AchievementRecord = field(repr=False)
 
 
@@ -144,33 +147,3 @@ class AppointmentRecord:
     reminder_sent: bool
     created_at: datetime
     updated_at: datetime
-
-
-@dataclass(frozen=True)
-class CaregiverRecord:
-    id: UUID
-    patient_id: UUID
-    caregiver_email: str
-    caregiver_user_id: UUID | None
-    status: CaregiverStatus
-    can_view_reports: bool
-    can_view_appointments: bool
-    receive_alerts: bool
-    invited_at: datetime
-    accepted_at: datetime | None
-    revoked_at: datetime | None
-
-
-@dataclass(frozen=True)
-class CaregiverPatientView:
-    """Um vínculo do lado do cuidador, com o nome do paciente já resolvido.
-
-    `patient_name` é `None` quando o RLS de `users_select_caregiver` não
-    deixou o cuidador ler a linha do paciente (as duas permissões,
-    `can_view_reports` e `can_view_appointments`, desligadas) — e pode ser
-    `""` quando a leitura funcionou mas `handle_new_user` só tinha um nome
-    vazio para gravar. Os dois casos exigem tratamento no front.
-    """
-
-    link: CaregiverRecord
-    patient_name: str | None

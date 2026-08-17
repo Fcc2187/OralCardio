@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ProtectedRoute } from "./ProtectedRoute";
 
 const useAuthMock = vi.fn();
-vi.mock("./AuthProvider", () => ({
+vi.mock("./authContext", () => ({
   useAuth: () => useAuthMock(),
 }));
 

@@ -2,7 +2,7 @@ import { Navigate, Outlet } from "react-router-dom";
 
 import { LoadingFeedback } from "@/shared/components/ui/Feedback";
 
-import { useAuth } from "./AuthProvider";
+import { useAuth } from "./authContext";
 
 /** Evita que um usuário já autenticado veja as telas de entrar/criar conta. */
 export function RedirectIfAuthenticated() {

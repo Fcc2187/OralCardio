@@ -1,20 +1,20 @@
-/// <reference types="vitest/config" />
 import { fileURLToPath, URL } from "node:url";
 
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
-import { defineConfig } from "vite";
+import { defineConfig, type UserConfig as ViteUserConfig } from "vite";
+import type { UserConfig as VitestUserConfig } from "vitest/config";
 import { VitePWA } from "vite-plugin-pwa";
 
-export default defineConfig({
+const config: ViteUserConfig & Pick<VitestUserConfig, "test"> = {
   plugins: [
     react(),
     tailwindcss(),
     VitePWA({
       registerType: "autoUpdate",
       manifest: {
-        name: "CardioCare Connect",
-        short_name: "CardioCare",
+        name: "OralCardio",
+        short_name: "OralCardio",
         description: "Saúde bucal para pacientes cardíacos",
         theme_color: "#a9583e",
         background_color: "#faf9f5",
@@ -58,4 +58,6 @@ export default defineConfig({
     // as asserções sem revelar o bug (ver src/shared/utils/dateTimeLocal.ts).
     env: { TZ: "America/Sao_Paulo" },
   },
-});
+};
+
+export default defineConfig(config);

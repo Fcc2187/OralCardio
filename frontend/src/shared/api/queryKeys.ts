@@ -17,13 +17,5 @@ export const educationModuleQueryKey = (slug: string) => ["education", "modules"
 export const appointmentsListQueryKey = ["appointments", "list"] as const;
 export const appointmentQueryKey = (id: string) => ["appointments", "detail", id] as const;
 
-export const caregiversListQueryKey = ["caregivers", "list"] as const;
-
-export const caregiverInvitationsQueryKey = ["caregiver-panel", "invitations"] as const;
-export const caregiverPatientsQueryKey = ["caregiver-panel", "patients"] as const;
-export const caregiverPatientStatsQueryKey = (patientId: string) =>
-  ["caregiver-panel", "patients", patientId, "stats"] as const;
-export const caregiverPatientBrushingQueryKey = (patientId: string) =>
-  ["caregiver-panel", "patients", patientId, "brushing-sessions"] as const;
-export const caregiverPatientAppointmentsQueryKey = (patientId: string) =>
-  ["caregiver-panel", "patients", patientId, "appointments"] as const;
+export const achievementRevealsQueryKey = (userId?: string) =>
+  ["gamification", "achievement-reveals", userId] as const;

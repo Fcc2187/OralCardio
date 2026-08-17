@@ -1,4 +1,4 @@
-export interface UnlockedAchievement {
+export interface AchievementReveal {
   id: string;
   name: string;
   description: string;
@@ -6,20 +6,9 @@ export interface UnlockedAchievement {
   points_reward: number;
 }
 
-/** Espelha `WithUnlockedAchievements[T]` do backend (schemas/gamification.py). */
-export interface WithUnlockedAchievements<T> {
-  data: T;
-  unlocked_achievements: UnlockedAchievement[];
-}
-
-export interface AchievementStatus {
-  id: string;
-  name: string;
-  description: string;
-  icon: string;
+export interface AchievementStatus extends AchievementReveal {
   condition_type: string;
   condition_value: number;
-  points_reward: number;
   unlocked: boolean;
   earned_at: string | null;
 }

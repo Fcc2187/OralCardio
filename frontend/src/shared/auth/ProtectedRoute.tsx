@@ -3,7 +3,7 @@ import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { LoadingFeedback } from "@/shared/components/ui/Feedback";
 import { useHealthProfileQuery } from "@/shared/hooks/useHealthProfileQuery";
 
-import { useAuth } from "./AuthProvider";
+import { useAuth } from "./authContext";
 
 interface ProtectedRouteProps {
   /** Perfil de saúde precisa estar completo para acessar a rota. Desligado

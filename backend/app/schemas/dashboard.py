@@ -8,6 +8,8 @@ class DashboardOutput(BaseModel):
     health_profile_completed: bool
     brushed_today: bool
     flossed_today: bool
+    brushings_today: int
+    flossings_today: int
     current_streak_days: int
     total_points: int
     level: int

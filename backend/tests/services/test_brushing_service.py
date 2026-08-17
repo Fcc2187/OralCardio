@@ -9,13 +9,11 @@ from tests.fakes.brushing_repository import FakeBrushingRepository
 
 
 class _SpyGamificationService:
-    def __init__(self, unlocked: list | None = None) -> None:
+    def __init__(self) -> None:
         self.evaluate_calls: list[UUID] = []
-        self._unlocked = unlocked or []
 
-    def evaluate_and_unlock(self, user_id: UUID) -> list:
+    def evaluate_and_unlock(self, user_id: UUID) -> None:
         self.evaluate_calls.append(user_id)
-        return self._unlocked
 
 
 @pytest.fixture
@@ -46,21 +44,8 @@ def test_complete_session_succeeds_after_all_zones_marked(
 
     result = service.complete_session(session.id, user_id)
 
-    assert result.value.is_completed is True
+    assert result.is_completed is True
     assert gamification_spy.evaluate_calls == [user_id]
-
-
-def test_complete_session_propagates_newly_unlocked_achievements(user_id: UUID) -> None:
-    fake_achievement = object()
-    spy = _SpyGamificationService(unlocked=[fake_achievement])
-    service = BrushingService(FakeBrushingRepository(), spy)
-    session = service.start_session(user_id)
-    for zone in BrushingZone:
-        service.mark_zone_completed(session.id, user_id, zone)
-
-    result = service.complete_session(session.id, user_id)
-
-    assert result.unlocked_achievements == [fake_achievement]
 
 
 def test_complete_session_is_idempotent(service: BrushingService, user_id: UUID) -> None:
@@ -72,6 +57,28 @@ def test_complete_session_is_idempotent(service: BrushingService, user_id: UUID)
     second_completion = service.complete_session(session.id, user_id)
 
     assert second_completion == first_completion
+
+
+def test_idempotent_completion_does_not_revaluate_achievements(
+    service: BrushingService, user_id: UUID, gamification_spy: _SpyGamificationService
+) -> None:
+    session = service.start_session(user_id)
+    for zone in BrushingZone:
+        service.mark_zone_completed(session.id, user_id, zone)
+    service.complete_session(session.id, user_id)
+    service.complete_session(session.id, user_id)
+    assert gamification_spy.evaluate_calls == [user_id]
+
+
+def test_multiple_completed_sessions_are_independent(
+    service: BrushingService, user_id: UUID, gamification_spy: _SpyGamificationService
+) -> None:
+    for _ in range(2):
+        session = service.start_session(user_id)
+        for zone in BrushingZone:
+            service.mark_zone_completed(session.id, user_id, zone)
+        service.complete_session(session.id, user_id)
+    assert gamification_spy.evaluate_calls == [user_id, user_id]
 
 
 def test_mark_zone_on_completed_session_raises(service: BrushingService, user_id: UUID) -> None:

@@ -2,7 +2,7 @@ from uuid import UUID
 
 from app.domain.enums import AchievementConditionType
 from app.repositories.base import SupabaseRepository
-from app.repositories.parsing import parse_date, parse_required_datetime
+from app.repositories.parsing import parse_date, parse_datetime, parse_required_datetime
 from app.repositories.records import AchievementRecord, UserAchievementRecord, UserStatsRecord
 
 _STATS_TABLE = "user_stats"
@@ -22,6 +22,8 @@ def _to_stats_record(row: dict) -> UserStatsRecord:
         total_flossings=row["total_flossings"],
         last_brushing_date=parse_date(row.get("last_brushing_date")),
         last_flossing_date=parse_date(row.get("last_flossing_date")),
+        brushings_on_last_date=row.get("brushings_on_last_date", 0),
+        flossings_on_last_date=row.get("flossings_on_last_date", 0),
     )
 
 
@@ -66,7 +68,10 @@ class SupabaseGamificationRepository(SupabaseRepository):
         def operation():
             response = (
                 self._client.table(_USER_ACHIEVEMENTS_TABLE)
-                .select("achievement_id, earned_at, achievements(*)")
+                .select(
+                    "achievement_id, earned_at, visible_on, reveal_claimed_at, "
+                    "revealed_at, achievements(*)"
+                )
                 .eq("user_id", str(user_id))
                 .execute()
             )
@@ -77,6 +82,11 @@ class SupabaseGamificationRepository(SupabaseRepository):
             UserAchievementRecord(
                 achievement_id=UUID(row["achievement_id"]),
                 earned_at=parse_required_datetime(row["earned_at"]),
+                visible_on=parse_date(row.get("visible_on")) or parse_required_datetime(
+                    row["earned_at"]
+                ).date(),
+                reveal_claimed_at=parse_datetime(row.get("reveal_claimed_at")),
+                revealed_at=parse_datetime(row.get("revealed_at")),
                 achievement=_to_achievement_record(row["achievements"]),
             )
             for row in rows
@@ -89,3 +99,23 @@ class SupabaseGamificationRepository(SupabaseRepository):
             ).execute()
 
         self._run("Conquista", operation)
+
+    def claim_due_achievement_reveals(self) -> list[AchievementRecord]:
+        def operation():
+            response = self._client.rpc("claim_due_achievement_reveals", {}).execute()
+            return response.data
+
+        rows = self._run("Revelação de conquista", operation)
+        return [_to_achievement_record(row) for row in rows]
+
+    def acknowledge_achievement_reveals(self, achievement_ids: list[UUID]) -> None:
+        if not achievement_ids:
+            return
+
+        def operation():
+            self._client.rpc(
+                "acknowledge_achievement_reveals",
+                {"p_achievement_ids": [str(achievement_id) for achievement_id in achievement_ids]},
+            ).execute()
+
+        self._run("Revelação de conquista", operation)

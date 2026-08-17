@@ -9,12 +9,11 @@ neste arquivo — nenhum endpoint precisa ser tocado.
 from fastapi import Depends
 from supabase import Client
 
+from app.core.clock import BusinessClock, SaoPauloBusinessClock
 from app.core.security import get_user_scoped_client
 from app.domain.achievements import AchievementEvaluator
-from app.notifications.email_sender import EmailSender, LoggingEmailSender
 from app.repositories.appointment_repository import SupabaseAppointmentRepository
 from app.repositories.brushing_repository import SupabaseBrushingRepository
-from app.repositories.caregiver_repository import SupabaseCaregiverRepository
 from app.repositories.education_repository import SupabaseEducationRepository
 from app.repositories.flossing_repository import SupabaseFlossingRepository
 from app.repositories.gamification_repository import SupabaseGamificationRepository
@@ -23,8 +22,6 @@ from app.repositories.user_repository import SupabaseUserRepository
 from app.services.achievement_snapshot_builder import AchievementSnapshotBuilder
 from app.services.appointment_service import AppointmentService
 from app.services.brushing_service import BrushingService
-from app.services.caregiver_panel_service import CaregiverPanelService
-from app.services.caregiver_service import CaregiverService
 from app.services.dashboard_service import DashboardService
 from app.services.education_service import EducationService
 from app.services.flossing_service import FlossingService
@@ -37,12 +34,13 @@ def get_user_service(client: Client = Depends(get_user_scoped_client)) -> UserSe
     return UserService(SupabaseUserRepository(client))
 
 
-def get_email_sender() -> EmailSender:
-    return LoggingEmailSender()
+def get_business_clock() -> BusinessClock:
+    return SaoPauloBusinessClock()
 
 
 def get_gamification_service(
     client: Client = Depends(get_user_scoped_client),
+    clock: BusinessClock = Depends(get_business_clock),
 ) -> GamificationService:
     snapshot_builder = AchievementSnapshotBuilder(
         education_repository=SupabaseEducationRepository(client),
@@ -53,6 +51,7 @@ def get_gamification_service(
         gamification_repository=SupabaseGamificationRepository(client),
         snapshot_builder=snapshot_builder,
         evaluator=AchievementEvaluator(),
+        clock=clock,
     )
 
 
@@ -91,33 +90,10 @@ def get_appointment_service(
     return AppointmentService(SupabaseAppointmentRepository(client), gamification_service)
 
 
-def get_caregiver_service(
-    client: Client = Depends(get_user_scoped_client),
-    email_sender: EmailSender = Depends(get_email_sender),
-) -> CaregiverService:
-    return CaregiverService(SupabaseCaregiverRepository(client), email_sender)
-
-
-def get_caregiver_panel_service(
-    client: Client = Depends(get_user_scoped_client),
-) -> CaregiverPanelService:
-    """O client aqui é escopado ao JWT de quem está chamando — quando estes
-    endpoints são usados, é o próprio cuidador. As políticas de RLS de
-    `database/007_caregiver_access.sql` decidem, no banco, quais linhas do
-    paciente esse client enxerga.
-    """
-    return CaregiverPanelService(
-        caregiver_repository=SupabaseCaregiverRepository(client),
-        user_repository=SupabaseUserRepository(client),
-        gamification_repository=SupabaseGamificationRepository(client),
-        brushing_repository=SupabaseBrushingRepository(client),
-        appointment_repository=SupabaseAppointmentRepository(client),
-    )
-
-
 def get_dashboard_service(
     user_service: UserService = Depends(get_user_service),
     health_profile_service: HealthProfileService = Depends(get_health_profile_service),
     gamification_service: GamificationService = Depends(get_gamification_service),
+    clock: BusinessClock = Depends(get_business_clock),
 ) -> DashboardService:
-    return DashboardService(user_service, health_profile_service, gamification_service)
+    return DashboardService(user_service, health_profile_service, gamification_service, clock)

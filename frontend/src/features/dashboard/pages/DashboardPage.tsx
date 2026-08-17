@@ -23,24 +23,32 @@ export function DashboardPage() {
   }
 
   const firstName = data.full_name.split(" ")[0] || data.full_name;
+  const brushingsToday =
+    Number.isFinite(data.brushings_today) && data.brushings_today >= 0
+      ? Math.trunc(data.brushings_today)
+      : Number(Boolean(data.brushed_today));
+  const flossingsToday =
+    Number.isFinite(data.flossings_today) && data.flossings_today >= 0
+      ? Math.trunc(data.flossings_today)
+      : Number(Boolean(data.flossed_today));
 
   return (
     <Screen title={`Olá, ${firstName}`}>
       <Card variant={data.brushed_today ? "cream" : "coral"}>
         <p className="font-body text-body-sm font-medium">
-          {data.brushed_today ? "Você já escovou hoje" : "Ainda não escovou hoje"}
+          {brushingsToday === 0
+            ? "Ainda não escovou hoje"
+            : `${brushingsToday} ${brushingsToday === 1 ? "escovação" : "escovações"} hoje`}
         </p>
         <p className="mt-xs text-display-sm">
           {data.current_streak_days} {data.current_streak_days === 1 ? "dia" : "dias"} seguidos
         </p>
-        {!data.brushed_today ? (
-          <LinkButton to="/escovar" className="mt-md">
-            Escovar agora
-          </LinkButton>
-        ) : null}
+        <LinkButton to="/escovar" className="mt-md">
+          {brushingsToday === 0 ? "Escovar agora" : "Escovar novamente"}
+        </LinkButton>
       </Card>
 
-      <FlossingCard flossedToday={data.flossed_today} />
+      <FlossingCard flossingsToday={flossingsToday} />
 
       <Card variant="canvas">
         <div className="flex items-center justify-between">

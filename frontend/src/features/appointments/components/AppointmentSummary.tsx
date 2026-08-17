@@ -17,8 +17,7 @@ const STATUS_BADGE_VARIANT: Record<AppointmentStatus, "neutral" | "coral"> = {
 };
 
 /** Só apresentação — usada dentro de um `<Link>` na agenda do paciente e,
- * sem link nenhum, no painel do cuidador (que nunca deve navegar para a
- * rota de detalhe de consulta do próprio cuidador). */
+ * sem link quando usado em um contexto apenas informativo. */
 export function AppointmentSummary({ appointment, nowMs = Date.now() }: AppointmentSummaryProps) {
   const scheduledAtMs = new Date(appointment.scheduled_at).getTime();
   const dayDelta = calendarDayDelta(nowMs, scheduledAtMs);

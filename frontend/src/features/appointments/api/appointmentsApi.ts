@@ -1,13 +1,10 @@
 import { httpClient } from "@/shared/api/httpClient";
 import type { Page } from "@/shared/types/common";
-import type { WithUnlockedAchievements } from "@/shared/types/gamification";
 
 import type { Appointment, AppointmentInput, AppointmentPatch } from "../types";
 
-export function createAppointment(
-  input: AppointmentInput,
-): Promise<WithUnlockedAchievements<Appointment>> {
-  return httpClient.post<WithUnlockedAchievements<Appointment>>("/api/v1/appointments", input);
+export function createAppointment(input: AppointmentInput): Promise<Appointment> {
+  return httpClient.post<Appointment>("/api/v1/appointments", input);
 }
 
 export function listAppointments(params: {

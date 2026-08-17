@@ -8,13 +8,11 @@ from tests.fakes.health_profile_repository import FakeHealthProfileRepository
 
 
 class _SpyGamificationService:
-    def __init__(self, unlocked: list | None = None) -> None:
+    def __init__(self) -> None:
         self.evaluate_calls: list[UUID] = []
-        self._unlocked = unlocked or []
 
-    def evaluate_and_unlock(self, user_id: UUID) -> list:
+    def evaluate_and_unlock(self, user_id: UUID) -> None:
         self.evaluate_calls.append(user_id)
-        return self._unlocked
 
 
 @pytest.fixture
@@ -49,15 +47,5 @@ def test_submit_questionnaire_marks_profile_as_completed(
 ) -> None:
     result = _submit(service, user_id)
 
-    assert result.value.is_completed is True
+    assert result.is_completed is True
     assert gamification_spy.evaluate_calls == [user_id]
-
-
-def test_submit_questionnaire_propagates_newly_unlocked_achievements(user_id: UUID) -> None:
-    fake_achievement = object()
-    spy = _SpyGamificationService(unlocked=[fake_achievement])
-    service = HealthProfileService(FakeHealthProfileRepository(), spy)
-
-    result = _submit(service, user_id)
-
-    assert result.unlocked_achievements == [fake_achievement]

@@ -9,13 +9,11 @@ from tests.fakes.appointment_repository import FakeAppointmentRepository
 
 
 class _SpyGamificationService:
-    def __init__(self, unlocked: list | None = None) -> None:
+    def __init__(self) -> None:
         self.evaluate_calls: list[UUID] = []
-        self._unlocked = unlocked or []
 
-    def evaluate_and_unlock(self, user_id: UUID) -> list:
+    def evaluate_and_unlock(self, user_id: UUID) -> None:
         self.evaluate_calls.append(user_id)
-        return self._unlocked
 
 
 @pytest.fixture
@@ -39,7 +37,7 @@ def _create(service: AppointmentService, user_id: UUID):
         clinic_phone=None,
         notes=None,
     )
-    return result.value
+    return result
 
 
 def test_create_appointment_triggers_achievement_evaluation(
@@ -49,25 +47,6 @@ def test_create_appointment_triggers_achievement_evaluation(
 
     assert appointment.status == AppointmentStatus.SCHEDULED
     assert gamification_spy.evaluate_calls == [user_id]
-
-
-def test_create_appointment_propagates_newly_unlocked_achievements(user_id: UUID) -> None:
-    fake_achievement = object()
-    spy = _SpyGamificationService(unlocked=[fake_achievement])
-    service = AppointmentService(FakeAppointmentRepository(), spy)
-
-    result = service.create_appointment(
-        user_id=user_id,
-        scheduled_at="2026-09-01T10:00:00+00:00",
-        appointment_type=AppointmentType.ROUTINE_CHECKUP,
-        dentist_name="Dra. Ana",
-        clinic_name=None,
-        clinic_address=None,
-        clinic_phone=None,
-        notes=None,
-    )
-
-    assert result.unlocked_achievements == [fake_achievement]
 
 
 def test_valid_status_transition_succeeds(service: AppointmentService, user_id: UUID) -> None:

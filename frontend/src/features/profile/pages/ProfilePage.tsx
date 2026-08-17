@@ -2,14 +2,13 @@ import { useState, type FormEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 
-import { useAuth } from "@/shared/auth/AuthProvider";
+import { useAuth } from "@/shared/auth/authContext";
 import { Button } from "@/shared/components/ui/Button";
 import { ErrorFeedback, LoadingFeedback } from "@/shared/components/ui/Feedback";
 import { TextField } from "@/shared/components/ui/TextField";
 import { Screen } from "@/shared/components/layout/Screen";
 
 import { userProfileQueryKey } from "@/shared/api/queryKeys";
-import { CaregiverProfileEntries } from "@/features/caregivers/components/CaregiverProfileEntries";
 
 import { fetchUserProfile, updateUserProfile, type UserProfile } from "../api/userApi";
 
@@ -95,7 +94,6 @@ function ProfileForm({ profile }: { profile: UserProfile }) {
         </Button>
       </form>
 
-      <CaregiverProfileEntries />
 
       <Button variant="secondary" onClick={handleSignOut}>
         Sair

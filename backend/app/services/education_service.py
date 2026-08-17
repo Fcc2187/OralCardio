@@ -4,7 +4,7 @@ from uuid import UUID
 from app.core.exceptions import EntityNotFoundError
 from app.repositories.interfaces import EducationRepository
 from app.repositories.records import EducationModuleRecord, ModuleProgressRecord
-from app.services.gamification_service import GamificationService, GamifiedResult
+from app.services.gamification_service import GamificationService
 
 
 @dataclass(frozen=True)
@@ -46,25 +46,19 @@ class EducationService:
 
     def complete_module(
         self, user_id: UUID, module_id: UUID, read_time_seconds: int | None
-    ) -> GamifiedResult[ModuleWithProgress]:
+    ) -> ModuleWithProgress:
         module = self._get_active_module(module_id)
 
         existing = self._repository.get_progress(user_id, module_id)
         if existing is not None and existing.is_completed:
-            return GamifiedResult(
-                value=ModuleWithProgress(module=module, progress=existing),
-                unlocked_achievements=[],
-            )
+            return ModuleWithProgress(module=module, progress=existing)
 
         if existing is None:
             self._repository.start_module(user_id, module_id)
 
         progress = self._repository.complete_module(user_id, module_id, read_time_seconds)
-        unlocked = self._gamification_service.evaluate_and_unlock(user_id)
-        return GamifiedResult(
-            value=ModuleWithProgress(module=module, progress=progress),
-            unlocked_achievements=unlocked,
-        )
+        self._gamification_service.evaluate_and_unlock(user_id)
+        return ModuleWithProgress(module=module, progress=progress)
 
     def _get_active_module(self, module_id: UUID) -> EducationModuleRecord:
         module = self._repository.get_module_by_id(module_id)

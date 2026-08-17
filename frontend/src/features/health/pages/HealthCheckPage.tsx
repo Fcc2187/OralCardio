@@ -31,7 +31,7 @@ export function HealthCheckPage() {
 
   return (
     <main>
-      <h1>CardioCare Connect</h1>
+      <h1>OralCardio</h1>
       <p>Verificação de conexão com a API</p>
 
       {state.status === "loading" && <p>Verificando conexão…</p>}

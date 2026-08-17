@@ -22,8 +22,8 @@ def test_run_translates_unique_violation_into_conflict_error(
     def operation() -> None:
         raise APIError({"code": "23505", "message": "duplicate key"})
 
-    with pytest.raises(ConflictError, match="cuidador já existe"):
-        repository._run("cuidador", operation)
+    with pytest.raises(ConflictError, match="registro já existe"):
+        repository._run("registro", operation)
 
 
 def test_run_translates_not_found_into_entity_not_found_error(
@@ -33,17 +33,17 @@ def test_run_translates_not_found_into_entity_not_found_error(
         raise APIError({"code": "PGRST116", "message": "no rows"})
 
     with pytest.raises(EntityNotFoundError):
-        repository._run("cuidador", operation)
+        repository._run("registro", operation)
 
 
 def test_run_translates_raise_exception_into_business_rule_violation_with_exact_message(
     repository: SupabaseRepository,
 ) -> None:
     def operation() -> None:
-        raise APIError({"code": "P0001", "message": "E-mail não confirmado"})
+        raise APIError({"code": "P0001", "message": "Operação não permitida"})
 
-    with pytest.raises(BusinessRuleViolationError, match="^E-mail não confirmado$"):
-        repository._run("convite", operation)
+    with pytest.raises(BusinessRuleViolationError, match="^Operação não permitida$"):
+        repository._run("registro", operation)
 
 
 def test_run_falls_back_to_generic_message_when_raise_exception_has_no_message(
@@ -52,8 +52,8 @@ def test_run_falls_back_to_generic_message_when_raise_exception_has_no_message(
     def operation() -> None:
         raise APIError({"code": "P0001", "message": ""})
 
-    with pytest.raises(BusinessRuleViolationError, match="convite: operação inválida"):
-        repository._run("convite", operation)
+    with pytest.raises(BusinessRuleViolationError, match="registro: operação inválida"):
+        repository._run("registro", operation)
 
 
 def test_run_propagates_unknown_error_codes(repository: SupabaseRepository) -> None:
@@ -61,10 +61,10 @@ def test_run_propagates_unknown_error_codes(repository: SupabaseRepository) -> N
         raise APIError({"code": "22P02", "message": "invalid input syntax"})
 
     with pytest.raises(APIError):
-        repository._run("cuidador", operation)
+        repository._run("registro", operation)
 
 
 def test_run_returns_operation_result_when_no_error(repository: SupabaseRepository) -> None:
-    result = repository._run("cuidador", lambda: {"id": "123"})
+    result = repository._run("registro", lambda: {"id": "123"})
 
     assert result == {"id": "123"}

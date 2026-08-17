@@ -24,9 +24,8 @@ cardio-care/
 
 1. Crie um projeto em supabase.com.
 2. No **SQL Editor**, execute os arquivos de `database/` na ordem numérica
-   (`001` a `005`). Detalhes em [database/README.md](database/README.md).
-3. Em **Settings → API**, copie a Project URL e as chaves `anon` e
-   `service_role` — você vai precisar delas nos passos abaixo.
+   (`001` a `011`). Detalhes em [database/README.md](database/README.md).
+3. Em **Settings → API**, copie a Project URL e a chave `anon`.
 
 ## 2. Backend (FastAPI)
 
@@ -74,4 +73,4 @@ npm run dev
 
 Consulte a seção 8 da [documentação técnica](documentacao_tecnica.md) para o
 roadmap completo (autenticação, timer de escovação, módulos educacionais,
-agenda de consultas, modo cuidador e gamificação).
+agenda de consultas e gamificação).

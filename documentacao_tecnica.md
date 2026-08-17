@@ -1,6 +1,6 @@
 # 📋 Documentação Técnica — CardioCare Connect
 
-> **Versão:** 1.0.0  
+> **Versão:** 1.1.0
 > **Data:** Agosto de 2026  
 > **Idioma do Código:** Inglês (padrão técnico)  
 > **Idioma da Interface:** Português (Brasil)
@@ -16,7 +16,6 @@ Engajar o paciente cardíaco em hábitos consistentes de saúde bucal através d
 - Orientação diária com timer guiado de escovação
 - Educação sobre a conexão boca-coração
 - Gamificação e recompensas para manter a adesão
-- Suporte de cuidadores e familiares
 - Organização de consultas odontológicas
 
 ---
@@ -29,7 +28,6 @@ Engajar o paciente cardíaco em hábitos consistentes de saúde bucal através d
 | **Back-end** | Python + FastAPI | API REST performática, documentação automática (Swagger), compatível com IA/ML no futuro |
 | **Banco de Dados** | PostgreSQL (via Supabase) | Dados relacionais estruturados, open source, robusto para dados de saúde |
 | **Autenticação** | Supabase Auth | Login com email/senha e social login já incluídos, JWT embutido |
-| **Realtime** | Supabase Realtime | Notificações ao vivo para o Modo Cuidador |
 | **Storage** | Supabase Storage | Armazenamento de arquivos (ex: relatórios em PDF) |
 
 ### Arquitetura Geral
@@ -85,12 +83,16 @@ Timer de **2 minutos** dividido em **5 zonas da boca**:
 
 **Fluxo de dados:**
 1. Usuário inicia o timer → cria um registro em `brushing_sessions` com `is_completed = FALSE`
-2. A cada zona concluída, `zones_completed[]` é atualizado
-3. Ao finalizar os 2 minutos → `is_completed = TRUE` e `completed_at` é preenchido
+2. O mapa vetorial da boca destaca quatro quadrantes e a língua; cada zona
+   concluída é persistida sequencialmente em `zones_completed[]`
+3. Ao finalizar os 2 minutos → a última zona é confirmada antes de
+   `is_completed = TRUE` e `completed_at` ser preenchido
 4. **Trigger automático** no banco atualiza `user_stats`: pontos (+5), streak e nível
 
 **Regras de Negócio:**
-- Apenas 1 sessão por dia conta para o streak e total (evita "batota")
+- Toda sessão completa soma `total_brushings` e +5 pontos, sem limite diário
+- O streak avança no máximo uma vez por data civil de `America/Sao_Paulo`
+- Escovações adicionais no mesmo dia mantêm o streak e incrementam o contador diário
 - A sessão é salva mesmo que incompleta (para análise de aderência futura)
 
 ---
@@ -140,32 +142,7 @@ scheduled → completed
 
 ---
 
-### 3.5 👨‍👩‍👧 Modo Cuidador
-
-Permite que o paciente convide familiares ou cuidadores para acompanhar seu progresso remotamente.
-
-**Fluxo de convite:**
-```
-1. Paciente informa e-mail do cuidador
-2. Sistema cria registro em caregivers (status = 'pending')
-3. E-mail de convite é enviado ao cuidador
-4. Cuidador aceita o convite → status = 'active', accepted_at preenchido
-5. Cuidador passa a ver os dados do paciente via painel específico
-```
-
-**Permissões granulares por cuidador:**
-
-| Permissão | Campo | Descrição |
-|---|---|---|
-| Ver relatórios | `can_view_reports` | Acesso ao histórico de escovações e estatísticas |
-| Ver consultas | `can_view_appointments` | Visualização da agenda de consultas |
-| Receber alertas | `receive_alerts` | Notificação quando paciente não escova por X dias |
-
-> **Segurança:** Cuidadores só conseguem **visualizar** dados. Nunca alterar ou excluir. Isso é garantido pelas políticas de RLS do banco.
-
----
-
-### 3.6 🏆 Gamificação
+### 3.5 🏆 Gamificação
 
 Sistema de pontos, níveis e conquistas para manter o engajamento do paciente.
 
@@ -173,7 +150,8 @@ Sistema de pontos, níveis e conquistas para manter o engajamento do paciente.
 
 | Ação | Pontos |
 |---|---|
-| Completar sessão de escovação | +5 pts |
+| Completar sessão de escovação | +5 pts, sem limite diário |
+| Registrar uso de fio dental | +5 pts, sem limite diário |
 | Concluir módulo educacional | +15 pts (via conquista) |
 | Completar perfil de saúde | +25 pts (via conquista) |
 | Agendar primeira consulta | +20 pts (via conquista) |
@@ -193,7 +171,16 @@ Sistema de pontos, níveis e conquistas para manter o engajamento do paciente.
 - Calculado automaticamente por **trigger** no banco ao completar cada escovação
 - Se o usuário escovar no dia seguinte → streak incrementa
 - Se pular um dia → streak reseta para 1
+- Escovações adicionais no mesmo dia não alteram a sequência
 - `longest_streak_days` nunca diminui (guarda o recorde histórico)
+- Todas as datas de negócio usam `America/Sao_Paulo`
+
+#### Revelação de conquistas
+
+- A condição é persistida e o bônus é concedido imediatamente, de forma atômica
+- A conquista permanece oculta até a data civil seguinte em São Paulo
+- Claim e confirmação de exibição são idempotentes e usam lease temporário para
+  impedir duplicidade entre dispositivos sem perder a notificação
 
 #### Conquistas Disponíveis (10 no lançamento)
 
@@ -216,6 +203,7 @@ Sistema de pontos, níveis e conquistas para manter o engajamento do paciente.
 
 > **Schema:** `public`  
 > **Banco:** PostgreSQL 15+ (Supabase)  
+> **Quantidade atual:** 10 tabelas de domínio
 > **Padrão de ID:** UUID (Universally Unique Identifier)  
 > **Padrão de data:** TIMESTAMPTZ (com fuso horário)
 
@@ -243,7 +231,6 @@ Armazena o perfil público de cada usuário do sistema. Extensão da tabela `aut
 - `1:N` → `brushing_sessions`
 - `1:N` → `flossing_logs`
 - `1:N` → `appointments`
-- `1:N` → `caregivers` (como paciente)
 - `N:N` → `education_modules` (via `user_module_progress`)
 - `N:N` → `achievements` (via `user_achievements`)
 
@@ -311,6 +298,9 @@ Registro de cada sessão de escovação guiada pelo timer do app.
 ### 4.4 `flossing_logs`
 
 Registro simples de uso de fio dental.
+
+Cada registro é independente, incrementa `total_flossings` e concede +5 pontos,
+sem limite diário. Todos os registros contam para conquistas relacionadas.
 
 | Coluna | Tipo | Obrigatório | Descrição |
 |---|---|---|---|
@@ -409,29 +399,7 @@ Registro de consultas odontológicas agendadas pelo paciente.
 
 ---
 
-### 4.8 `caregivers`
-
-Define o vínculo entre um paciente e seus cuidadores com permissões granulares.
-
-| Coluna | Tipo | Obrigatório | Descrição |
-|---|---|---|---|
-| `id` | UUID (PK) | ✅ | Identificador único |
-| `patient_id` | UUID (FK) | ✅ | Referência ao paciente |
-| `caregiver_email` | TEXT | ✅ | E-mail do cuidador convidado |
-| `caregiver_user_id` | UUID (FK, nullable) | ❌ | UUID do cuidador se ele tiver conta no sistema |
-| `status` | ENUM | ✅ | `pending` / `active` / `revoked` |
-| `can_view_reports` | BOOLEAN | ✅ | Pode ver relatórios de escovação? |
-| `can_view_appointments` | BOOLEAN | ✅ | Pode ver a agenda de consultas? |
-| `receive_alerts` | BOOLEAN | ✅ | Recebe alertas de falha de escovação? |
-| `invited_at` | TIMESTAMPTZ | ✅ | Quando o convite foi enviado |
-| `accepted_at` | TIMESTAMPTZ | ❌ | Quando o convite foi aceito |
-| `revoked_at` | TIMESTAMPTZ | ❌ | Quando o acesso foi revogado |
-
-> **Constraint:** `UNIQUE(patient_id, caregiver_email)` — Um e-mail só pode ser convidado uma vez por paciente.
-
----
-
-### 4.9 `achievements`
+### 4.8 `achievements`
 
 Catálogo de todas as conquistas/badges disponíveis no sistema. **Dado de configuração**, criado pelos administradores.
 
@@ -449,7 +417,7 @@ Catálogo de todas as conquistas/badges disponíveis no sistema. **Dado de confi
 
 ---
 
-### 4.10 `user_achievements`
+### 4.9 `user_achievements`
 
 Tabela de junção que registra quais conquistas cada usuário desbloqueou.
 
@@ -459,12 +427,15 @@ Tabela de junção que registra quais conquistas cada usuário desbloqueou.
 | `user_id` | UUID (FK) | ✅ | Referência ao usuário |
 | `achievement_id` | UUID (FK) | ✅ | Referência à conquista |
 | `earned_at` | TIMESTAMPTZ | ✅ | Quando foi desbloqueada |
+| `visible_on` | DATE | ✅ | Primeira data civil em que pode ser exibida |
+| `reveal_claimed_at` | TIMESTAMPTZ | ❌ | Início do lease temporário de apresentação |
+| `revealed_at` | TIMESTAMPTZ | ❌ | Confirmação de que foi apresentada |
 
 > **Constraint:** `UNIQUE(user_id, achievement_id)` — Cada conquista é desbloqueada apenas uma vez por usuário.
 
 ---
 
-### 4.11 `user_stats`
+### 4.10 `user_stats`
 
 Tabela de **agregação de estatísticas** de gamificação. **Uma linha por usuário.** Atualizada automaticamente por triggers do banco ao completar escovações.
 
@@ -483,6 +454,8 @@ Tabela de **agregação de estatísticas** de gamificação. **Uma linha por usu
 | `total_flossings` | INT | ✅ | Total de registros de fio dental |
 | `last_brushing_date` | DATE | ❌ | Data da última escovação registrada |
 | `last_flossing_date` | DATE | ❌ | Data do último fio dental registrado |
+| `brushings_on_last_date` | INT | ✅ | Escovações na última data registrada |
+| `flossings_on_last_date` | INT | ✅ | Usos de fio na última data registrada |
 | `updated_at` | TIMESTAMPTZ | ✅ | Última atualização |
 
 ---
@@ -498,14 +471,26 @@ Tabela de **agregação de estatísticas** de gamificação. **Uma linha por usu
 - **O que faz:** Atualiza automaticamente o campo `updated_at` com a data/hora atual.
 
 ### `handle_new_brushing_session()`
-- **Quando dispara:** `AFTER INSERT OR UPDATE OF is_completed ON brushing_sessions`
-- **O que faz:** Ao marcar uma sessão como `is_completed = TRUE`, recalcula e atualiza automaticamente em `user_stats`:
+- **Quando dispara:** na transição `is_completed = FALSE → TRUE`
+- **O que faz:** Ao concluir uma sessão, atualiza atomicamente em `user_stats`:
   - `total_brushings` (+1)
   - `total_points` (+5)
-  - `current_streak_days` (incrementa ou reseta)
+  - `current_streak_days` (incrementa ou reseta somente em nova data civil)
   - `longest_streak_days` (atualiza se novo recorde)
-  - `last_brushing_date`
+  - `last_brushing_date` e `brushings_on_last_date`
   - `level` e `level_name`
+
+### `handle_new_flossing_log()`
+- **Quando dispara:** `AFTER INSERT ON flossing_logs`
+- **O que faz:** Incrementa `total_flossings`, soma +5 pontos, registra a data e
+  o contador diário e recalcula o nível.
+
+### Funções de conquistas
+- `unlock_achievement()` insere uma conquista uma única vez, concede seu bônus
+  imediatamente e define `visible_on` para o dia seguinte em São Paulo.
+- `claim_due_achievement_reveals()` reivindica conquistas vencidas com lease de
+  15 minutos e bloqueio concorrente.
+- `acknowledge_achievement_reveals()` confirma a exibição sem duplicar efeitos.
 
 ---
 
@@ -513,34 +498,22 @@ Tabela de **agregação de estatísticas** de gamificação. **Uma linha por usu
 
 Todas as tabelas possuem **RLS habilitado** no Supabase. Isso garante que cada usuário acessa **apenas seus próprios dados**, diretamente no nível do banco de dados.
 
-| Tabela | Acesso do Próprio Usuário | Acesso do Cuidador |
-|---|---|---|
-| `users` | SELECT, UPDATE | SELECT (se vínculo ativo, qualquer permissão) |
-| `health_profiles` | ALL (SELECT, INSERT, UPDATE, DELETE) | ❌ |
-| `brushing_sessions` | ALL | SELECT (se `can_view_reports`) |
-| `flossing_logs` | ALL | SELECT (se `can_view_reports`) |
-| `appointments` | ALL | SELECT (se `can_view_appointments`) |
-| `user_stats` | SELECT | SELECT (se `can_view_reports`) |
-| `user_module_progress` | ALL | ❌ |
-| `user_achievements` | SELECT | ❌ |
-| `caregivers` | ALL (como `patient_id`) | SELECT (como `caregiver_user_id`) |
-| `education_modules` | SELECT (público autenticado) | SELECT |
-| `achievements` | SELECT (público autenticado) | SELECT |
+| Tabela | Acesso autenticado |
+|---|---|
+| `users` | SELECT e UPDATE somente do próprio registro |
+| `health_profiles` | ALL somente nos próprios registros |
+| `brushing_sessions` | ALL somente nos próprios registros |
+| `flossing_logs` | ALL somente nos próprios registros |
+| `appointments` | ALL somente nos próprios registros |
+| `user_stats` | SELECT somente do próprio registro |
+| `user_module_progress` | ALL somente nos próprios registros |
+| `user_achievements` | SELECT somente dos próprios registros |
+| `education_modules` | SELECT do catálogo ativo |
+| `achievements` | SELECT do catálogo ativo |
 
-> **Nota (v2):** Diferente da v1 desta documentação, o acesso do cuidador aos
-> dados do paciente é garantido por **políticas de RLS** (função
-> `is_active_caregiver()`, ver `database/007_caregiver_access.sql`), e não
-> mediado pela `service_role` no FastAPI. O banco continua sendo a
-> autoridade final de autorização: um bug de validação no backend não expõe
-> prontuário de paciente nenhum, e revogar um cuidador corta o acesso
-> instantaneamente, no próximo `SELECT`. O FastAPI nunca usa a `service_role`
-> para leitura de dados de paciente — sempre opera com o JWT de quem está
-> autenticado (paciente ou cuidador), deixando o RLS decidir o que é visível.
->
-> O fluxo de convite (paciente convida por e-mail → cuidador aceita) também é
-> resolvido no banco, por duas funções `SECURITY DEFINER`
-> (`list_pending_caregiver_invitations()` e `accept_caregiver_invitation()`)
-> que exigem e-mail confirmado no Supabase Auth como prova de identidade.
+O banco continua sendo a autoridade final de autorização e pontuação. O
+FastAPI opera com o JWT do usuário autenticado, e nenhuma política concede
+acesso transversal a dados de outro paciente.
 
 ---
 
@@ -550,13 +523,12 @@ Todas as tabelas possuem **RLS habilitado** no Supabase. Isso garante que cada u
 auth.users (Supabase)
     │ (1:1)
     ▼
-users ─────────────────────────────────────────────────────────────┐
-  │ (1:1)                                                           │ (como cuidador)
-  ├──► health_profiles                                              │
-  │                                                                 │
-  │ (1:N)                                              caregivers ◄─┘
-  ├──► brushing_sessions          patient_id ──────────► (N cuidadores por paciente)
-  │                                                   caregiver_user_id ─────► users
+users
+  │ (1:1)
+  ├──► health_profiles
+  │
+  │ (1:N)
+  ├──► brushing_sessions
   │ (1:N)
   ├──► flossing_logs
   │
@@ -578,7 +550,7 @@ users ────────────────────────�
 ## 8. Próximos Passos de Desenvolvimento
 
 - [x] **Fase 1 — Infraestrutura**: Criar projeto no Supabase, aplicar o schema SQL, configurar variáveis de ambiente
-- [x] **Fase 2 — Back-end (FastAPI)**: Criar as rotas de API (autenticação, usuários, escovação, consultas, cuidadores)
-- [ ] **Fase 3 — Front-end (React + Vite)**: Criar estrutura PWA mobile-first, telas e componentes
-- [ ] **Fase 4 — Integrações**: Notificações push (para lembretes e alertas de cuidadores); envio real de e-mail de convite de cuidador (hoje `LoggingEmailSender` apenas registra em log)
+- [x] **Fase 2 — Back-end (FastAPI)**: Criar as rotas de API (autenticação, usuários, escovação, consultas e gamificação)
+- [x] **Fase 3 — Front-end (React + Vite)**: Criar estrutura PWA mobile-first, telas e componentes
+- [ ] **Fase 4 — Integrações**: Notificações push para lembretes de hábitos e consultas
 - [ ] **Fase 5 — Testes e Deploy**: Testes de integração e publicação
