@@ -49,6 +49,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
   const response = await fetch(`${env.apiBaseUrl}${path}`, {
     ...init,
+    cache: "no-store",
     headers: {
       "Content-Type": "application/json",
       ...authHeader,
