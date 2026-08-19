@@ -7,7 +7,7 @@ import { fetchDashboard } from "./dashboardApi";
 export function useDashboardQuery() {
   return useQuery({
     queryKey: dashboardQueryKey,
-    queryFn: fetchDashboard,
+    queryFn: ({ signal }) => fetchDashboard({ signal }),
     staleTime: 30_000,
   });
 }

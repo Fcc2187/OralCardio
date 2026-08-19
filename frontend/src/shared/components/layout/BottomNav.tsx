@@ -76,7 +76,7 @@ export function BottomNav() {
   return (
     <nav
       aria-label="Navegação principal"
-      className="fixed inset-x-0 bottom-0 z-10 flex h-bottom-nav-height border-t border-hairline bg-canvas pb-safe-area-bottom"
+      className="fixed inset-x-0 bottom-0 z-10 flex h-[calc(var(--spacing-bottom-nav-height)+var(--spacing-safe-area-bottom))] border-t border-hairline bg-canvas pb-safe-area-bottom"
     >
       {DESTINATIONS.map(({ to, label, icon: Icon }) => (
         <NavLink

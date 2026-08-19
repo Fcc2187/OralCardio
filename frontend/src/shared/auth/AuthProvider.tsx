@@ -3,6 +3,11 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { setCurrentAccessToken, supabaseClient } from "@/lib/supabaseClient";
+import {
+  configureSessionSignOut,
+  requestSessionSignOut,
+  runBeforeSignOutHandlers,
+} from "./sessionLifecycle";
 import { AuthContext, type AuthContextValue, type SignUpParams, type SignUpResult } from "./authContext";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -12,20 +17,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const activeUserIdRef = useRef<string | null>(null);
 
   useEffect(() => {
+    let isActive = true;
     function synchronizeSession(nextSession: Session | null) {
       const nextUserId = nextSession?.user.id ?? null;
       if (activeUserIdRef.current !== nextUserId) {
         queryClient.clear();
         activeUserIdRef.current = nextUserId;
       }
+      if (!isActive) return;
       setCurrentAccessToken(nextSession?.access_token ?? null);
       setSession(nextSession);
     }
 
-    supabaseClient.auth.getSession().then(({ data }) => {
-      synchronizeSession(data.session);
-      setIsLoading(false);
-    });
+    async function bootstrapSession() {
+      try {
+        const { data } = await supabaseClient.auth.getSession();
+        synchronizeSession(data.session);
+      } catch {
+        synchronizeSession(null);
+      } finally {
+        if (isActive) setIsLoading(false);
+      }
+    }
+
+    void bootstrapSession();
 
     const {
       data: { subscription },
@@ -33,7 +48,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       synchronizeSession(newSession);
     });
 
-    return () => subscription.unsubscribe();
+    configureSessionSignOut(async () => {
+      await runBeforeSignOutHandlers();
+      await supabaseClient.auth.signOut();
+    });
+
+    return () => {
+      isActive = false;
+      configureSessionSignOut(null);
+      subscription.unsubscribe();
+    };
   }, [queryClient]);
 
   async function signIn(email: string, password: string): Promise<void> {
@@ -56,7 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function signOut(): Promise<void> {
-    await supabaseClient.auth.signOut();
+    await requestSessionSignOut();
   }
 
   const value: AuthContextValue = {

@@ -58,7 +58,7 @@ export function HealthQuestionnairePage() {
       title="Antes de começar"
       subtitle="Esse questionário ajuda a personalizar seu acompanhamento. Leva menos de 2 minutos."
     >
-      <form onSubmit={handleSubmit} className="flex flex-col gap-lg" noValidate>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-lg">
         <Select
           label="Condição cardíaca"
           required

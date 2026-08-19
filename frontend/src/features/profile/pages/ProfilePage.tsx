@@ -45,6 +45,7 @@ function ProfileForm({ profile }: { profile: UserProfile }) {
   const [fullName, setFullName] = useState(profile.full_name);
   const [phone, setPhone] = useState(profile.phone ?? "");
   const [justSaved, setJustSaved] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   const mutation = useMutation({
     mutationFn: updateUserProfile,
@@ -57,8 +58,14 @@ function ProfileForm({ profile }: { profile: UserProfile }) {
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const normalizedName = fullName.trim();
+    if (normalizedName.length === 0) {
+      setValidationError("Informe seu nome completo.");
+      return;
+    }
+    setValidationError(null);
     setJustSaved(false);
-    mutation.mutate({ full_name: fullName, phone: phone || null });
+    mutation.mutate({ full_name: normalizedName, phone: phone.trim() || null });
   }
 
   async function handleSignOut() {
@@ -69,7 +76,7 @@ function ProfileForm({ profile }: { profile: UserProfile }) {
 
   return (
     <Screen title="Seu perfil">
-      <form onSubmit={handleSubmit} className="flex flex-col gap-lg" noValidate>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-lg">
         <TextField
           label="Nome completo"
           required
@@ -84,6 +91,7 @@ function ProfileForm({ profile }: { profile: UserProfile }) {
           onChange={(event) => setPhone(event.target.value)}
         />
 
+        {validationError ? <ErrorFeedback message={validationError} /> : null}
         {mutation.isError ? (
           <ErrorFeedback message="Não foi possível salvar. Tente novamente." />
         ) : null}

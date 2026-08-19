@@ -8,6 +8,10 @@ function toNullableString(text: string): string | null {
   return trimmed.length > 0 ? trimmed : null;
 }
 
+function assertMaxLength(value: string, maximum: number, label: string): void {
+  if (value.length > maximum) throw new Error(`${label} aceita no máximo ${maximum} caracteres.`);
+}
+
 /** DTO de criação + validação. Opcionais em branco viram `null` — no PATCH a
  * regra é diferente (ver buildAppointmentPatch.ts, que usa `""`, porque o
  * backend não consegue anular campo com `null`). Lança `Error` com mensagem
@@ -20,6 +24,11 @@ export function buildAppointmentPayload(
   if (dentistName.length === 0) {
     throw new Error("Informe o nome do dentista.");
   }
+  assertMaxLength(dentistName, 200, "O nome do dentista");
+  assertMaxLength(state.clinicName.trim(), 200, "O nome da clínica");
+  assertMaxLength(state.clinicAddress.trim(), 500, "O endereço da clínica");
+  assertMaxLength(state.clinicPhone.trim(), 30, "O telefone da clínica");
+  assertMaxLength(state.notes.trim(), 1000, "As notas");
 
   if (state.appointmentType === "") {
     throw new Error("Selecione o tipo de consulta.");

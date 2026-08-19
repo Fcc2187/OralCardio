@@ -3,12 +3,13 @@ import { Card } from "@/shared/components/ui/Card";
 import { ErrorFeedback, LoadingFeedback } from "@/shared/components/ui/Feedback";
 import { LinkButton } from "@/shared/components/ui/LinkButton";
 import { Screen } from "@/shared/components/layout/Screen";
+import { RetryButton } from "@/shared/components/ui/RetryButton";
 import { FlossingCard } from "@/features/flossing/components/FlossingCard";
 
 import { useDashboardQuery } from "../api/useDashboardQuery";
 
 export function DashboardPage() {
-  const { data, isPending, isError } = useDashboardQuery();
+  const { data, isPending, isError, refetch } = useDashboardQuery();
 
   if (isPending) {
     return <LoadingFeedback message="Carregando seu painel…" />;
@@ -18,6 +19,7 @@ export function DashboardPage() {
     return (
       <Screen>
         <ErrorFeedback message="Não foi possível carregar seu painel. Tente novamente em instantes." />
+        <RetryButton onRetry={() => refetch()} />
       </Screen>
     );
   }

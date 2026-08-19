@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 
 interface ScreenProps {
@@ -15,6 +15,14 @@ interface ScreenProps {
 /** Moldura de página consistente: largura confortável de leitura, título
  * display e espaçamento vertical do sistema de tokens. */
 export function Screen({ title, subtitle, backTo, backLabel = "Voltar", children }: ScreenProps) {
+  const headingRef = useRef<HTMLHeadingElement>(null);
+
+  useEffect(() => {
+    if (!title) return;
+    document.title = `${title} — OralCardio`;
+    headingRef.current?.focus();
+  }, [title]);
+
   return (
     <div className="mx-auto flex w-full max-w-[28rem] flex-col gap-lg px-lg py-xl">
       {backTo ? (
@@ -27,7 +35,9 @@ export function Screen({ title, subtitle, backTo, backLabel = "Voltar", children
       ) : null}
       {title ? (
         <header className="flex flex-col gap-xs">
-          <h1 className="text-display-sm">{title}</h1>
+          <h1 ref={headingRef} tabIndex={-1} className="text-display-sm outline-none">
+            {title}
+          </h1>
           {subtitle ? <p className="font-body text-body-md text-muted">{subtitle}</p> : null}
         </header>
       ) : null}

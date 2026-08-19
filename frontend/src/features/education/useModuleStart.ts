@@ -27,7 +27,8 @@ export function useModuleStart(module: EducationModule | undefined, slug: string
         queryClient.setQueryData(educationModuleQueryKey(slug), updated);
       })
       .catch(() => {
-        // Bookkeeping apenas — nenhuma ação necessária numa falha aqui.
+        // Permite uma nova tentativa quando a tela recuperar foco/refizer a query.
+        startedModuleIds.current.delete(module.id);
       });
   }, [module, slug, queryClient]);
 }

@@ -27,7 +27,7 @@
  */
 @theme {
   /* Cores — extraídas de DESIGN.md sem alteração de valor */
-  --color-primary: #cc785c;
+  --color-primary: #a9583e;
   --color-primary-action: #a9583e; /* botões: usa o "active" original como padrão, ver nota 1 */
   --color-primary-pressed: #8a4732;
   --color-primary-disabled: #e6dfd8;
@@ -56,7 +56,7 @@
 
   --color-accent-teal: #5db8a6;
   --color-accent-amber: #e8a55a;
-  --color-success: #5db872;
+  --color-success: #287a45;
   --color-warning: #d4a017;
   --color-error: #c64545;
 
@@ -198,5 +198,16 @@
   :focus-visible {
     outline: 2px solid var(--color-primary-action);
     outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      scroll-behavior: auto !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }

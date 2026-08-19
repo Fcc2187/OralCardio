@@ -13,6 +13,10 @@ function optionalPatchValue(formValue: string, originalValue: string | null): st
   return trimmed;
 }
 
+function assertMaxLength(value: string, maximum: number, label: string): void {
+  if (value.length > maximum) throw new Error(`${label} aceita no máximo ${maximum} caracteres.`);
+}
+
 /** Diff puro contra o registro original — só inclui campos que de fato
  * mudaram (evita reenviar `scheduled_at` inalterado, que perderia os
  * segundos no round-trip, e faz "salvar sem alterar nada" virar `{}`).
@@ -60,6 +64,11 @@ export function buildAppointmentPatch(
   if (dentistName.length === 0) {
     throw new Error("Informe o nome do dentista.");
   }
+  assertMaxLength(dentistName, 200, "O nome do dentista");
+  assertMaxLength(form.clinicName.trim(), 200, "O nome da clínica");
+  assertMaxLength(form.clinicAddress.trim(), 500, "O endereço da clínica");
+  assertMaxLength(form.clinicPhone.trim(), 30, "O telefone da clínica");
+  assertMaxLength(form.notes.trim(), 1000, "As notas");
   if (dentistName !== original.dentist_name) {
     patch.dentist_name = dentistName;
   }

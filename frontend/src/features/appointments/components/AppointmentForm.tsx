@@ -36,9 +36,9 @@ export function AppointmentForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-lg" noValidate>
+    <form onSubmit={handleSubmit} className="flex flex-col gap-lg">
       <TextField
-        label="Data e hora"
+        label="Data e hora (Brasília)"
         type="datetime-local"
         required
         min={nowAsDateTimeLocalValue()}

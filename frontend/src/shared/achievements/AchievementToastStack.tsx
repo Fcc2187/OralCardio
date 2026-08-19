@@ -14,7 +14,7 @@ export function AchievementToastStack({ toasts, onDismiss }: AchievementToastSta
     <div
       role="status"
       aria-live="polite"
-      className="fixed inset-x-0 top-0 z-20 flex flex-col items-center gap-sm p-md"
+      className="fixed inset-x-0 top-0 z-20 flex flex-col items-center gap-sm px-md pb-md pt-[calc(var(--spacing-md)+env(safe-area-inset-top))]"
     >
       {toasts.map(({ toastId, achievement }) => (
         <button

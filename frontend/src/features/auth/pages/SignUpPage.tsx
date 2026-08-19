@@ -6,6 +6,7 @@ import { Card } from "@/shared/components/ui/Card";
 import { ErrorFeedback } from "@/shared/components/ui/Feedback";
 import { TextField } from "@/shared/components/ui/TextField";
 import { Screen } from "@/shared/components/layout/Screen";
+import { LinkButton } from "@/shared/components/ui/LinkButton";
 import { useAuth } from "@/shared/auth/authContext";
 
 import { translateAuthError } from "../authErrorMessages";
@@ -26,6 +27,19 @@ export function SignUpPage() {
     event.preventDefault();
     setError(null);
 
+    const normalizedName = fullName.trim();
+    if (normalizedName.length === 0) {
+      setError("Informe seu nome completo.");
+      return;
+    }
+    if (!/^\S+@\S+\.\S+$/.test(email.trim())) {
+      setError("Informe um e-mail válido.");
+      return;
+    }
+    if (password.length < 6) {
+      setError("A senha precisa ter pelo menos 6 caracteres.");
+      return;
+    }
     if (password !== confirmPassword) {
       setError("As senhas não coincidem.");
       return;
@@ -33,7 +47,7 @@ export function SignUpPage() {
 
     setIsSubmitting(true);
     try {
-      const result = await signUp({ email, password, fullName });
+      const result = await signUp({ email: email.trim(), password, fullName: normalizedName });
       if (result.needsEmailConfirmation) {
         setNeedsEmailConfirmation(true);
       } else {
@@ -55,16 +69,14 @@ export function SignUpPage() {
             confirme a conta para poder entrar.
           </p>
         </Card>
-        <Link to="/entrar">
-          <Button variant="secondary">Voltar para entrar</Button>
-        </Link>
+        <LinkButton to="/entrar" variant="secondary">Voltar para entrar</LinkButton>
       </Screen>
     );
   }
 
   return (
     <Screen title="Criar conta" subtitle="Comece a cuidar da sua saúde bucal e cardíaca">
-      <form onSubmit={handleSubmit} className="flex flex-col gap-lg" noValidate>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-lg">
         <TextField
           label="Nome completo"
           autoComplete="name"

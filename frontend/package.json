@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "check:production-env": "node scripts/check-production-env.mjs",
+    "build:production": "npm run check:production-env && npm run build",
     "preview": "vite preview",
     "lint": "eslint .",
     "test": "vitest run"

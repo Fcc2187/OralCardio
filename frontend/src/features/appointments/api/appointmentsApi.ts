@@ -1,10 +1,13 @@
-import { httpClient } from "@/shared/api/httpClient";
+import { httpClient, type HttpRequestOptions } from "@/shared/api/httpClient";
 import type { Page } from "@/shared/types/common";
 
 import type { Appointment, AppointmentInput, AppointmentPatch } from "../types";
 
-export function createAppointment(input: AppointmentInput): Promise<Appointment> {
-  return httpClient.post<Appointment>("/api/v1/appointments", input);
+export function createAppointment(
+  input: AppointmentInput,
+  options?: HttpRequestOptions,
+): Promise<Appointment> {
+  return httpClient.post<Appointment>("/api/v1/appointments", input, options);
 }
 
 export function listAppointments(params: {

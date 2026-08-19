@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useAuth } from "@/shared/auth/authContext";
@@ -36,13 +36,15 @@ export function AchievementUnlockProvider({ children }: { children: ReactNode })
   const announcedIds = useRef(new Set<string>());
   const retryTimeouts = useRef<number[]>([]);
   const activeUserId = session?.user.id;
+  const [isPageVisible, setIsPageVisible] = useState(() => document.visibilityState === "visible");
 
   const acknowledgeMutation = useMutation({
-    mutationFn: (achievement: AchievementReveal) =>
+    mutationFn: ({ achievement }: { achievement: AchievementReveal; ownerId: string }) =>
       acknowledgeAchievementReveals([achievement.id]),
     retry: 3,
     retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 10_000),
-    onError: (_error, achievement) => {
+    onError: (_error, { achievement, ownerId }) => {
+      if (ownerId !== activeUserId) return;
       announcedIds.current.delete(achievement.id);
       const timeoutId = window.setTimeout(() => {
         queryClient.invalidateQueries({ queryKey: achievementRevealsQueryKey(activeUserId) });
@@ -51,15 +53,20 @@ export function AchievementUnlockProvider({ children }: { children: ReactNode })
     },
   });
   const handleDismissed = useCallback(
-    (achievement: AchievementReveal) => acknowledgeMutation.mutate(achievement),
-    [acknowledgeMutation],
+    (achievement: AchievementReveal, ownerId?: string) => {
+      if (ownerId && ownerId === activeUserId) acknowledgeMutation.mutate({ achievement, ownerId });
+    },
+    [acknowledgeMutation, activeUserId],
   );
-  const { toasts, announce, dismiss } = useAchievementUnlockToasts(handleDismissed);
+  const { toasts, announce, dismiss, reset } = useAchievementUnlockToasts(
+    handleDismissed,
+    isPageVisible,
+  );
 
   const revealsQuery = useQuery({
     queryKey: achievementRevealsQueryKey(activeUserId),
     queryFn: claimAchievementReveals,
-    enabled: Boolean(activeUserId),
+    enabled: Boolean(activeUserId) && isPageVisible,
     staleTime: 0,
     refetchOnWindowFocus: true,
     refetchOnReconnect: true,
@@ -67,22 +74,31 @@ export function AchievementUnlockProvider({ children }: { children: ReactNode })
 
   useEffect(() => {
     announcedIds.current.clear();
-  }, [activeUserId]);
+    reset();
+    for (const timeoutId of retryTimeouts.current) window.clearTimeout(timeoutId);
+    retryTimeouts.current = [];
+  }, [activeUserId, reset]);
 
   useEffect(() => {
-    if (!activeUserId) return;
+    const updateVisibility = () => setIsPageVisible(document.visibilityState === "visible");
+    document.addEventListener("visibilitychange", updateVisibility);
+    return () => document.removeEventListener("visibilitychange", updateVisibility);
+  }, []);
+
+  useEffect(() => {
+    if (!activeUserId || !isPageVisible) return;
     const unannounced = (revealsQuery.data ?? []).filter(
       (achievement) => !announcedIds.current.has(achievement.id),
     );
     if (unannounced.length === 0) return;
     for (const achievement of unannounced) announcedIds.current.add(achievement.id);
-    announce(unannounced);
+    announce(activeUserId, unannounced);
     queryClient.setQueryData(achievementRevealsQueryKey(activeUserId), []);
     queryClient.invalidateQueries({ queryKey: gamificationAchievementsQueryKey });
-  }, [activeUserId, announce, queryClient, revealsQuery.data]);
+  }, [activeUserId, announce, isPageVisible, queryClient, revealsQuery.data]);
 
   useEffect(() => {
-    if (!activeUserId) return undefined;
+    if (!activeUserId || !isPageVisible) return undefined;
 
     let currentDate = saoPauloDateKey();
     const intervalId = window.setInterval(() => {
@@ -96,7 +112,7 @@ export function AchievementUnlockProvider({ children }: { children: ReactNode })
     }, 30_000);
 
     return () => window.clearInterval(intervalId);
-  }, [activeUserId, queryClient]);
+  }, [activeUserId, isPageVisible, queryClient]);
 
   useEffect(
     () => () => {

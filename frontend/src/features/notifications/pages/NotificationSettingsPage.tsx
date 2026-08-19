@@ -16,6 +16,7 @@ import {
 } from "../api/notificationApi";
 import { useNotifications } from "../notificationContext";
 import type { NotificationPreferences, PushPermissionState } from "../types";
+import { validateNotificationPreferences } from "../validateNotificationPreferences";
 
 const APPOINTMENT_LEADS = [
   { value: 120, label: "2 horas antes" },
@@ -70,6 +71,7 @@ function NotificationSettingsForm({ initialValue }: { initialValue: Notification
   const [value, setValue] = useState(initialValue);
   const [saved, setSaved] = useState(false);
   const [testQueued, setTestQueued] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   useEffect(() => setValue(initialValue), [initialValue]);
 
@@ -91,15 +93,29 @@ function NotificationSettingsForm({ initialValue }: { initialValue: Notification
     nextValue: NotificationPreferences[K],
   ) {
     setSaved(false);
+    setValidationError(null);
     setValue((current) => ({ ...current, [key]: nextValue }));
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const error = validateNotificationPreferences(value);
+    if (error) {
+      setValidationError(error);
+      return;
+    }
     saveMutation.mutate(value);
   }
 
   function toggleLead(lead: number, checked: boolean) {
+    if (checked && !value.appointment_lead_minutes.includes(lead) && value.appointment_lead_minutes.length >= 3) {
+      setValidationError("Escolha no máximo três antecedências de consulta.");
+      return;
+    }
+    if (!checked && value.appointment_lead_minutes.length === 1) {
+      setValidationError("Escolha pelo menos uma antecedência de consulta.");
+      return;
+    }
     const next = checked
       ? [...value.appointment_lead_minutes, lead]
       : value.appointment_lead_minutes.filter((item) => item !== lead);
@@ -163,7 +179,7 @@ function NotificationSettingsForm({ initialValue }: { initialValue: Notification
         ) : null}
       </Card>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-lg" noValidate>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-lg">
         <Card variant="cream">
           <Checkbox
             label="Usar lembretes"
@@ -253,13 +269,21 @@ function NotificationSettingsForm({ initialValue }: { initialValue: Notification
             disabled={!value.enabled}
             onChange={(event) => update("appointments_enabled", event.target.checked)}
           />
-          <fieldset className="mt-md flex flex-col gap-xs" disabled={!value.appointments_enabled}>
+          <fieldset className="mt-md flex flex-col gap-xs" disabled={!value.enabled || !value.appointments_enabled}>
             <legend className="font-body text-body-sm font-medium">Avisar com antecedência</legend>
             {APPOINTMENT_LEADS.map(({ value: lead, label }) => (
               <Checkbox
                 key={lead}
                 label={label}
                 checked={value.appointment_lead_minutes.includes(lead)}
+                disabled={
+                  !value.enabled ||
+                  !value.appointments_enabled ||
+                  (!value.appointment_lead_minutes.includes(lead) &&
+                    value.appointment_lead_minutes.length >= 3) ||
+                  (value.appointment_lead_minutes.includes(lead) &&
+                    value.appointment_lead_minutes.length === 1)
+                }
                 onChange={(event) => toggleLead(lead, event.target.checked)}
               />
             ))}
@@ -269,7 +293,7 @@ function NotificationSettingsForm({ initialValue }: { initialValue: Notification
         <Card variant="canvas">
           <h2 className="text-title-md">Horário silencioso</h2>
           <p className="mt-xs font-body text-body-sm text-muted">
-            Lembretes de hábitos devem ficar fora deste período.
+            Lembretes de hábitos devem ficar fora deste período. Todos os horários seguem Brasília (São Paulo).
           </p>
           <div className="mt-md grid grid-cols-2 gap-sm">
             <TextField
@@ -287,6 +311,7 @@ function NotificationSettingsForm({ initialValue }: { initialValue: Notification
           </div>
         </Card>
 
+        {validationError ? <ErrorFeedback message={validationError} /> : null}
         {saveMutation.isError ? (
           <ErrorFeedback
             message={

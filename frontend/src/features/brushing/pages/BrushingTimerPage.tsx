@@ -5,6 +5,7 @@ import { Card } from "@/shared/components/ui/Card";
 import { ErrorFeedback } from "@/shared/components/ui/Feedback";
 import { Screen } from "@/shared/components/layout/Screen";
 import { cn } from "@/shared/utils/cn";
+import { useAuth } from "@/shared/auth/authContext";
 
 import { BRUSHING_ZONE_LABELS, BRUSHING_ZONE_ORDER } from "../brushingZones";
 import { MouthQuadrantMap } from "../components/MouthQuadrantMap";
@@ -13,7 +14,8 @@ import { useBrushingTimer } from "../useBrushingTimer";
 
 export function BrushingTimerPage() {
   const navigate = useNavigate();
-  const session = useBrushingSessionController();
+  const { user } = useAuth();
+  const session = useBrushingSessionController(user?.id);
 
   const timer = useBrushingTimer({
     onZoneComplete: (zone) => {
@@ -33,6 +35,11 @@ export function BrushingTimerPage() {
     }
   }
 
+  function handleResume() {
+    const recoverableSession = session.resume();
+    if (recoverableSession) timer.resumeFrom(recoverableSession.zones_completed);
+  }
+
   if (timer.status === "idle") {
     return (
       <Screen title="Hora de escovar" subtitle="2 minutos, 5 zonas da boca">
@@ -44,6 +51,16 @@ export function BrushingTimerPage() {
         </Card>
         {session.startError ? (
           <ErrorFeedback message={session.startError} />
+        ) : null}
+        {session.recoverableSession ? (
+          <Card variant="cream">
+            <p className="font-body text-body-md text-body">
+              Encontramos uma escovação não concluída neste dispositivo.
+            </p>
+            <Button className="mt-md" variant="secondary" onClick={handleResume}>
+              Retomar escovação
+            </Button>
+          </Card>
         ) : null}
         <Button onClick={() => void handleStart()} disabled={session.isStarting}>
           {session.isStarting ? "Iniciando…" : "Começar"}

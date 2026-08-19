@@ -1,6 +1,9 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 
 import { LoadingFeedback } from "@/shared/components/ui/Feedback";
+import { ErrorFeedback } from "@/shared/components/ui/Feedback";
+import { RetryButton } from "@/shared/components/ui/RetryButton";
+import { Screen } from "@/shared/components/layout/Screen";
 import { useHealthProfileQuery } from "@/shared/hooks/useHealthProfileQuery";
 
 import { useAuth } from "./authContext";
@@ -30,8 +33,16 @@ export function ProtectedRoute({ requireCompletedProfile = true }: ProtectedRout
       return <LoadingFeedback message="Carregando seu perfil…" />;
     }
 
-    const isCompleted = healthProfileQuery.data?.is_completed ?? false;
-    if (!isCompleted) {
+    if (healthProfileQuery.isError) {
+      return (
+        <Screen title="Não foi possível validar seu perfil">
+          <ErrorFeedback message="Verifique sua conexão e tente novamente." />
+          <RetryButton onRetry={() => healthProfileQuery.refetch()} />
+        </Screen>
+      );
+    }
+
+    if (healthProfileQuery.data?.is_completed === false) {
       return <Navigate to="/questionario" replace />;
     }
   }

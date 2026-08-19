@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 
 import { useAuth } from "@/shared/auth/authContext";
+import { registerBeforeSignOut } from "@/shared/auth/sessionLifecycle";
 
 import { NotificationContext } from "./notificationContext";
 import {
@@ -31,7 +32,12 @@ export function NotificationSubscriptionProvider({ children }: { children: React
       setHasSubscription(false);
       return;
     }
-    setHasSubscription(Boolean(await getCurrentPushSubscription()));
+    try {
+      setHasSubscription(Boolean(await getCurrentPushSubscription()));
+    } catch (nextError) {
+      setHasSubscription(false);
+      setError(errorMessage(nextError));
+    }
   }, []);
 
   const enable = useCallback(async () => {
@@ -72,6 +78,9 @@ export function NotificationSubscriptionProvider({ children }: { children: React
     previousUserId.current = current;
 
     if (previous && !current) {
+      // Fallback para encerramentos externos ao ciclo centralizado. A
+      // revogação remota já não é possível sem token, mas remover localmente
+      // impede que este navegador receba conteúdo da sessão anterior.
       void disablePushSubscription(false).finally(refresh);
       return;
     }
@@ -83,14 +92,27 @@ export function NotificationSubscriptionProvider({ children }: { children: React
     async function reconcile() {
       const state = getPushPermissionState();
       if (state === "granted") {
-        const synchronized = await synchronizeExistingSubscription();
-        if (!synchronized) await enablePushSubscription();
+        // Permissão concedida não é consentimento para uma nova inscrição.
+        // Só sincronizamos uma assinatura previamente criada pelo usuário.
+        await synchronizeExistingSubscription();
       }
       await refresh();
     }
 
     void reconcile().catch(() => refresh());
   }, [refresh, user?.id]);
+
+  useEffect(() => {
+    if (!user) return undefined;
+    return registerBeforeSignOut(async () => {
+      try {
+        await disablePushSubscription(true);
+      } catch {
+        // `disablePushSubscription` sempre tenta cancelar localmente, mesmo se
+        // a revogação remota falhar. O logout não pode manter o paciente preso.
+      }
+    });
+  }, [user]);
 
   useEffect(() => {
     if (!user) return;
@@ -122,4 +144,3 @@ export function NotificationSubscriptionProvider({ children }: { children: React
     </NotificationContext.Provider>
   );
 }
-

@@ -1,4 +1,3 @@
-import { useRef } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
 
@@ -9,18 +8,18 @@ import { Badge } from "@/shared/components/ui/Badge";
 import { Button } from "@/shared/components/ui/Button";
 import { ErrorFeedback, LoadingFeedback } from "@/shared/components/ui/Feedback";
 import { Screen } from "@/shared/components/layout/Screen";
+import { RetryButton } from "@/shared/components/ui/RetryButton";
 
 import { completeModule, fetchModuleBySlug } from "../api/educationApi";
 import { EDUCATION_CATEGORY_LABELS } from "../categoryLabels";
 import { ModuleContent } from "../components/ModuleContent";
-import { computeReadTimeSeconds } from "../computeReadTimeSeconds";
 import { parseModuleContent } from "../parseModuleContent";
 import { useModuleStart } from "../useModuleStart";
+import { useVisibleReadingTime } from "../useVisibleReadingTime";
 
 export function EducationModulePage() {
   const { slug = "" } = useParams<{ slug: string }>();
   const queryClient = useQueryClient();
-  const readingStartedAtRef = useRef(Date.now());
 
   const query = useQuery({
     queryKey: educationModuleQueryKey(slug),
@@ -29,10 +28,10 @@ export function EducationModulePage() {
   });
 
   useModuleStart(query.data, slug);
+  const getReadTimeSeconds = useVisibleReadingTime(Boolean(query.data && !query.data.is_completed));
 
   const completeMutation = useMutation({
-    mutationFn: (moduleId: string) =>
-      completeModule(moduleId, computeReadTimeSeconds(readingStartedAtRef.current, Date.now())),
+    mutationFn: (moduleId: string) => completeModule(moduleId, getReadTimeSeconds()),
     onSuccess: (result) => {
       queryClient.setQueryData(educationModuleQueryKey(slug), result);
       queryClient.invalidateQueries({ queryKey: educationModulesQueryKey });
@@ -55,6 +54,7 @@ export function EducationModulePage() {
               : "Não foi possível carregar o módulo. Tente novamente em instantes."
           }
         />
+        {!isNotFound ? <RetryButton onRetry={() => query.refetch()} /> : null}
       </Screen>
     );
   }

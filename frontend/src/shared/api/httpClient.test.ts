@@ -1,16 +1,18 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const getCurrentAccessToken = vi.fn();
-const signOut = vi.fn();
+const requestSessionSignOut = vi.fn();
 
 vi.mock("@/lib/supabaseClient", () => ({
   supabaseClient: {
     auth: {
-      signOut,
+      signOut: vi.fn(),
     },
   },
   getCurrentAccessToken,
 }));
+
+vi.mock("@/shared/auth/sessionLifecycle", () => ({ requestSessionSignOut }));
 
 vi.mock("@/config/env", () => ({
   env: {
@@ -30,7 +32,7 @@ function jsonResponse(status: number, body: unknown): Response {
 describe("httpClient", () => {
   beforeEach(() => {
     getCurrentAccessToken.mockReturnValue(null);
-    signOut.mockResolvedValue(undefined);
+    requestSessionSignOut.mockResolvedValue(undefined);
     vi.stubGlobal("fetch", vi.fn());
   });
 
@@ -95,6 +97,16 @@ describe("httpClient", () => {
     const { httpClient } = await import("./httpClient");
     await expect(httpClient.get("/api/v1/example")).rejects.toMatchObject({ status: 401 });
 
-    expect(signOut).toHaveBeenCalledOnce();
+    expect(requestSessionSignOut).toHaveBeenCalledOnce();
+  });
+
+  it("keeps a caller-provided idempotency key", async () => {
+    vi.mocked(fetch).mockResolvedValue(jsonResponse(200, { ok: true }));
+    const { httpClient } = await import("./httpClient");
+
+    await httpClient.post("/api/v1/example", { value: 1 }, { idempotencyKey: "intent-1" });
+
+    const [, init] = vi.mocked(fetch).mock.calls[0];
+    expect((init?.headers as Record<string, string>)["Idempotency-Key"]).toBe("intent-1");
   });
 });

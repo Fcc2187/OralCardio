@@ -5,19 +5,28 @@ import { EmptyState } from "@/shared/components/ui/EmptyState";
 import { ErrorFeedback, LoadingFeedback } from "@/shared/components/ui/Feedback";
 import { LinkButton } from "@/shared/components/ui/LinkButton";
 import { Screen } from "@/shared/components/layout/Screen";
+import { useCurrentTime } from "@/shared/hooks/useCurrentTime";
 
 import { useAppointmentsInfiniteQuery } from "../api/useAppointmentQueries";
 import { AppointmentCard } from "../components/AppointmentCard";
 import { groupAppointments } from "../groupAppointments";
+import type { Appointment } from "../types";
 
 export function AppointmentsListPage() {
   const query = useAppointmentsInfiniteQuery();
+  const now = useCurrentTime();
 
   const allItems = useMemo(
-    () => query.data?.pages.flatMap((page) => page.items) ?? [],
+    () => {
+      const uniqueItems = new Map<string, Appointment>();
+      for (const page of query.data?.pages ?? []) {
+        for (const item of page.items) uniqueItems.set(item.id, item);
+      }
+      return [...uniqueItems.values()];
+    },
     [query.data],
   );
-  const groups = useMemo(() => groupAppointments(allItems, Date.now()), [allItems]);
+  const groups = useMemo(() => groupAppointments(allItems, now), [allItems, now]);
 
   if (query.isPending) {
     return <LoadingFeedback message="Carregando sua agenda…" />;

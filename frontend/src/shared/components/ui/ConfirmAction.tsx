@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Button } from "./Button";
 import type { ButtonVariant } from "./buttonStyles";
@@ -27,21 +27,27 @@ export function ConfirmAction({
   disabled = false,
 }: ConfirmActionProps) {
   const [isConfirming, setIsConfirming] = useState(false);
+  const questionRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (isConfirming) questionRef.current?.focus();
+  }, [isConfirming]);
 
   if (!isConfirming) {
     return (
-      <Button variant={variant} disabled={disabled} onClick={() => setIsConfirming(true)}>
+      <Button type="button" variant={variant} disabled={disabled} onClick={() => setIsConfirming(true)}>
         {label}
       </Button>
     );
   }
 
   return (
-    <div className="flex flex-col gap-sm rounded-md border border-hairline bg-surface-soft p-md">
+    <div ref={questionRef} tabIndex={-1} className="flex flex-col gap-sm rounded-md border border-hairline bg-surface-soft p-md outline-none">
       <p className="font-body text-body-sm text-body-strong">{question}</p>
       <div className="flex gap-sm">
         <Button
           variant="primary"
+          type="button"
           fullWidth={false}
           className="flex-1"
           disabled={disabled}
@@ -54,6 +60,7 @@ export function ConfirmAction({
         </Button>
         <Button
           variant="secondary"
+          type="button"
           fullWidth={false}
           className="flex-1"
           onClick={() => setIsConfirming(false)}

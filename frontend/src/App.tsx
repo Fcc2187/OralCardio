@@ -23,7 +23,7 @@ import { RedirectIfAuthenticated } from "@/shared/auth/RedirectIfAuthenticated";
 export function App() {
   return (
     <Routes>
-      <Route path="/diagnostico" element={<HealthCheckPage />} />
+      {import.meta.env.DEV ? <Route path="/diagnostico" element={<HealthCheckPage />} /> : null}
 
       <Route element={<RedirectIfAuthenticated />}>
         <Route path="/entrar" element={<SignInPage />} />

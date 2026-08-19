@@ -69,4 +69,19 @@ describe("ProtectedRoute", () => {
 
     expect(screen.getByText("Conteúdo protegido")).toBeInTheDocument();
   });
+
+  it("shows a recoverable error instead of redirecting on profile fetch failure", () => {
+    useAuthMock.mockReturnValue({ session: {}, isLoading: false });
+    useHealthProfileQueryMock.mockReturnValue({
+      isPending: false,
+      isError: true,
+      refetch: vi.fn(),
+      data: undefined,
+    });
+
+    renderProtected();
+
+    expect(screen.getByText("Não foi possível validar seu perfil")).toBeInTheDocument();
+    expect(screen.queryByText("Tela de questionário")).not.toBeInTheDocument();
+  });
 });

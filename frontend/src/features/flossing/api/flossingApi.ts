@@ -1,4 +1,4 @@
-import { httpClient } from "@/shared/api/httpClient";
+import { httpClient, type HttpRequestOptions } from "@/shared/api/httpClient";
 
 export interface FlossingLog {
   id: string;
@@ -9,6 +9,9 @@ export interface FlossingLog {
 
 // Corpo obrigatório: FlossingLogInput não tem default no FastAPI, então uma
 // requisição sem body vira 422.
-export function logFlossing(notes: string | null = null): Promise<FlossingLog> {
-  return httpClient.post<FlossingLog>("/api/v1/flossing-logs", { notes });
+export function logFlossing(
+  notes: string | null = null,
+  options?: HttpRequestOptions,
+): Promise<FlossingLog> {
+  return httpClient.post<FlossingLog>("/api/v1/flossing-logs", { notes }, options);
 }

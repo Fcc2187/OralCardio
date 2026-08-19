@@ -26,10 +26,14 @@ export function SignInPage() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
+    if (!/^\S+@\S+\.\S+$/.test(email.trim()) || password.length === 0) {
+      setError("Informe e-mail e senha válidos.");
+      return;
+    }
     setIsSubmitting(true);
 
     try {
-      await signIn(email, password);
+      await signIn(email.trim(), password);
       const state = location.state as LocationState | null;
       navigate(state?.from?.pathname ?? "/", { replace: true });
     } catch (signInError) {
@@ -41,7 +45,7 @@ export function SignInPage() {
 
   return (
     <Screen title="Entrar" subtitle="Acesse sua conta do OralCardio">
-      <form onSubmit={handleSubmit} className="flex flex-col gap-lg" noValidate>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-lg">
         <TextField
           label="E-mail"
           type="email"

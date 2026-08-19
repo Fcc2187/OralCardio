@@ -1,3 +1,5 @@
+import { BUSINESS_TIME_ZONE, businessCalendarDayDelta } from "./businessClock";
+
 // Instâncias em escopo de módulo — construir um Intl.DateTimeFormat dentro de
 // um .map() sobre uma lista de consultas repetiria o custo a cada render.
 const dateTimeLongFormatter = new Intl.DateTimeFormat("pt-BR", {
@@ -7,18 +9,21 @@ const dateTimeLongFormatter = new Intl.DateTimeFormat("pt-BR", {
   year: "numeric",
   hour: "2-digit",
   minute: "2-digit",
+  timeZone: BUSINESS_TIME_ZONE,
 });
 const dateShortFormatter = new Intl.DateTimeFormat("pt-BR", {
   day: "2-digit",
   month: "2-digit",
   year: "numeric",
+  timeZone: BUSINESS_TIME_ZONE,
 });
-const timeFormatter = new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit" });
+const timeFormatter = new Intl.DateTimeFormat("pt-BR", {
+  hour: "2-digit",
+  minute: "2-digit",
+  timeZone: BUSINESS_TIME_ZONE,
+});
 
-// Locale fixo em "pt-BR" (nunca `undefined`): um dispositivo configurado em
-// en-US não pode renderizar "9/15/2026" para um paciente brasileiro. Sem
-// `timeZone` explícito de propósito — segue o fuso do dispositivo, coerente
-// com o que `dateTimeLocal.ts` já assume para o input local.
+// Datas clínicas e de agenda seguem o mesmo calendário de negócio da API.
 export function formatDateTimeLong(iso: string): string {
   return dateTimeLongFormatter.format(new Date(iso));
 }
@@ -35,11 +40,7 @@ export function formatTime(iso: string): string {
  * instantes. "Hoje 23:00" e "amanhã 01:00" precisam dar 1, não 0 — por isso
  * comparamos meia-noite local, não `(to - from) / 86400000`. */
 export function calendarDayDelta(fromMs: number, toMs: number): number {
-  const from = new Date(fromMs);
-  const to = new Date(toMs);
-  const fromMidnight = new Date(from.getFullYear(), from.getMonth(), from.getDate()).getTime();
-  const toMidnight = new Date(to.getFullYear(), to.getMonth(), to.getDate()).getTime();
-  return Math.round((toMidnight - fromMidnight) / 86_400_000);
+  return businessCalendarDayDelta(fromMs, toMs);
 }
 
 /** Rótulo relativo em pt-BR para um delta de dias de calendário. */

@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter } from "react-router-dom";
 
 import { App } from "@/App";
+import { AppErrorBoundary } from "@/shared/components/layout/AppErrorBoundary";
 import { AchievementUnlockProvider } from "@/shared/achievements/AchievementUnlockProvider";
 import { AuthProvider } from "@/shared/auth/AuthProvider";
 import { NotificationSubscriptionProvider } from "@/features/notifications/NotificationSubscriptionProvider";
@@ -18,16 +19,18 @@ const queryClient = new QueryClient();
 
 createRoot(rootElement).render(
   <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <AuthProvider>
-          <NotificationSubscriptionProvider>
-            <AchievementUnlockProvider>
-              <App />
-            </AchievementUnlockProvider>
-          </NotificationSubscriptionProvider>
-        </AuthProvider>
-      </BrowserRouter>
-    </QueryClientProvider>
+    <AppErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <AuthProvider>
+            <NotificationSubscriptionProvider>
+              <AchievementUnlockProvider>
+                <App />
+              </AchievementUnlockProvider>
+            </NotificationSubscriptionProvider>
+          </AuthProvider>
+        </BrowserRouter>
+      </QueryClientProvider>
+    </AppErrorBoundary>
   </StrictMode>,
 );

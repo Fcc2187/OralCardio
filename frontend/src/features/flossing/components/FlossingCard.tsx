@@ -1,7 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { invalidateGamifiedQueries } from "@/shared/api/invalidateGamifiedQueries";
+import { createIdempotencyKey } from "@/shared/api/httpClient";
 import { Button } from "@/shared/components/ui/Button";
 import { Card } from "@/shared/components/ui/Card";
 import { ErrorFeedback } from "@/shared/components/ui/Feedback";
@@ -23,13 +24,15 @@ function safeDailyCount(value: number): number {
  * cobre o instante entre a resposta chegar e o dashboard revalidar. */
 export function FlossingCard({ flossingsToday }: FlossingCardProps) {
   const queryClient = useQueryClient();
+  const idempotencyKeyRef = useRef<string | null>(null);
   const [displayCount, setDisplayCount] = useState(() => safeDailyCount(flossingsToday));
 
   useEffect(() => setDisplayCount(safeDailyCount(flossingsToday)), [flossingsToday]);
 
   const mutation = useMutation({
-    mutationFn: () => logFlossing(),
+    mutationFn: (idempotencyKey: string) => logFlossing(null, { idempotencyKey }),
     onSuccess: () => {
+      idempotencyKeyRef.current = null;
       setDisplayCount((current) => safeDailyCount(current) + 1);
       invalidateGamifiedQueries(queryClient);
     },
@@ -50,7 +53,10 @@ export function FlossingCard({ flossingsToday }: FlossingCardProps) {
       <Button
         variant="secondary"
         className="mt-md"
-        onClick={() => mutation.mutate()}
+        onClick={() => {
+          idempotencyKeyRef.current ??= createIdempotencyKey();
+          mutation.mutate(idempotencyKeyRef.current);
+        }}
         disabled={mutation.isPending}
       >
         {mutation.isPending

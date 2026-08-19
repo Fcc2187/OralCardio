@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { normalizeDashboardSummary } from "./dashboardApi";
+import { parseDashboardSummary, normalizeDashboardSummary } from "./dashboardApi";
 
 const LEGACY_SUMMARY = {
   full_name: "Maria Silva",
@@ -29,5 +29,11 @@ describe("normalizeDashboardSummary", () => {
         flossings_today: 4,
       }),
     ).toMatchObject({ brushings_today: 3, flossings_today: 4 });
+  });
+
+  it("rejects a malformed API response at the boundary", () => {
+    expect(() => parseDashboardSummary({ ...LEGACY_SUMMARY, full_name: null })).toThrow(
+      "formato esperado",
+    );
   });
 });

@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { BRUSHING_ZONE_ORDER } from "./brushingZones";
 import { useBrushingSessionController } from "./useBrushingSessionController";
+import { HttpError } from "@/shared/api/httpClient";
 
 const api = vi.hoisted(() => ({
   start: vi.fn(),
@@ -60,7 +61,7 @@ describe("useBrushingSessionController", () => {
   });
 
   it("reconcilia todas as zonas quando a primeira conclusão falha", async () => {
-    api.complete.mockRejectedValueOnce(new Error("zonas ausentes"));
+    api.complete.mockRejectedValueOnce(new HttpError("zonas ausentes", 422));
     const { result } = renderHook(useBrushingSessionController, { wrapper });
     await act(() => result.current.start());
     await act(() => result.current.finish(BRUSHING_ZONE_ORDER));

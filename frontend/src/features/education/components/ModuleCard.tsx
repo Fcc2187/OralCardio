@@ -21,16 +21,29 @@ interface ModuleCardProps {
   module: EducationModule;
 }
 
+function safeThumbnailUrl(value: string | null): string | null {
+  if (!value) return null;
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" ? url.href : null;
+  } catch {
+    return null;
+  }
+}
+
 export function ModuleCard({ module }: ModuleCardProps) {
+  const thumbnailUrl = safeThumbnailUrl(module.thumbnail_url);
   return (
     <Link
       to={`/educacao/${module.slug}`}
       className="flex items-center gap-md rounded-lg border border-hairline bg-canvas p-md"
     >
-      {module.thumbnail_url ? (
+      {thumbnailUrl ? (
         <img
-          src={module.thumbnail_url}
+          src={thumbnailUrl}
           alt=""
+          loading="lazy"
+          referrerPolicy="no-referrer"
           className="size-12 shrink-0 rounded-md object-cover"
         />
       ) : (

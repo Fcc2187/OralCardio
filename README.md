@@ -56,6 +56,10 @@ npm run dev
 - App disponível em `http://localhost:5173`
 - Lint: `npm run lint`
 - Build de produção: `npm run build`
+- Validação de variáveis de produção: `npm run check:production-env`
+- Build preparado para publicação: `npm run build:production` (copie
+  `frontend/.env.production.example` para um arquivo de ambiente seguro e
+  preencha as URLs HTTPS reais)
 
 ## Notificações push
 

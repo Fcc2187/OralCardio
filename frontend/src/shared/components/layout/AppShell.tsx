@@ -9,7 +9,7 @@ import { BottomNav } from "./BottomNav";
 export function AppShell() {
   return (
     <div className="flex min-h-dvh flex-col">
-      <main className="flex-1 pb-[calc(var(--spacing-bottom-nav-height)+var(--spacing-lg))]">
+      <main className="flex-1 pb-[calc(var(--spacing-bottom-nav-height)+var(--spacing-safe-area-bottom)+var(--spacing-lg))]">
         <Outlet />
       </main>
       <BottomNav />

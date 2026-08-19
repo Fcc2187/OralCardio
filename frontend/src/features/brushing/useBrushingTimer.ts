@@ -17,6 +17,7 @@ interface UseBrushingTimerResult {
   secondsRemainingInZone: number;
   completedZones: BrushingZone[];
   start: () => void;
+  resumeFrom: (completedZones: readonly BrushingZone[]) => void;
   pause: () => void;
   resume: () => void;
 }
@@ -27,9 +28,11 @@ interface UseBrushingTimerResult {
  * testável com temporizadores falsos, sem precisar mockar HTTP. */
 export function useBrushingTimer(options: UseBrushingTimerOptions = {}): UseBrushingTimerResult {
   const [status, setStatus] = useState<BrushingTimerStatus>("idle");
-  const [zoneIndex, setZoneIndex] = useState(0);
-  const [secondsElapsedInZone, setSecondsElapsedInZone] = useState(0);
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [completedZones, setCompletedZones] = useState<BrushingZone[]>([]);
+  const elapsedBeforeRunningRef = useRef(0);
+  const runningSinceRef = useRef<number | null>(null);
+  const announcedZoneCountRef = useRef(0);
 
   const onZoneCompleteRef = useRef(options.onZoneComplete);
   onZoneCompleteRef.current = options.onZoneComplete;
@@ -39,47 +42,96 @@ export function useBrushingTimer(options: UseBrushingTimerOptions = {}): UseBrus
   useEffect(() => {
     if (status !== "running") return undefined;
 
-    const intervalId = setInterval(() => {
-      setSecondsElapsedInZone((current) => current + 1);
-    }, 1000);
+    const syncElapsed = () => {
+      const runningSince = runningSinceRef.current;
+      if (runningSince === null) return;
+      setElapsedSeconds(elapsedBeforeRunningRef.current + Math.floor((performance.now() - runningSince) / 1000));
+    };
+    syncElapsed();
+    const intervalId = setInterval(syncElapsed, 250);
 
     return () => clearInterval(intervalId);
   }, [status]);
 
   useEffect(() => {
-    if (status !== "running" || secondsElapsedInZone < SECONDS_PER_ZONE) return;
+    if (status !== "running") return;
+    const completedCount = Math.min(
+      Math.floor(elapsedSeconds / SECONDS_PER_ZONE),
+      BRUSHING_ZONE_ORDER.length,
+    );
+    while (announcedZoneCountRef.current < completedCount) {
+      const zone = BRUSHING_ZONE_ORDER[announcedZoneCountRef.current];
+      onZoneCompleteRef.current?.(zone);
+      announcedZoneCountRef.current += 1;
+    }
+    setCompletedZones(BRUSHING_ZONE_ORDER.slice(0, completedCount));
 
-    const finishedZone = BRUSHING_ZONE_ORDER[zoneIndex];
-    onZoneCompleteRef.current?.(finishedZone);
-    setCompletedZones((current) => [...current, finishedZone]);
-
-    const nextIndex = zoneIndex + 1;
-    if (nextIndex >= BRUSHING_ZONE_ORDER.length) {
+    if (completedCount >= BRUSHING_ZONE_ORDER.length) {
+      elapsedBeforeRunningRef.current = BRUSHING_ZONE_ORDER.length * SECONDS_PER_ZONE;
+      runningSinceRef.current = null;
       setStatus("finished");
       onAllZonesCompleteRef.current?.();
-    } else {
-      setZoneIndex(nextIndex);
-      setSecondsElapsedInZone(0);
     }
-  }, [secondsElapsedInZone, status, zoneIndex]);
+  }, [elapsedSeconds, status]);
 
-  const start = useCallback(() => setStatus("running"), []);
+  const start = useCallback(() => {
+    elapsedBeforeRunningRef.current = 0;
+    runningSinceRef.current = performance.now();
+    announcedZoneCountRef.current = 0;
+    setElapsedSeconds(0);
+    setCompletedZones([]);
+    setStatus("running");
+  }, []);
+  const resumeFrom = useCallback((completedZones: readonly BrushingZone[]) => {
+    const completedCount = BRUSHING_ZONE_ORDER.findIndex(
+      (zone, index) => completedZones[index] !== zone,
+    );
+    const safeCompletedCount = completedCount === -1
+      ? Math.min(completedZones.length, BRUSHING_ZONE_ORDER.length)
+      : completedCount;
+    const elapsed = safeCompletedCount * SECONDS_PER_ZONE;
+    elapsedBeforeRunningRef.current = elapsed;
+    runningSinceRef.current = performance.now();
+    announcedZoneCountRef.current = safeCompletedCount;
+    setElapsedSeconds(elapsed);
+    setCompletedZones(BRUSHING_ZONE_ORDER.slice(0, safeCompletedCount));
+    // Mesmo com cinco zonas persistidas, deixa o efeito concluir a sessão no
+    // backend antes de expor a tela final ao paciente.
+    setStatus("running");
+  }, []);
   const pause = useCallback(
-    () => setStatus((current) => (current === "running" ? "paused" : current)),
+    () => {
+      if (runningSinceRef.current !== null) {
+        elapsedBeforeRunningRef.current += Math.floor((performance.now() - runningSinceRef.current) / 1000);
+        runningSinceRef.current = null;
+        setElapsedSeconds(elapsedBeforeRunningRef.current);
+      }
+      setStatus((current) => (current === "running" ? "paused" : current));
+    },
     [],
   );
   const resume = useCallback(
-    () => setStatus((current) => (current === "paused" ? "running" : current)),
+    () => {
+      setStatus((current) => {
+        if (current !== "paused") return current;
+        runningSinceRef.current = performance.now();
+        return "running";
+      });
+    },
     [],
   );
+
+  const zoneIndex = Math.min(Math.floor(elapsedSeconds / SECONDS_PER_ZONE), BRUSHING_ZONE_ORDER.length - 1);
+  const secondsElapsedInZone = status === "finished" ? SECONDS_PER_ZONE : elapsedSeconds % SECONDS_PER_ZONE;
 
   return {
     status,
     currentZone: status === "finished" ? null : BRUSHING_ZONE_ORDER[zoneIndex],
     secondsElapsedInZone,
-    secondsRemainingInZone: Math.max(0, SECONDS_PER_ZONE - secondsElapsedInZone),
+    secondsRemainingInZone: status === "finished" ? 0 : Math.max(0, SECONDS_PER_ZONE - secondsElapsedInZone),
     completedZones,
     start,
+    resumeFrom,
     pause,
     resume,
   };
