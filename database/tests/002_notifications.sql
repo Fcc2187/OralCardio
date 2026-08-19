@@ -1,6 +1,6 @@
 \set ON_ERROR_STOP on
 
--- Teste transacional da fase 4. Requer as migrações 001-015.
+-- Teste transacional da fase 4. Requer as migrações 001-017.
 begin;
 
 set local session_replication_role = replica;
@@ -47,9 +47,9 @@ select public.update_notification_preferences(
 );
 
 select * from public.upsert_push_subscription(
-  'https://push.example.test/subscription-41',
-  repeat('p', 32),
-  repeat('a', 16),
+  'https://fcm.googleapis.com/fcm/send/subscription-41',
+  encode(decode('04' || repeat('01', 64), 'hex'), 'base64'),
+  encode(decode(repeat('02', 16), 'hex'), 'base64'),
   null,
   'Dispositivo de teste',
   1
@@ -111,7 +111,7 @@ $$;
 
 create temporary table claimed_deliveries as
 select * from public.claim_due_notification_deliveries(
-  100, 120, timestamptz '2026-08-19 21:01:00-03'
+  100, 300, timestamptz '2026-08-19 21:01:00-03'
 );
 
 do $$
@@ -121,7 +121,7 @@ begin
   end if;
   if exists (
     select 1 from public.claim_due_notification_deliveries(
-      100, 120, timestamptz '2026-08-19 21:01:30-03'
+      100, 300, timestamptz '2026-08-19 21:01:30-03'
     )
   ) then
     raise exception 'Lease permitiu reivindicação concorrente duplicada';
@@ -129,7 +129,9 @@ begin
 end;
 $$;
 
-select public.complete_notification_delivery(delivery_id, 'sent', null, null)
+select public.complete_notification_delivery(
+  delivery_id, lease_token, 'sent', null, null
+)
 from claimed_deliveries;
 
 do $$
@@ -174,4 +176,3 @@ end;
 $$;
 
 rollback;
-

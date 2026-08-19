@@ -37,20 +37,22 @@ class SupabaseAppointmentRepository(SupabaseRepository):
         clinic_address: str | None,
         clinic_phone: str | None,
         notes: str | None,
+        idempotency_key: str | None,
     ) -> AppointmentRecord:
-        payload = {
-            "user_id": str(user_id),
-            "scheduled_at": scheduled_at,
-            "appointment_type": appointment_type.value,
-            "dentist_name": dentist_name,
-            "clinic_name": clinic_name,
-            "clinic_address": clinic_address,
-            "clinic_phone": clinic_phone,
-            "notes": notes,
-        }
-
         def operation():
-            response = self._client.table(_TABLE).insert(payload).execute()
+            response = self._client.rpc(
+                "create_appointment_idempotent",
+                {
+                    "p_scheduled_at": scheduled_at,
+                    "p_appointment_type": appointment_type.value,
+                    "p_dentist_name": dentist_name,
+                    "p_clinic_name": clinic_name,
+                    "p_clinic_address": clinic_address,
+                    "p_clinic_phone": clinic_phone,
+                    "p_notes": notes,
+                    "p_idempotency_key": idempotency_key,
+                },
+            ).execute()
             return response.data
 
         rows = self._run("Consulta", operation)

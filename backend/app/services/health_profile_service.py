@@ -3,12 +3,14 @@ from uuid import UUID
 from app.domain.enums import CardiacCondition
 from app.repositories.interfaces import HealthProfileRepository
 from app.repositories.records import HealthProfileRecord
-from app.services.gamification_service import GamificationService
+from app.services.interfaces import PostMutationAchievementEvaluator
 
 
 class HealthProfileService:
     def __init__(
-        self, repository: HealthProfileRepository, gamification_service: GamificationService
+        self,
+        repository: HealthProfileRepository,
+        gamification_service: PostMutationAchievementEvaluator,
     ) -> None:
         self._repository = repository
         self._gamification_service = gamification_service
@@ -50,5 +52,5 @@ class HealthProfileService:
         }
 
         profile = self._repository.upsert(user_id, values)
-        self._gamification_service.evaluate_and_unlock(user_id)
+        self._gamification_service.evaluate_after_mutation(user_id)
         return profile

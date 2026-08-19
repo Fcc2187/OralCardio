@@ -3,6 +3,7 @@ from uuid import UUID, uuid4
 
 import pytest
 
+from app.application.contracts import PushSendResult
 from app.core.exceptions import ServiceUnavailableError
 from app.domain.enums import NotificationType, PushDeliveryOutcome
 from app.domain.notifications import NotificationPreferencesUpdate
@@ -11,7 +12,6 @@ from app.repositories.records import (
     NotificationPreferencesRecord,
     PushSubscriptionRecord,
 )
-from app.services.interfaces import PushSendResult
 from app.services.notification_service import NotificationDispatchService, NotificationService
 
 
@@ -93,11 +93,15 @@ class FakeDispatchRepository:
         self.completions: list[tuple] = []
 
     def claim_due_deliveries(self, batch_size: int, lease_seconds: int, now: datetime):
-        assert (batch_size, lease_seconds, now) == (100, 120, FixedClock.value)
+        assert (batch_size, lease_seconds, now) == (50, 300, FixedClock.value)
         return self.deliveries
 
-    def complete_delivery(self, delivery_id, outcome, error_code, retry_at) -> None:
-        self.completions.append((delivery_id, outcome, error_code, retry_at))
+    def complete_delivery(
+        self, delivery_id, lease_token, outcome, error_code, retry_at
+    ) -> None:
+        self.completions.append(
+            (delivery_id, lease_token, outcome, error_code, retry_at)
+        )
 
 
 class FakeGateway:
@@ -108,9 +112,18 @@ class FakeGateway:
         return self.outcomes.pop(0)
 
 
-def delivery(attempt_count: int = 0) -> ClaimedNotificationDeliveryRecord:
+class PartiallyFailingGateway:
+    def send(self, claimed: ClaimedNotificationDeliveryRecord) -> PushSendResult:
+        if claimed.delivery_id.int == 5:
+            raise RuntimeError("unexpected provider failure")
+        return PushSendResult(PushDeliveryOutcome.SENT)
+
+
+def delivery(
+    attempt_count: int = 0, delivery_id: UUID = UUID(int=5)
+) -> ClaimedNotificationDeliveryRecord:
     return ClaimedNotificationDeliveryRecord(
-        delivery_id=UUID(int=5),
+        delivery_id=delivery_id,
         job_id=uuid4(),
         notification_type=NotificationType.TEST,
         endpoint="https://push.example/subscription",
@@ -118,6 +131,7 @@ def delivery(attempt_count: int = 0) -> ClaimedNotificationDeliveryRecord:
         auth_secret="b" * 10,
         payload={"title": "OralCardio"},
         attempt_count=attempt_count,
+        lease_token=UUID(int=6),
     )
 
 
@@ -128,7 +142,7 @@ def test_dispatch_records_success_without_retry_date() -> None:
     )
     summary = service.dispatch_once()
     assert (summary.claimed, summary.sent) == (1, 1)
-    assert repository.completions[0][1:] == ("sent", None, None)
+    assert repository.completions[0][1:] == (UUID(int=6), "sent", None, None)
 
 
 def test_dispatch_schedules_retry_with_backoff() -> None:
@@ -140,5 +154,20 @@ def test_dispatch_schedules_retry_with_backoff() -> None:
     )
     summary = service.dispatch_once()
     assert summary.retried == 1
-    assert repository.completions[0][1:3] == ("retry", "web_push_503")
-    assert repository.completions[0][3] == FixedClock.value + timedelta(seconds=125)
+    assert repository.completions[0][2:4] == ("retry", "web_push_503")
+    assert repository.completions[0][4] == FixedClock.value + timedelta(seconds=125)
+
+
+def test_dispatch_isolates_unexpected_failure_to_one_delivery() -> None:
+    repository = FakeDispatchRepository(
+        [delivery(delivery_id=UUID(int=5)), delivery(delivery_id=UUID(int=7))]
+    )
+    service = NotificationDispatchService(
+        repository, PartiallyFailingGateway(), FixedClock(), max_workers=2
+    )
+
+    summary = service.dispatch_once()
+
+    assert (summary.claimed, summary.sent, summary.retried) == (2, 1, 1)
+    outcomes = {completion[0]: completion[2] for completion in repository.completions}
+    assert outcomes == {UUID(int=5): "retry", UUID(int=7): "sent"}

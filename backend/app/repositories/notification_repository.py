@@ -185,6 +185,7 @@ class SupabaseNotificationDispatchRepository(SupabaseRepository):
                 auth_secret=row["auth_secret"],
                 payload=row["payload"],
                 attempt_count=row["attempt_count"],
+                lease_token=UUID(row["lease_token"]),
             )
             for row in rows
         ]
@@ -192,6 +193,7 @@ class SupabaseNotificationDispatchRepository(SupabaseRepository):
     def complete_delivery(
         self,
         delivery_id: UUID,
+        lease_token: UUID,
         outcome: str,
         error_code: str | None,
         retry_at: datetime | None,
@@ -201,6 +203,7 @@ class SupabaseNotificationDispatchRepository(SupabaseRepository):
                 "complete_notification_delivery",
                 {
                     "p_delivery_id": str(delivery_id),
+                    "p_lease_token": str(lease_token),
                     "p_outcome": outcome,
                     "p_error_code": error_code,
                     "p_retry_at": retry_at.isoformat() if retry_at else None,
@@ -208,4 +211,3 @@ class SupabaseNotificationDispatchRepository(SupabaseRepository):
             ).execute()
 
         self._run("Entrega de notificação", operation)
-

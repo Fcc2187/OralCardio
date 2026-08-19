@@ -229,7 +229,7 @@ compatíveis. Consulte [o guia completo](docs/notificacoes-push.md).
 
 > **Schema:** `public`  
 > **Banco:** PostgreSQL 15+ (Supabase)  
-> **Quantidade atual:** 15 tabelas de domínio
+> **Quantidade atual:** 16 tabelas de domínio
 > **Padrão de ID:** UUID (Universally Unique Identifier)  
 > **Padrão de data:** TIMESTAMPTZ (com fuso horário)
 
@@ -485,7 +485,7 @@ Tabela de **agregação de estatísticas** de gamificação. **Uma linha por usu
 
 ---
 
-### 4.11–4.15 Tabelas de notificações
+### 4.11–4.16 Filas e tabelas de notificações
 
 | Tabela | Responsabilidade |
 |---|---|
@@ -494,6 +494,7 @@ Tabela de **agregação de estatísticas** de gamificação. **Uma linha por usu
 | `push_subscriptions` | Endpoint e chaves de cada dispositivo, sem leitura direta pelo cliente |
 | `notification_jobs` | Outbox lógica idempotente com payload genérico e estado agregado |
 | `notification_deliveries` | Entrega, lease, tentativas e resultado por dispositivo |
+| `achievement_evaluation_requests` | Outbox transacional e versionada para reavaliar conquistas após mutações |
 
 Constraints únicas impedem jobs duplicados e mais de uma delivery do mesmo job
 para o mesmo dispositivo. Endpoints e chaves Web Push são dados sensíveis e
@@ -527,8 +528,13 @@ nunca são incluídos em logs ou respostas de leitura.
   o contador diário e recalcula o nível.
 
 ### Funções de conquistas
-- `unlock_achievement()` insere uma conquista uma única vez, concede seu bônus
+- `unlock_achievement_for_user()` insere uma conquista uma única vez pelo
+  worker privilegiado, concede seu bônus
   imediatamente e define `visible_on` para o dia seguinte em São Paulo.
+- Triggers das mutações registram uma solicitação em
+  `achievement_evaluation_requests` na mesma transação do hábito ou atividade.
+- `claim_achievement_evaluations()` e `complete_achievement_evaluation()`
+  processam a outbox com versão, retry, lease e token de fencing.
 - `claim_due_achievement_reveals()` reivindica conquistas vencidas com lease de
   15 minutos e bloqueio concorrente.
 - `acknowledge_achievement_reveals()` confirma a exibição sem duplicar efeitos.
@@ -539,8 +545,10 @@ nunca são incluídos em logs ou respostas de leitura.
   única transação autenticada.
 - `upsert_push_subscription()` associa atomicamente o endpoint ao usuário atual.
 - `enqueue_due_notification_jobs()` cria lembretes com chave de idempotência.
-- `claim_due_notification_deliveries()` usa `FOR UPDATE SKIP LOCKED` e lease.
-- `complete_notification_delivery()` confirma envio, retry, revogação ou dead-letter.
+- `claim_due_notification_deliveries()` usa `FOR UPDATE SKIP LOCKED`, lease e
+  token exclusivo por aquisição.
+- `complete_notification_delivery()` exige o token vigente e confirma envio,
+  retry, revogação ou dead-letter sem aceitar conclusão obsoleta.
 - `notification_cron_tick()` chama o dispatcher somente quando URL/token
   existem no Supabase Vault.
 
@@ -567,6 +575,7 @@ Todas as tabelas possuem **RLS habilitado** no Supabase. Isso garante que cada u
 | `push_subscriptions` | Sem SELECT direto; escrita/revogação somente por RPC autenticada |
 | `notification_jobs` | Nenhum acesso de cliente; somente dispatcher interno |
 | `notification_deliveries` | Nenhum acesso de cliente; somente dispatcher interno |
+| `achievement_evaluation_requests` | Nenhum acesso de cliente; somente triggers e worker interno |
 
 O banco continua sendo a autoridade final de autorização e pontuação. O
 FastAPI opera com o JWT do usuário autenticado, e nenhuma política concede
@@ -603,7 +612,8 @@ users
   │
   ├──► notification_preferences ──► habit_notification_schedules
   ├──► push_subscriptions
-  └──► notification_jobs ──► notification_deliveries
+  ├──► notification_jobs ──► notification_deliveries
+  └──► achievement_evaluation_requests
 ```
 
 ---

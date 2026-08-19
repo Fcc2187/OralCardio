@@ -1,7 +1,7 @@
-from dataclasses import dataclass
-from datetime import datetime
+import logging
 from uuid import UUID
 
+from app.application.contracts import AchievementStatus
 from app.core.clock import BusinessClock
 from app.core.exceptions import EntityNotFoundError
 from app.domain.achievements import AchievementEvaluator
@@ -9,12 +9,7 @@ from app.repositories.interfaces import GamificationRepository
 from app.repositories.records import AchievementRecord, UserStatsRecord
 from app.services.achievement_snapshot_builder import AchievementSnapshotBuilder
 
-
-@dataclass(frozen=True)
-class AchievementStatus:
-    achievement: AchievementRecord
-    unlocked: bool
-    earned_at: datetime | None
+logger = logging.getLogger(__name__)
 
 class GamificationService:
     """Orquestra estatísticas e o ciclo de desbloqueio de conquistas.
@@ -84,7 +79,19 @@ class GamificationService:
 
         newly_unlocked = self._evaluator.evaluate(achievements, snapshot, already_unlocked_ids)
         for achievement in newly_unlocked:
-            self._gamification_repository.unlock_achievement(achievement.id)
+            self._gamification_repository.unlock_achievement(user_id, achievement.id)
+
+    def evaluate_after_mutation(self, user_id: UUID) -> None:
+        """Tenta a avaliação síncrona; o trigger transacional garante o retry.
+
+        A atividade principal já foi confirmada pelo banco. Uma indisponibilidade
+        secundária de gamificação não deve transformar seu resultado em erro nem
+        incentivar o cliente a repetir uma mutação que concede pontos.
+        """
+        try:
+            self.evaluate_and_unlock(user_id)
+        except Exception:
+            logger.exception("achievement_evaluation_deferred")
 
     def claim_due_reveals(self) -> list[AchievementRecord]:
         return self._gamification_repository.claim_due_achievement_reveals()

@@ -9,6 +9,7 @@ from app.repositories.records import AppointmentRecord
 class FakeAppointmentRepository:
     def __init__(self) -> None:
         self._appointments: dict[UUID, AppointmentRecord] = {}
+        self._idempotency_keys: dict[tuple[UUID, str], UUID] = {}
 
     def create(
         self,
@@ -20,7 +21,12 @@ class FakeAppointmentRepository:
         clinic_address: str | None,
         clinic_phone: str | None,
         notes: str | None,
+        idempotency_key: str | None = None,
     ) -> AppointmentRecord:
+        if idempotency_key is not None:
+            existing_id = self._idempotency_keys.get((user_id, idempotency_key))
+            if existing_id is not None:
+                return self._appointments[existing_id]
         appointment_id = uuid4()
         now = datetime.now(UTC)
         record = AppointmentRecord(
@@ -38,6 +44,8 @@ class FakeAppointmentRepository:
             updated_at=now,
         )
         self._appointments[appointment_id] = record
+        if idempotency_key is not None:
+            self._idempotency_keys[(user_id, idempotency_key)] = appointment_id
         return record
 
     def get_by_id(self, appointment_id: UUID, user_id: UUID) -> AppointmentRecord | None:

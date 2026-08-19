@@ -1,5 +1,5 @@
+from app.application.contracts import HealthStatus
 from app.repositories.interfaces import HealthRepository
-from app.schemas.health import HealthStatus
 
 
 class DefaultHealthService:

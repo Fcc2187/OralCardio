@@ -1,10 +1,12 @@
 from pydantic import BaseModel
 
+from app.application.contracts import HealthStatus
 
-class HealthStatus(BaseModel):
+
+class HealthStatusOutput(BaseModel):
     api: bool
     database: bool
 
-    @property
-    def is_healthy(self) -> bool:
-        return self.api and self.database
+    @classmethod
+    def from_status(cls, status: HealthStatus) -> "HealthStatusOutput":
+        return cls(api=status.api, database=status.database)

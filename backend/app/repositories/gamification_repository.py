@@ -1,9 +1,17 @@
+from datetime import datetime
 from uuid import UUID
+
+from supabase import Client
 
 from app.domain.enums import AchievementConditionType
 from app.repositories.base import SupabaseRepository
 from app.repositories.parsing import parse_date, parse_datetime, parse_required_datetime
-from app.repositories.records import AchievementRecord, UserAchievementRecord, UserStatsRecord
+from app.repositories.records import (
+    AchievementRecord,
+    ClaimedAchievementEvaluationRecord,
+    UserAchievementRecord,
+    UserStatsRecord,
+)
 
 _STATS_TABLE = "user_stats"
 _ACHIEVEMENTS_TABLE = "achievements"
@@ -40,6 +48,10 @@ def _to_achievement_record(row: dict) -> AchievementRecord:
 
 
 class SupabaseGamificationRepository(SupabaseRepository):
+    def __init__(self, client: Client, write_client: Client | None = None) -> None:
+        super().__init__(client)
+        self._write_client = write_client or client
+
     def get_stats(self, user_id: UUID) -> UserStatsRecord | None:
         def operation():
             response = (
@@ -92,10 +104,14 @@ class SupabaseGamificationRepository(SupabaseRepository):
             for row in rows
         ]
 
-    def unlock_achievement(self, achievement_id: UUID) -> None:
+    def unlock_achievement(self, user_id: UUID, achievement_id: UUID) -> None:
         def operation():
-            self._client.rpc(
-                "unlock_achievement", {"p_achievement_id": str(achievement_id)}
+            self._write_client.rpc(
+                "unlock_achievement_for_user",
+                {
+                    "p_user_id": str(user_id),
+                    "p_achievement_id": str(achievement_id),
+                },
             ).execute()
 
         self._run("Conquista", operation)
@@ -119,3 +135,54 @@ class SupabaseGamificationRepository(SupabaseRepository):
             ).execute()
 
         self._run("Revelação de conquista", operation)
+
+
+class SupabaseAchievementEvaluationDispatchRepository(SupabaseRepository):
+    def claim_due_evaluations(
+        self, batch_size: int, lease_seconds: int, now: datetime
+    ) -> list[ClaimedAchievementEvaluationRecord]:
+        def operation():
+            response = self._client.rpc(
+                "claim_achievement_evaluations",
+                {
+                    "p_batch_size": batch_size,
+                    "p_lease_seconds": lease_seconds,
+                    "p_now": now.isoformat(),
+                },
+            ).execute()
+            return response.data
+
+        rows = self._run("Fila de avaliação de conquistas", operation)
+        return [
+            ClaimedAchievementEvaluationRecord(
+                user_id=UUID(row["user_id"]),
+                requested_version=row["requested_version"],
+                lease_token=UUID(row["lease_token"]),
+                attempt_count=row["attempt_count"],
+            )
+            for row in rows
+        ]
+
+    def complete_evaluation(
+        self,
+        user_id: UUID,
+        requested_version: int,
+        lease_token: UUID,
+        succeeded: bool,
+        retry_at: datetime | None,
+        error_code: str | None,
+    ) -> None:
+        def operation():
+            self._client.rpc(
+                "complete_achievement_evaluation",
+                {
+                    "p_user_id": str(user_id),
+                    "p_requested_version": requested_version,
+                    "p_lease_token": str(lease_token),
+                    "p_succeeded": succeeded,
+                    "p_retry_at": retry_at.isoformat() if retry_at else None,
+                    "p_error_code": error_code,
+                },
+            ).execute()
+
+        self._run("Avaliação de conquista", operation)

@@ -3,8 +3,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
+from app.application.contracts import ModuleWithProgress
 from app.domain.enums import EducationCategory
-from app.services.education_service import ModuleWithProgress
 
 
 class ModuleCompleteInput(BaseModel):

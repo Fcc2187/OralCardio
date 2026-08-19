@@ -1,7 +1,7 @@
 [project]
 name = "cardio-care-backend"
-version = "0.1.0"
-description = "CardioCare Connect — API (FastAPI)"
+version = "0.3.0"
+description = "OralCardio — API (FastAPI)"
 requires-python = ">=3.11"
 
 [tool.ruff]

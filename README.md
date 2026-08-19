@@ -24,8 +24,8 @@ cardio-care/
 
 1. Crie um projeto em supabase.com.
 2. No **SQL Editor**, execute os arquivos de `database/` na ordem numérica
-   (`001` a `015`). Detalhes em [database/README.md](database/README.md).
-3. Em **Settings → API**, copie a Project URL e a chave `anon`.
+   (`001` a `017`). Detalhes em [database/README.md](database/README.md).
+3. Em **Settings → API**, copie a Project URL e a chave `publishable`.
 
 ## 2. Backend (FastAPI)
 

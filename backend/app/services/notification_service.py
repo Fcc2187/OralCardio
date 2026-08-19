@@ -1,8 +1,14 @@
 import logging
-from dataclasses import dataclass
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timedelta
 from uuid import UUID
 
+from app.application.contracts import (
+    AchievementEvaluationDispatchSummary,
+    BackgroundDispatchSummary,
+    DispatchSummary,
+    PushSendResult,
+)
 from app.core.clock import InstantClock
 from app.core.exceptions import ServiceUnavailableError
 from app.domain.enums import PushDeliveryOutcome
@@ -11,9 +17,13 @@ from app.domain.notifications import (
     retry_delay_seconds,
     validate_notification_preferences,
 )
-from app.repositories.interfaces import NotificationDispatchRepository, NotificationRepository
+from app.repositories.interfaces import (
+    AchievementEvaluationDispatchRepository,
+    NotificationDispatchRepository,
+    NotificationRepository,
+)
 from app.repositories.records import NotificationPreferencesRecord, PushSubscriptionRecord
-from app.services.interfaces import PushGateway
+from app.services.interfaces import AchievementEvaluationService, PushGateway
 
 logger = logging.getLogger(__name__)
 
@@ -83,42 +93,61 @@ class NotificationService:
         return self._repository.request_test_notification()
 
 
-@dataclass(frozen=True)
-class DispatchSummary:
-    claimed: int
-    sent: int
-    retried: int
-    revoked: int
-    dead: int
-
-
 class NotificationDispatchService:
     def __init__(
         self,
         repository: NotificationDispatchRepository,
         gateway: PushGateway,
         clock: InstantClock,
+        batch_size: int = 50,
+        lease_seconds: int = 300,
+        max_workers: int = 10,
     ) -> None:
         self._repository = repository
         self._gateway = gateway
         self._clock = clock
+        self._batch_size = batch_size
+        self._lease_seconds = lease_seconds
+        self._max_workers = max_workers
 
-    def dispatch_once(self, batch_size: int = 100) -> DispatchSummary:
+    def dispatch_once(self) -> DispatchSummary:
         now = self._clock.now()
-        deliveries = self._repository.claim_due_deliveries(batch_size, 120, now)
+        deliveries = self._repository.claim_due_deliveries(
+            self._batch_size, self._lease_seconds, now
+        )
         counters = {outcome: 0 for outcome in PushDeliveryOutcome}
 
-        for delivery in deliveries:
-            result = self._gateway.send(delivery)
+        with ThreadPoolExecutor(max_workers=self._max_workers) as executor:
+            futures = {
+                executor.submit(self._gateway.send, delivery): delivery
+                for delivery in deliveries
+            }
+            completed = []
+            for future in as_completed(futures):
+                delivery = futures[future]
+                try:
+                    result = future.result()
+                except Exception:
+                    logger.exception(
+                        "notification_delivery_unexpected_error delivery_id=%s",
+                        delivery.delivery_id,
+                    )
+                    result = PushSendResult(
+                        PushDeliveryOutcome.RETRY, "unexpected_gateway_error"
+                    )
+                completed.append((delivery, result))
+
+        for delivery, result in completed:
             retry_at = None
             if result.outcome is PushDeliveryOutcome.RETRY:
-                retry_at = now + timedelta(
+                retry_at = self._clock.now() + timedelta(
                     seconds=retry_delay_seconds(
                         delivery.attempt_count, delivery.delivery_id.int
                     )
                 )
             self._repository.complete_delivery(
                 delivery.delivery_id,
+                delivery.lease_token,
                 result.outcome.value,
                 result.error_code,
                 retry_at,
@@ -141,3 +170,76 @@ class NotificationDispatchService:
             summary.dead,
         )
         return summary
+
+
+class AchievementEvaluationDispatchService:
+    def __init__(
+        self,
+        repository: AchievementEvaluationDispatchRepository,
+        gamification_service: AchievementEvaluationService,
+        clock: InstantClock,
+        batch_size: int = 10,
+        lease_seconds: int = 300,
+    ) -> None:
+        self._repository = repository
+        self._gamification_service = gamification_service
+        self._clock = clock
+        self._batch_size = batch_size
+        self._lease_seconds = lease_seconds
+
+    def dispatch_once(self) -> AchievementEvaluationDispatchSummary:
+        now = self._clock.now()
+        evaluations = self._repository.claim_due_evaluations(
+            self._batch_size, self._lease_seconds, now
+        )
+        succeeded = 0
+        retried = 0
+
+        for evaluation in evaluations:
+            retry_at = None
+            error_code = None
+            try:
+                self._gamification_service.evaluate_and_unlock(evaluation.user_id)
+                was_successful = True
+                succeeded += 1
+            except Exception:
+                logger.exception("achievement_evaluation_retry_scheduled")
+                was_successful = False
+                retried += 1
+                error_code = "achievement_evaluation_failed"
+                retry_at = self._clock.now() + timedelta(
+                    seconds=retry_delay_seconds(
+                        evaluation.attempt_count, evaluation.user_id.int
+                    )
+                )
+
+            self._repository.complete_evaluation(
+                evaluation.user_id,
+                evaluation.requested_version,
+                evaluation.lease_token,
+                was_successful,
+                retry_at,
+                error_code,
+            )
+
+        return AchievementEvaluationDispatchSummary(
+            claimed=len(evaluations), succeeded=succeeded, retried=retried
+        )
+
+
+class BackgroundJobDispatchService:
+    def __init__(
+        self,
+        notification_dispatcher: NotificationDispatchService,
+        achievement_dispatcher: AchievementEvaluationDispatchService,
+    ) -> None:
+        self._notification_dispatcher = notification_dispatcher
+        self._achievement_dispatcher = achievement_dispatcher
+
+    def dispatch_once(self) -> BackgroundDispatchSummary:
+        notifications = self._notification_dispatcher.dispatch_once()
+        achievements = self._achievement_dispatcher.dispatch_once()
+        return BackgroundDispatchSummary(
+            notifications=notifications,
+            achievement_evaluations=achievements,
+        )

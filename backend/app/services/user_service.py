@@ -16,10 +16,8 @@ class UserService:
         return user
 
     def update_profile(
-        self,
-        user_id: UUID,
-        full_name: str | None,
-        phone: str | None,
-        avatar_url: str | None,
+        self, user_id: UUID, changes: dict[str, object]
     ) -> UserRecord:
-        return self._repository.update(user_id, full_name, phone, avatar_url)
+        if not changes:
+            return self.get_profile(user_id)
+        return self._repository.update(user_id, changes)

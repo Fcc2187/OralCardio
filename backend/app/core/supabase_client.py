@@ -1,6 +1,6 @@
 from functools import lru_cache
 
-from supabase import Client, create_client
+from supabase import Client, ClientOptions, create_client
 
 from app.core.config import get_settings
 
@@ -17,7 +17,11 @@ def get_supabase_client() -> Client | None:
     if not settings.is_supabase_configured:
         return None
 
-    return create_client(settings.supabase_url, settings.supabase_anon_key)
+    return create_client(
+        settings.supabase_url,
+        settings.supabase_publishable_key,
+        options=ClientOptions(auto_refresh_token=False, persist_session=False),
+    )
 
 
 def create_user_scoped_client(access_token: str) -> Client:
@@ -28,14 +32,31 @@ def create_user_scoped_client(access_token: str) -> Client:
     defesa contra um filtro `user_id` esquecido no código da aplicação.
     """
     settings = get_settings()
-    client = create_client(settings.supabase_url, settings.supabase_anon_key)
+    client = create_client(
+        settings.supabase_url,
+        settings.supabase_publishable_key,
+        options=ClientOptions(auto_refresh_token=False, persist_session=False),
+    )
     client.postgrest.auth(access_token)
     return client
 
 
-def create_notification_dispatch_client() -> Client:
-    """Cria o client privilegiado usado somente pelo worker de notificações."""
+@lru_cache
+def get_privileged_supabase_client() -> Client | None:
+    """Client servidor-servidor; nunca deve ser exposto nem receber JWT de usuário."""
     settings = get_settings()
-    if not settings.is_notification_dispatch_configured:
-        raise RuntimeError("Dispatcher de notificações não configurado")
-    return create_client(settings.supabase_url, settings.supabase_service_role_key)
+    if not settings.is_privileged_supabase_configured:
+        return None
+    return create_client(
+        settings.supabase_url,
+        settings.supabase_secret_key,
+        options=ClientOptions(auto_refresh_token=False, persist_session=False),
+    )
+
+
+def create_background_job_client() -> Client:
+    """Obtém o client privilegiado usado somente pelo worker interno."""
+    client = get_privileged_supabase_client()
+    if client is None:
+        raise RuntimeError("Client privilegiado do Supabase não configurado")
+    return client

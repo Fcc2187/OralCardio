@@ -12,7 +12,7 @@ class _SpyGamificationService:
     def __init__(self) -> None:
         self.evaluate_calls: list[UUID] = []
 
-    def evaluate_and_unlock(self, user_id: UUID) -> None:
+    def evaluate_after_mutation(self, user_id: UUID) -> None:
         self.evaluate_calls.append(user_id)
 
 
@@ -55,14 +55,7 @@ def test_valid_status_transition_succeeds(service: AppointmentService, user_id: 
     updated = service.update_appointment(
         appointment_id=appointment.id,
         user_id=user_id,
-        scheduled_at=None,
-        appointment_type=None,
-        dentist_name=None,
-        clinic_name=None,
-        clinic_address=None,
-        clinic_phone=None,
-        notes=None,
-        status=AppointmentStatus.COMPLETED,
+        changes={"status": AppointmentStatus.COMPLETED.value},
     )
 
     assert updated.status == AppointmentStatus.COMPLETED
@@ -73,28 +66,14 @@ def test_invalid_status_transition_is_rejected(service: AppointmentService, user
     service.update_appointment(
         appointment_id=appointment.id,
         user_id=user_id,
-        scheduled_at=None,
-        appointment_type=None,
-        dentist_name=None,
-        clinic_name=None,
-        clinic_address=None,
-        clinic_phone=None,
-        notes=None,
-        status=AppointmentStatus.COMPLETED,
+        changes={"status": AppointmentStatus.COMPLETED.value},
     )
 
     with pytest.raises(BusinessRuleViolationError):
         service.update_appointment(
             appointment_id=appointment.id,
             user_id=user_id,
-            scheduled_at=None,
-            appointment_type=None,
-            dentist_name=None,
-            clinic_name=None,
-            clinic_address=None,
-            clinic_phone=None,
-            notes=None,
-            status=AppointmentStatus.SCHEDULED,
+            changes={"status": AppointmentStatus.SCHEDULED.value},
         )
 
 
@@ -105,3 +84,24 @@ def test_cannot_access_another_users_appointment(
 
     with pytest.raises(EntityNotFoundError):
         service.get_appointment(appointment.id, uuid4())
+
+
+def test_create_appointment_is_idempotent_when_key_is_reused(
+    service: AppointmentService, user_id: UUID
+) -> None:
+    values = {
+        "user_id": user_id,
+        "scheduled_at": "2026-09-01T10:00:00+00:00",
+        "appointment_type": AppointmentType.ROUTINE_CHECKUP,
+        "dentist_name": "Dra. Ana",
+        "clinic_name": None,
+        "clinic_address": None,
+        "clinic_phone": None,
+        "notes": None,
+        "idempotency_key": "request-123",
+    }
+
+    first = service.create_appointment(**values)
+    second = service.create_appointment(**values)
+
+    assert second.id == first.id

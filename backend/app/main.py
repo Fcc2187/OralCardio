@@ -10,7 +10,7 @@ from app.core.logging import configure_logging, register_request_id_middleware
 settings = get_settings()
 configure_logging(settings.log_level)
 
-app = FastAPI(title="OralCardio API", version="0.2.0")
+app = FastAPI(title="OralCardio API", version="0.3.0")
 
 app.add_middleware(
     CORSMiddleware,

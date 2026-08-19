@@ -3,9 +3,9 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
+from app.application.contracts import AchievementStatus
 from app.domain.enums import AchievementConditionType
 from app.repositories.records import AchievementRecord, UserStatsRecord
-from app.services.gamification_service import AchievementStatus
 
 
 class UserStatsOutput(BaseModel):

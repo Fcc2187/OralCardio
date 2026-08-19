@@ -9,8 +9,15 @@ from app.repositories.records import BrushingSessionRecord
 class FakeBrushingRepository:
     def __init__(self) -> None:
         self._sessions: dict[UUID, BrushingSessionRecord] = {}
+        self._idempotency_keys: dict[tuple[UUID, str], UUID] = {}
 
-    def create(self, user_id: UUID, target_duration: int) -> BrushingSessionRecord:
+    def create(
+        self, user_id: UUID, target_duration: int, idempotency_key: str | None = None
+    ) -> BrushingSessionRecord:
+        if idempotency_key is not None:
+            existing_id = self._idempotency_keys.get((user_id, idempotency_key))
+            if existing_id is not None:
+                return self._sessions[existing_id]
         session_id = uuid4()
         record = BrushingSessionRecord(
             id=session_id,
@@ -25,6 +32,8 @@ class FakeBrushingRepository:
             notes=None,
         )
         self._sessions[session_id] = record
+        if idempotency_key is not None:
+            self._idempotency_keys[(user_id, idempotency_key)] = session_id
         return record
 
     def get_by_id(self, session_id: UUID, user_id: UUID) -> BrushingSessionRecord | None:

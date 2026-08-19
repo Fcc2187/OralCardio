@@ -25,7 +25,9 @@ class FakeGamificationRepository:
     def list_unlocked_achievements(self, user_id: UUID) -> list[UserAchievementRecord]:
         return list(self._unlocked.values())
 
-    def unlock_achievement(self, achievement_id: UUID) -> None:
+    def unlock_achievement(self, user_id: UUID, achievement_id: UUID) -> None:
+        if self._stats.user_id != user_id:
+            return
         achievement = self._achievements[achievement_id]
         self._unlocked[achievement_id] = UserAchievementRecord(
             achievement_id=achievement_id,

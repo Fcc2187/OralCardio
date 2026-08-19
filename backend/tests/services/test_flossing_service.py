@@ -10,7 +10,7 @@ class _SpyGamificationService:
     def __init__(self) -> None:
         self.evaluate_calls: list[UUID] = []
 
-    def evaluate_and_unlock(self, user_id: UUID) -> None:
+    def evaluate_after_mutation(self, user_id: UUID) -> None:
         self.evaluate_calls.append(user_id)
 
 
@@ -56,3 +56,12 @@ def test_flossing_logs_remain_distinct_when_created_repeatedly(
     first = service.log_flossing(user_id, notes=None)
     second = service.log_flossing(user_id, notes=None)
     assert first.id != second.id
+
+
+def test_flossing_log_is_idempotent_when_key_is_reused(
+    service: FlossingService, user_id: UUID
+) -> None:
+    first = service.log_flossing(user_id, notes=None, idempotency_key="request-123")
+    second = service.log_flossing(user_id, notes=None, idempotency_key="request-123")
+
+    assert second.id == first.id

@@ -2,6 +2,8 @@ from dataclasses import replace
 from datetime import date, timedelta
 from uuid import UUID, uuid4
 
+import pytest
+
 from app.domain.achievements import AchievementEvaluator
 from app.domain.enums import AchievementConditionType
 from app.repositories.records import AchievementRecord, UserStatsRecord
@@ -140,3 +142,18 @@ def test_claim_returns_all_due_achievements(
         first.id,
         second.id,
     }
+
+
+def test_evaluation_after_mutation_is_best_effort(
+    empty_stats: UserStatsRecord, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    service, _, _ = _build_service(empty_stats, [])
+
+    def fail(_: UUID) -> None:
+        raise RuntimeError("temporary Supabase failure")
+
+    monkeypatch.setattr(service, "evaluate_and_unlock", fail)
+
+    # A trigger transacional já colocou o usuário na outbox; a mutação principal
+    # não deve virar 5xx apenas porque a avaliação síncrona falhou.
+    service.evaluate_after_mutation(empty_stats.user_id)

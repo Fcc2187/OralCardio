@@ -1,24 +1,10 @@
-from dataclasses import dataclass
 from uuid import UUID
 
+from app.application.contracts import DashboardSummary
 from app.core.clock import BusinessClock
 from app.services.gamification_service import GamificationService
 from app.services.health_profile_service import HealthProfileService
 from app.services.user_service import UserService
-
-
-@dataclass(frozen=True)
-class DashboardSummary:
-    full_name: str
-    health_profile_completed: bool
-    brushed_today: bool
-    flossed_today: bool
-    brushings_today: int
-    flossings_today: int
-    current_streak_days: int
-    total_points: int
-    level: int
-    level_name: str
 
 
 class DashboardService:

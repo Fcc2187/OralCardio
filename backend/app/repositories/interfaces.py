@@ -7,6 +7,7 @@ from app.repositories.records import (
     AchievementRecord,
     AppointmentRecord,
     BrushingSessionRecord,
+    ClaimedAchievementEvaluationRecord,
     ClaimedNotificationDeliveryRecord,
     EducationModuleRecord,
     FlossingLogRecord,
@@ -31,9 +32,7 @@ class HealthRepository(Protocol):
 class UserRepository(Protocol):
     def get_by_id(self, user_id: UUID) -> UserRecord | None: ...
 
-    def update(
-        self, user_id: UUID, full_name: str | None, phone: str | None, avatar_url: str | None
-    ) -> UserRecord: ...
+    def update(self, user_id: UUID, changes: dict[str, object]) -> UserRecord: ...
 
     def list_by_ids(self, user_ids: list[UUID]) -> list[UserRecord]: ...
 
@@ -45,7 +44,9 @@ class HealthProfileRepository(Protocol):
 
 
 class BrushingRepository(Protocol):
-    def create(self, user_id: UUID, target_duration: int) -> BrushingSessionRecord: ...
+    def create(
+        self, user_id: UUID, target_duration: int, idempotency_key: str | None
+    ) -> BrushingSessionRecord: ...
 
     def get_by_id(self, session_id: UUID, user_id: UUID) -> BrushingSessionRecord | None: ...
 
@@ -65,7 +66,9 @@ class BrushingRepository(Protocol):
 
 
 class FlossingRepository(Protocol):
-    def create(self, user_id: UUID, notes: str | None) -> FlossingLogRecord: ...
+    def create(
+        self, user_id: UUID, notes: str | None, idempotency_key: str | None
+    ) -> FlossingLogRecord: ...
 
     def list_by_user(self, user_id: UUID, limit: int, offset: int) -> list[FlossingLogRecord]: ...
 
@@ -97,7 +100,7 @@ class GamificationRepository(Protocol):
 
     def list_unlocked_achievements(self, user_id: UUID) -> list[UserAchievementRecord]: ...
 
-    def unlock_achievement(self, achievement_id: UUID) -> None: ...
+    def unlock_achievement(self, user_id: UUID, achievement_id: UUID) -> None: ...
 
     def claim_due_achievement_reveals(self) -> list[AchievementRecord]: ...
 
@@ -115,6 +118,7 @@ class AppointmentRepository(Protocol):
         clinic_address: str | None,
         clinic_phone: str | None,
         notes: str | None,
+        idempotency_key: str | None,
     ) -> AppointmentRecord: ...
 
     def get_by_id(self, appointment_id: UUID, user_id: UUID) -> AppointmentRecord | None: ...
@@ -176,7 +180,24 @@ class NotificationDispatchRepository(Protocol):
     def complete_delivery(
         self,
         delivery_id: UUID,
+        lease_token: UUID,
         outcome: str,
         error_code: str | None,
         retry_at: datetime | None,
+    ) -> None: ...
+
+
+class AchievementEvaluationDispatchRepository(Protocol):
+    def claim_due_evaluations(
+        self, batch_size: int, lease_seconds: int, now: datetime
+    ) -> list[ClaimedAchievementEvaluationRecord]: ...
+
+    def complete_evaluation(
+        self,
+        user_id: UUID,
+        requested_version: int,
+        lease_token: UUID,
+        succeeded: bool,
+        retry_at: datetime | None,
+        error_code: str | None,
     ) -> None: ...

@@ -2,11 +2,11 @@ import secrets
 
 from fastapi import APIRouter, Depends, Header
 
-from app.api.deps import get_notification_dispatch_service
+from app.api.deps import get_background_job_dispatch_service
 from app.core.config import get_settings
 from app.core.exceptions import AuthenticationError, ServiceUnavailableError
-from app.schemas.notification import NotificationDispatchOutput
-from app.services.notification_service import NotificationDispatchService
+from app.schemas.notification import BackgroundDispatchOutput
+from app.services.notification_service import BackgroundJobDispatchService
 
 router = APIRouter(prefix="/internal/v1/notifications", include_in_schema=False)
 
@@ -21,10 +21,9 @@ def require_notification_dispatch_token(
         raise AuthenticationError("Credencial do dispatcher inválida")
 
 
-@router.post("/dispatch", response_model=NotificationDispatchOutput)
+@router.post("/dispatch", response_model=BackgroundDispatchOutput)
 def dispatch_notifications(
     _: None = Depends(require_notification_dispatch_token),
-    service: NotificationDispatchService = Depends(get_notification_dispatch_service),
-) -> NotificationDispatchOutput:
-    return NotificationDispatchOutput.from_summary(service.dispatch_once())
-
+    service: BackgroundJobDispatchService = Depends(get_background_job_dispatch_service),
+) -> BackgroundDispatchOutput:
+    return BackgroundDispatchOutput.from_summary(service.dispatch_once())

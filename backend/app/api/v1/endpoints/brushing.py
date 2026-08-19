@@ -3,6 +3,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Query
 
 from app.api.deps import get_brushing_service
+from app.api.headers import IdempotencyKey
 from app.core.security import CurrentUser, get_current_user
 from app.schemas.brushing import BrushingSessionOutput, BrushingSessionPatchInput
 from app.schemas.common import Page
@@ -13,10 +14,13 @@ router = APIRouter()
 
 @router.post("/brushing-sessions", response_model=BrushingSessionOutput, status_code=201)
 def start_brushing_session(
+    idempotency_key: IdempotencyKey = None,
     current_user: CurrentUser = Depends(get_current_user),
     service: BrushingService = Depends(get_brushing_service),
 ) -> BrushingSessionOutput:
-    return BrushingSessionOutput.from_record(service.start_session(current_user.id))
+    return BrushingSessionOutput.from_record(
+        service.start_session(current_user.id, idempotency_key)
+    )
 
 
 @router.patch(
@@ -49,6 +53,6 @@ def list_brushing_sessions(
     current_user: CurrentUser = Depends(get_current_user),
     service: BrushingService = Depends(get_brushing_service),
 ) -> Page[BrushingSessionOutput]:
-    sessions = service.list_sessions(current_user.id, limit, offset)
+    sessions = service.list_sessions(current_user.id, limit + 1, offset)
     items = [BrushingSessionOutput.from_record(session) for session in sessions]
     return Page.of(items, limit, offset)

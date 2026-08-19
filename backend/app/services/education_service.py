@@ -1,21 +1,17 @@
-from dataclasses import dataclass
 from uuid import UUID
 
+from app.application.contracts import ModuleWithProgress
 from app.core.exceptions import EntityNotFoundError
 from app.repositories.interfaces import EducationRepository
-from app.repositories.records import EducationModuleRecord, ModuleProgressRecord
-from app.services.gamification_service import GamificationService
-
-
-@dataclass(frozen=True)
-class ModuleWithProgress:
-    module: EducationModuleRecord
-    progress: ModuleProgressRecord | None
+from app.repositories.records import EducationModuleRecord
+from app.services.interfaces import PostMutationAchievementEvaluator
 
 
 class EducationService:
     def __init__(
-        self, repository: EducationRepository, gamification_service: GamificationService
+        self,
+        repository: EducationRepository,
+        gamification_service: PostMutationAchievementEvaluator,
     ) -> None:
         self._repository = repository
         self._gamification_service = gamification_service
@@ -57,7 +53,7 @@ class EducationService:
             self._repository.start_module(user_id, module_id)
 
         progress = self._repository.complete_module(user_id, module_id, read_time_seconds)
-        self._gamification_service.evaluate_and_unlock(user_id)
+        self._gamification_service.evaluate_after_mutation(user_id)
         return ModuleWithProgress(module=module, progress=progress)
 
     def _get_active_module(self, module_id: UUID) -> EducationModuleRecord:

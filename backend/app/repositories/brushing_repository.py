@@ -26,16 +26,17 @@ def _to_record(row: dict) -> BrushingSessionRecord:
 
 
 class SupabaseBrushingRepository(SupabaseRepository):
-    def create(self, user_id: UUID, target_duration: int) -> BrushingSessionRecord:
-        payload = {
-            "user_id": str(user_id),
-            "target_duration": target_duration,
-            "zones_completed": [],
-            "is_completed": False,
-        }
-
+    def create(
+        self, user_id: UUID, target_duration: int, idempotency_key: str | None
+    ) -> BrushingSessionRecord:
         def operation():
-            response = self._client.table(_TABLE).insert(payload).execute()
+            response = self._client.rpc(
+                "create_brushing_session",
+                {
+                    "p_target_duration": target_duration,
+                    "p_idempotency_key": idempotency_key,
+                },
+            ).execute()
             return response.data
 
         rows = self._run("Sessão de escovação", operation)

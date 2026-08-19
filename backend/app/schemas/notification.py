@@ -1,11 +1,19 @@
 from datetime import datetime, time
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
-from app.domain.notifications import NotificationPreferencesUpdate
+from app.application.contracts import (
+    AchievementEvaluationDispatchSummary,
+    BackgroundDispatchSummary,
+    DispatchSummary,
+)
+from app.domain.notifications import (
+    NotificationPreferencesUpdate,
+    validate_push_endpoint,
+    validate_push_subscription_keys,
+)
 from app.repositories.records import NotificationPreferencesRecord, PushSubscriptionRecord
-from app.services.notification_service import DispatchSummary
 
 
 class NotificationPreferencesInput(BaseModel):
@@ -79,6 +87,12 @@ class PushSubscriptionInput(BaseModel):
     expiration_time: datetime | None = None
     device_label: str | None = Field(default=None, max_length=80)
 
+    @model_validator(mode="after")
+    def validate_subscription(self) -> "PushSubscriptionInput":
+        validate_push_endpoint(self.endpoint)
+        validate_push_subscription_keys(self.keys.p256dh, self.keys.auth)
+        return self
+
 
 class PushSubscriptionOutput(BaseModel):
     id: UUID
@@ -91,6 +105,11 @@ class PushSubscriptionOutput(BaseModel):
 
 class PushUnsubscribeInput(BaseModel):
     endpoint: str = Field(min_length=1, max_length=4096, pattern=r"^https://")
+
+    @model_validator(mode="after")
+    def validate_endpoint(self) -> "PushUnsubscribeInput":
+        validate_push_endpoint(self.endpoint)
+        return self
 
 
 class PushUnsubscribeOutput(BaseModel):
@@ -113,3 +132,28 @@ class NotificationDispatchOutput(BaseModel):
     def from_summary(cls, summary: DispatchSummary) -> "NotificationDispatchOutput":
         return cls(**summary.__dict__)
 
+
+class AchievementEvaluationDispatchOutput(BaseModel):
+    claimed: int
+    succeeded: int
+    retried: int
+
+    @classmethod
+    def from_summary(
+        cls, summary: AchievementEvaluationDispatchSummary
+    ) -> "AchievementEvaluationDispatchOutput":
+        return cls(**summary.__dict__)
+
+
+class BackgroundDispatchOutput(BaseModel):
+    notifications: NotificationDispatchOutput
+    achievement_evaluations: AchievementEvaluationDispatchOutput
+
+    @classmethod
+    def from_summary(cls, summary: BackgroundDispatchSummary) -> "BackgroundDispatchOutput":
+        return cls(
+            notifications=NotificationDispatchOutput.from_summary(summary.notifications),
+            achievement_evaluations=AchievementEvaluationDispatchOutput.from_summary(
+                summary.achievement_evaluations
+            ),
+        )

@@ -1,9 +1,21 @@
+import base64
+import binascii
 from dataclasses import dataclass
 from datetime import time
+from urllib.parse import urlparse
+
+from cryptography.hazmat.primitives.asymmetric import ec
 
 from app.core.exceptions import BusinessRuleViolationError
 
 ALLOWED_APPOINTMENT_LEADS = frozenset({15, 30, 60, 120, 360, 720, 1440, 2880, 10080})
+_PUSH_SERVICE_HOSTS = frozenset(
+    {
+        "fcm.googleapis.com",
+        "updates.push.services.mozilla.com",
+        "web.push.apple.com",
+    }
+)
 
 
 @dataclass(frozen=True)
@@ -56,3 +68,39 @@ def retry_delay_seconds(attempt_count: int, delivery_identity: int) -> int:
     """Backoff exponencial com jitter determinístico e testável."""
     base = min(3600, 60 * (2 ** max(0, attempt_count)))
     return base + delivery_identity % 31
+
+
+def validate_push_endpoint(endpoint: str) -> None:
+    try:
+        parsed = urlparse(endpoint)
+        port = parsed.port
+    except ValueError as exc:
+        raise BusinessRuleViolationError("Endpoint de notificação inválido") from exc
+    hostname = (parsed.hostname or "").lower()
+    is_windows_push = hostname.endswith(".notify.windows.com")
+    if (
+        parsed.scheme != "https"
+        or parsed.username is not None
+        or parsed.password is not None
+        or port not in (None, 443)
+        or (hostname not in _PUSH_SERVICE_HOSTS and not is_windows_push)
+    ):
+        raise BusinessRuleViolationError("Endpoint de notificação inválido")
+
+
+def validate_push_subscription_keys(p256dh: str, auth_secret: str) -> None:
+    try:
+        public_key = _decode_base64url(p256dh)
+        auth = _decode_base64url(auth_secret)
+        if len(public_key) != 65 or public_key[0] != 4 or len(auth) != 16:
+            raise ValueError
+        ec.EllipticCurvePublicKey.from_encoded_point(ec.SECP256R1(), public_key)
+    except (binascii.Error, ValueError):
+        raise BusinessRuleViolationError(
+            "Chaves da inscrição de notificação inválidas"
+        ) from None
+
+
+def _decode_base64url(value: str) -> bytes:
+    padding = "=" * (-len(value) % 4)
+    return base64.b64decode(value + padding, altchars=b"-_", validate=True)

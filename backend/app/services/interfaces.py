@@ -1,9 +1,8 @@
-from dataclasses import dataclass
 from typing import Protocol
+from uuid import UUID
 
-from app.domain.enums import PushDeliveryOutcome
+from app.application.contracts import HealthStatus, PushSendResult
 from app.repositories.records import ClaimedNotificationDeliveryRecord
-from app.schemas.health import HealthStatus
 
 
 class HealthService(Protocol):
@@ -12,11 +11,15 @@ class HealthService(Protocol):
     def check(self) -> HealthStatus: ...
 
 
-@dataclass(frozen=True)
-class PushSendResult:
-    outcome: PushDeliveryOutcome
-    error_code: str | None = None
-
-
 class PushGateway(Protocol):
     def send(self, delivery: ClaimedNotificationDeliveryRecord) -> PushSendResult: ...
+
+
+class AchievementEvaluationService(Protocol):
+    def evaluate_and_unlock(self, user_id: UUID) -> None: ...
+
+
+class PostMutationAchievementEvaluator(Protocol):
+    """Porta usada por casos de uso que apenas sinalizam uma possível conquista."""
+
+    def evaluate_after_mutation(self, user_id: UUID) -> None: ...

@@ -1,6 +1,6 @@
 \set ON_ERROR_STOP on
 
--- Teste de integração transacional para o schema final (001-015).
+-- Teste de integração transacional para o schema final (001-017).
 -- Execute como o usuário postgres do Supabase local; nada é persistido.
 begin;
 

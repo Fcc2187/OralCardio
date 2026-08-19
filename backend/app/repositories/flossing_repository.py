@@ -17,11 +17,14 @@ def _to_record(row: dict) -> FlossingLogRecord:
 
 
 class SupabaseFlossingRepository(SupabaseRepository):
-    def create(self, user_id: UUID, notes: str | None) -> FlossingLogRecord:
-        payload = {"user_id": str(user_id), "notes": notes}
-
+    def create(
+        self, user_id: UUID, notes: str | None, idempotency_key: str | None
+    ) -> FlossingLogRecord:
         def operation():
-            response = self._client.table(_TABLE).insert(payload).execute()
+            response = self._client.rpc(
+                "create_flossing_log",
+                {"p_notes": notes, "p_idempotency_key": idempotency_key},
+            ).execute()
             return response.data
 
         rows = self._run("Registro de fio dental", operation)

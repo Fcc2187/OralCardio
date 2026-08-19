@@ -1,4 +1,9 @@
+import base64
+import os
 from uuid import uuid4
+
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import ec
 
 from app.domain.enums import NotificationType, PushDeliveryOutcome
 from app.repositories.records import ClaimedNotificationDeliveryRecord
@@ -6,15 +11,24 @@ from app.services.web_push_gateway import VapidWebPushGateway
 
 
 def claimed_delivery() -> ClaimedNotificationDeliveryRecord:
+    public_key = ec.generate_private_key(ec.SECP256R1()).public_key()
+    encoded_public_key = public_key.public_bytes(
+        encoding=serialization.Encoding.X962,
+        format=serialization.PublicFormat.UncompressedPoint,
+    )
+
+    def encode(value: bytes) -> str:
+        return base64.urlsafe_b64encode(value).rstrip(b"=").decode()
     return ClaimedNotificationDeliveryRecord(
         delivery_id=uuid4(),
         job_id=uuid4(),
         notification_type=NotificationType.TEST,
-        endpoint="https://push.example/subscription",
-        p256dh="a" * 32,
-        auth_secret="b" * 16,
+        endpoint="https://fcm.googleapis.com/fcm/send/subscription",
+        p256dh=encode(encoded_public_key),
+        auth_secret=encode(os.urandom(16)),
         payload={"title": "OralCardio", "body": "Teste", "url": "/", "tag": "test"},
         attempt_count=0,
+        lease_token=uuid4(),
     )
 
 
@@ -36,4 +50,3 @@ def test_gateway_treats_network_failure_as_retry(monkeypatch) -> None:
     )
     assert result.outcome is PushDeliveryOutcome.RETRY
     assert result.error_code == "web_push_network"
-

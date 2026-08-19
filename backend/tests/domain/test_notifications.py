@@ -8,6 +8,8 @@ from app.domain.notifications import (
     is_quiet_time,
     retry_delay_seconds,
     validate_notification_preferences,
+    validate_push_endpoint,
+    validate_push_subscription_keys,
 )
 
 
@@ -65,3 +67,21 @@ def test_retry_delay_is_exponential_capped_and_jittered() -> None:
     assert retry_delay_seconds(1, 5) == 125
     assert retry_delay_seconds(20, 5) == 3605
 
+
+@pytest.mark.parametrize(
+    "endpoint",
+    [
+        "http://fcm.googleapis.com/subscription",
+        "https://user:password@fcm.googleapis.com/subscription",
+        "https://internal.example/subscription",
+        "https://fcm.googleapis.com:invalid/subscription",
+    ],
+)
+def test_push_endpoint_rejects_non_provider_or_malformed_urls(endpoint: str) -> None:
+    with pytest.raises(BusinessRuleViolationError):
+        validate_push_endpoint(endpoint)
+
+
+def test_push_subscription_rejects_malformed_base64_keys() -> None:
+    with pytest.raises(BusinessRuleViolationError):
+        validate_push_subscription_keys("not-base64!", "also-invalid!")

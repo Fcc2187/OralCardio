@@ -37,6 +37,12 @@ Supabase (ou via `supabase db push` / CLI) **nesta ordem**:
     `pg_cron`/`pg_net`; permanece inerte enquanto os segredos não existirem no Vault.
 15. `015_remove_appointment_reminder_flag.sql` — remove o booleano legado
     `appointments.reminder_sent`, substituído pela outbox auditável.
+16. `016_backend_hardening.sql` — adiciona idempotência às mutações de criação,
+    outbox transacional de avaliação de conquistas, valida subscriptions Web
+    Push e protege a conclusão de deliveries com token de lease.
+17. `017_remove_legacy_backend_rpcs.sql` — remove, após o rollout do backend,
+    os RPCs antigos de conquistas e deliveries que não possuíam validação
+    privilegiada ou token de fencing.
 
 > Faça backup do projeto Supabase antes de aplicar a `011`; os vínculos
 > excluídos só poderão ser recuperados a partir desse backup.
@@ -49,6 +55,8 @@ Supabase (ou via `supabase db push` / CLI) **nesta ordem**:
 4. Aplicar a migração destrutiva `011` somente após retirar o código antigo.
 5. Na fase 4, aplicar `012` e `013`, publicar backend/frontend, aplicar `014`
    e somente então executar `015`.
+6. Aplicar `016`, publicar todas as instâncias do backend endurecido e, depois
+   de drenar instâncias antigas e execuções do Cron, aplicar `017`.
 
 ## Notas
 
@@ -56,7 +64,7 @@ Supabase (ou via `supabase db push` / CLI) **nesta ordem**:
   permanecem no histórico; o estado final do schema é definido pela `011`.
 - Todas as tabelas de paciente usam RLS para permitir acesso somente ao próprio
   usuário. Catálogos permanecem disponíveis para leitura autenticada.
-- Após rodar os scripts, copie a **Project URL** e a **anon key** do painel do
+- Após rodar os scripts, copie a **Project URL** e a **publishable key** do painel do
   Supabase (Settings → API) para os arquivos `backend/.env` e `frontend/.env`
   (veja os respectivos `.env.example`).
 - O teste transacional do estado final está documentado em

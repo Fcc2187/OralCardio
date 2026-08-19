@@ -1,7 +1,7 @@
-from datetime import datetime
+from datetime import UTC, datetime
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from app.domain.enums import AppointmentStatus, AppointmentType
 from app.repositories.records import AppointmentRecord
@@ -16,6 +16,13 @@ class AppointmentInput(BaseModel):
     clinic_phone: str | None = Field(default=None, max_length=30)
     notes: str | None = Field(default=None, max_length=1000)
 
+    @field_validator("scheduled_at")
+    @classmethod
+    def normalize_scheduled_at(cls, value: datetime) -> datetime:
+        if value.tzinfo is None or value.utcoffset() is None:
+            raise ValueError("O horário da consulta deve incluir o fuso horário")
+        return value.astimezone(UTC)
+
 
 class AppointmentPatchInput(BaseModel):
     scheduled_at: datetime | None = None
@@ -26,6 +33,20 @@ class AppointmentPatchInput(BaseModel):
     clinic_phone: str | None = Field(default=None, max_length=30)
     notes: str | None = Field(default=None, max_length=1000)
     status: AppointmentStatus | None = None
+
+    @field_validator("scheduled_at")
+    @classmethod
+    def normalize_scheduled_at(cls, value: datetime | None) -> datetime | None:
+        if value is not None and (value.tzinfo is None or value.utcoffset() is None):
+            raise ValueError("O horário da consulta deve incluir o fuso horário")
+        return value.astimezone(UTC) if value is not None else None
+
+    @model_validator(mode="after")
+    def reject_null_for_required_fields(self) -> "AppointmentPatchInput":
+        for field_name in ("scheduled_at", "appointment_type", "dentist_name", "status"):
+            if field_name in self.model_fields_set and getattr(self, field_name) is None:
+                raise ValueError(f"O campo `{field_name}` não pode ser nulo")
+        return self
 
 
 class AppointmentOutput(BaseModel):

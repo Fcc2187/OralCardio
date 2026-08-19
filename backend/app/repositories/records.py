@@ -194,3 +194,12 @@ class ClaimedNotificationDeliveryRecord:
     auth_secret: str
     payload: dict
     attempt_count: int
+    lease_token: UUID
+
+
+@dataclass(frozen=True)
+class ClaimedAchievementEvaluationRecord:
+    user_id: UUID
+    requested_version: int
+    lease_token: UUID
+    attempt_count: int

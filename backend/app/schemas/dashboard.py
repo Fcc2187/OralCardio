@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-from app.services.dashboard_service import DashboardSummary
+from app.application.contracts import DashboardSummary
 
 
 class DashboardOutput(BaseModel):

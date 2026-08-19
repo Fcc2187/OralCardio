@@ -5,12 +5,14 @@ from app.domain.appointments import validate_status_transition
 from app.domain.enums import AppointmentStatus, AppointmentType
 from app.repositories.interfaces import AppointmentRepository
 from app.repositories.records import AppointmentRecord
-from app.services.gamification_service import GamificationService
+from app.services.interfaces import PostMutationAchievementEvaluator
 
 
 class AppointmentService:
     def __init__(
-        self, repository: AppointmentRepository, gamification_service: GamificationService
+        self,
+        repository: AppointmentRepository,
+        gamification_service: PostMutationAchievementEvaluator,
     ) -> None:
         self._repository = repository
         self._gamification_service = gamification_service
@@ -25,6 +27,7 @@ class AppointmentService:
         clinic_address: str | None,
         clinic_phone: str | None,
         notes: str | None,
+        idempotency_key: str | None = None,
     ) -> AppointmentRecord:
         appointment = self._repository.create(
             user_id,
@@ -35,8 +38,9 @@ class AppointmentService:
             clinic_address,
             clinic_phone,
             notes,
+            idempotency_key,
         )
-        self._gamification_service.evaluate_and_unlock(user_id)
+        self._gamification_service.evaluate_after_mutation(user_id)
         return appointment
 
     def get_appointment(self, appointment_id: UUID, user_id: UUID) -> AppointmentRecord:
@@ -49,39 +53,17 @@ class AppointmentService:
         self,
         appointment_id: UUID,
         user_id: UUID,
-        scheduled_at: str | None,
-        appointment_type: AppointmentType | None,
-        dentist_name: str | None,
-        clinic_name: str | None,
-        clinic_address: str | None,
-        clinic_phone: str | None,
-        notes: str | None,
-        status: AppointmentStatus | None,
+        changes: dict[str, object],
     ) -> AppointmentRecord:
         current = self.get_appointment(appointment_id, user_id)
 
+        status = changes.get("status")
         if status is not None:
-            validate_status_transition(current.status, status)
+            validate_status_transition(current.status, AppointmentStatus(str(status)))
 
-        values = {
-            key: value
-            for key, value in {
-                "scheduled_at": scheduled_at,
-                "appointment_type": appointment_type.value if appointment_type else None,
-                "dentist_name": dentist_name,
-                "clinic_name": clinic_name,
-                "clinic_address": clinic_address,
-                "clinic_phone": clinic_phone,
-                "notes": notes,
-                "status": status.value if status else None,
-            }.items()
-            if value is not None
-        }
-
-        if not values:
+        if not changes:
             return current
-
-        return self._repository.update(appointment_id, user_id, values)
+        return self._repository.update(appointment_id, user_id, changes)
 
     def delete_appointment(self, appointment_id: UUID, user_id: UUID) -> None:
         self._repository.delete(appointment_id, user_id)

@@ -12,7 +12,7 @@ class _SpyGamificationService:
     def __init__(self) -> None:
         self.evaluate_calls: list[UUID] = []
 
-    def evaluate_and_unlock(self, user_id: UUID) -> None:
+    def evaluate_after_mutation(self, user_id: UUID) -> None:
         self.evaluate_calls.append(user_id)
 
 
@@ -97,3 +97,12 @@ def test_cannot_access_another_users_session(service: BrushingService, user_id: 
 
     with pytest.raises(EntityNotFoundError):
         service.complete_session(session.id, other_user_id)
+
+
+def test_start_session_is_idempotent_when_key_is_reused(
+    service: BrushingService, user_id: UUID
+) -> None:
+    first = service.start_session(user_id, "request-123")
+    second = service.start_session(user_id, "request-123")
+
+    assert second.id == first.id

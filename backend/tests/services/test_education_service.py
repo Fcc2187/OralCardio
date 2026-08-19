@@ -13,7 +13,7 @@ class _SpyGamificationService:
     def __init__(self) -> None:
         self.evaluate_calls: list[UUID] = []
 
-    def evaluate_and_unlock(self, user_id: UUID) -> None:
+    def evaluate_after_mutation(self, user_id: UUID) -> None:
         self.evaluate_calls.append(user_id)
 
 

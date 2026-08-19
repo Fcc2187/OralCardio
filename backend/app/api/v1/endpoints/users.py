@@ -22,7 +22,5 @@ def update_my_profile(
     current_user: CurrentUser = Depends(get_current_user),
     service: UserService = Depends(get_user_service),
 ) -> UserOutput:
-    updated = service.update_profile(
-        current_user.id, payload.full_name, payload.phone, payload.avatar_url
-    )
+    updated = service.update_profile(current_user.id, payload.model_dump(exclude_unset=True))
     return UserOutput.from_record(updated)

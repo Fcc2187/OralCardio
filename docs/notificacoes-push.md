@@ -107,12 +107,13 @@ WEB_PUSH_VAPID_PUBLIC_KEY=<applicationServerKey>
 WEB_PUSH_VAPID_PRIVATE_KEY=<caminho-ou-segredo-da-chave-privada>
 WEB_PUSH_VAPID_SUBJECT=mailto:contato@dominio.com.br
 WEB_PUSH_VAPID_KEY_VERSION=1
-SUPABASE_SERVICE_ROLE_KEY=<somente-no-backend>
+SUPABASE_SECRET_KEY=<somente-no-backend>
 NOTIFICATION_DISPATCH_TOKEN=<segredo-aleatorio-longo>
 ```
 
-A service role só é injetada no dispatcher. Endpoints de pacientes continuam
-usando JWT e RLS.
+A secret key privilegiada só é usada no backend para o dispatcher e para a
+persistência validada de conquistas. Endpoints de pacientes continuam usando
+JWT e RLS para todas as leituras e mutações de dados do usuário.
 
 ### Ativar o Cron no Supabase
 
@@ -160,11 +161,12 @@ npm run lint
 npm run build
 
 psql "$env:DATABASE_URL" -v ON_ERROR_STOP=1 -f database/tests/002_notifications.sql
+psql "$env:DATABASE_URL" -v ON_ERROR_STOP=1 -f database/tests/003_backend_hardening.sql
 ```
 
 ### Operação e segurança
 
-- Nunca registre endpoint, `p256dh`, `auth`, service role ou chave VAPID.
+- Nunca registre endpoint, `p256dh`, `auth`, secret key do Supabase ou chave VAPID.
 - Monitore idade do job pendente mais antigo, retries, dead letters e heartbeat
   do Cron.
 - Jobs enviados/suprimidos têm retenção de 90 dias; mortos, 180 dias.

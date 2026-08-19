@@ -6,20 +6,26 @@ from app.domain.brushing import is_session_complete, validate_zone_transition
 from app.domain.enums import BrushingZone
 from app.repositories.interfaces import BrushingRepository
 from app.repositories.records import BrushingSessionRecord
-from app.services.gamification_service import GamificationService
+from app.services.interfaces import PostMutationAchievementEvaluator
 
 _DEFAULT_TARGET_DURATION_SECONDS = 120
 
 
 class BrushingService:
     def __init__(
-        self, repository: BrushingRepository, gamification_service: GamificationService
+        self,
+        repository: BrushingRepository,
+        gamification_service: PostMutationAchievementEvaluator,
     ) -> None:
         self._repository = repository
         self._gamification_service = gamification_service
 
-    def start_session(self, user_id: UUID) -> BrushingSessionRecord:
-        return self._repository.create(user_id, _DEFAULT_TARGET_DURATION_SECONDS)
+    def start_session(
+        self, user_id: UUID, idempotency_key: str | None = None
+    ) -> BrushingSessionRecord:
+        return self._repository.create(
+            user_id, _DEFAULT_TARGET_DURATION_SECONDS, idempotency_key
+        )
 
     def mark_zone_completed(
         self, session_id: UUID, user_id: UUID, zone: BrushingZone
@@ -47,7 +53,7 @@ class BrushingService:
 
         duration_seconds = self._calculate_duration_seconds(session)
         completed = self._repository.complete(session_id, user_id, duration_seconds)
-        self._gamification_service.evaluate_and_unlock(user_id)
+        self._gamification_service.evaluate_after_mutation(user_id)
         return completed
 
     def list_sessions(

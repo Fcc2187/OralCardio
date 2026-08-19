@@ -13,4 +13,9 @@ class Page(BaseModel, Generic[T]):
 
     @classmethod
     def of(cls, items: list[T], limit: int, offset: int) -> "Page[T]":
-        return cls(items=items, limit=limit, offset=offset, has_more=len(items) == limit)
+        return cls(
+            items=items[:limit],
+            limit=limit,
+            offset=offset,
+            has_more=len(items) > limit,
+        )

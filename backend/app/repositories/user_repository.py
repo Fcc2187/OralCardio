@@ -35,22 +35,10 @@ class SupabaseUserRepository(SupabaseRepository):
         row = self._run("Usuário", operation)
         return _to_record(row) if row else None
 
-    def update(
-        self, user_id: UUID, full_name: str | None, phone: str | None, avatar_url: str | None
-    ) -> UserRecord:
-        values = {
-            key: value
-            for key, value in {
-                "full_name": full_name,
-                "phone": phone,
-                "avatar_url": avatar_url,
-            }.items()
-            if value is not None
-        }
-
+    def update(self, user_id: UUID, changes: dict[str, object]) -> UserRecord:
         def operation():
             response = (
-                self._client.table(_TABLE).update(values).eq("id", str(user_id)).execute()
+                self._client.table(_TABLE).update(changes).eq("id", str(user_id)).execute()
             )
             return response.data
 

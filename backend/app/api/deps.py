@@ -13,13 +13,19 @@ from app.core.clock import BusinessClock, SaoPauloBusinessClock, UtcClock
 from app.core.config import get_settings
 from app.core.exceptions import ServiceUnavailableError
 from app.core.security import get_user_scoped_client
-from app.core.supabase_client import create_notification_dispatch_client
+from app.core.supabase_client import (
+    create_background_job_client,
+    get_privileged_supabase_client,
+)
 from app.domain.achievements import AchievementEvaluator
 from app.repositories.appointment_repository import SupabaseAppointmentRepository
 from app.repositories.brushing_repository import SupabaseBrushingRepository
 from app.repositories.education_repository import SupabaseEducationRepository
 from app.repositories.flossing_repository import SupabaseFlossingRepository
-from app.repositories.gamification_repository import SupabaseGamificationRepository
+from app.repositories.gamification_repository import (
+    SupabaseAchievementEvaluationDispatchRepository,
+    SupabaseGamificationRepository,
+)
 from app.repositories.health_profile_repository import SupabaseHealthProfileRepository
 from app.repositories.notification_repository import (
     SupabaseNotificationDispatchRepository,
@@ -35,6 +41,8 @@ from app.services.flossing_service import FlossingService
 from app.services.gamification_service import GamificationService
 from app.services.health_profile_service import HealthProfileService
 from app.services.notification_service import (
+    AchievementEvaluationDispatchService,
+    BackgroundJobDispatchService,
     NotificationDispatchService,
     NotificationService,
 )
@@ -60,7 +68,9 @@ def get_gamification_service(
         appointment_repository=SupabaseAppointmentRepository(client),
     )
     return GamificationService(
-        gamification_repository=SupabaseGamificationRepository(client),
+        gamification_repository=SupabaseGamificationRepository(
+            client, write_client=get_privileged_supabase_client()
+        ),
         snapshot_builder=snapshot_builder,
         evaluator=AchievementEvaluator(),
         clock=clock,
@@ -122,16 +132,39 @@ def get_notification_service(
     )
 
 
-def get_notification_dispatch_service() -> NotificationDispatchService:
+def get_background_job_dispatch_service() -> BackgroundJobDispatchService:
     settings = get_settings()
     if not settings.is_notification_dispatch_configured:
         raise ServiceUnavailableError("Dispatcher de notificações não configurado")
-    client = create_notification_dispatch_client()
-    return NotificationDispatchService(
+    client = create_background_job_client()
+    clock = UtcClock()
+    notification_dispatcher = NotificationDispatchService(
         repository=SupabaseNotificationDispatchRepository(client),
         gateway=VapidWebPushGateway(
             private_key=settings.web_push_vapid_private_key,
             subject=settings.web_push_vapid_subject,
+            timeout_seconds=settings.notification_push_timeout_seconds,
         ),
-        clock=UtcClock(),
+        clock=clock,
+        batch_size=settings.notification_dispatch_batch_size,
+        lease_seconds=settings.notification_dispatch_lease_seconds,
+        max_workers=settings.notification_dispatch_workers,
     )
+    gamification_service = GamificationService(
+        gamification_repository=SupabaseGamificationRepository(client),
+        snapshot_builder=AchievementSnapshotBuilder(
+            education_repository=SupabaseEducationRepository(client),
+            health_profile_repository=SupabaseHealthProfileRepository(client),
+            appointment_repository=SupabaseAppointmentRepository(client),
+        ),
+        evaluator=AchievementEvaluator(),
+        clock=SaoPauloBusinessClock(),
+    )
+    achievement_dispatcher = AchievementEvaluationDispatchService(
+        repository=SupabaseAchievementEvaluationDispatchRepository(client),
+        gamification_service=gamification_service,
+        clock=clock,
+        batch_size=settings.achievement_dispatch_batch_size,
+        lease_seconds=settings.achievement_dispatch_lease_seconds,
+    )
+    return BackgroundJobDispatchService(notification_dispatcher, achievement_dispatcher)

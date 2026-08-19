@@ -5,8 +5,9 @@ from uuid import UUID
 from fastapi import Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from supabase import Client
+from supabase_auth.errors import AuthApiError, AuthRetryableError, AuthUnknownError
 
-from app.core.exceptions import AuthenticationError
+from app.core.exceptions import AuthenticationError, ServiceUnavailableError
 from app.core.supabase_client import create_user_scoped_client, get_supabase_client
 
 _bearer_scheme = HTTPBearer(auto_error=False)
@@ -40,8 +41,17 @@ class SupabaseTokenVerifier:
     def verify(self, access_token: str) -> CurrentUser:
         try:
             response = self._client.auth.get_user(access_token)
+        except AuthRetryableError as exc:
+            raise ServiceUnavailableError("Serviço de autenticação indisponível") from exc
+        except AuthApiError as exc:
+            if exc.status in {400, 401, 403}:
+                raise AuthenticationError("Token inválido ou expirado") from exc
+            raise ServiceUnavailableError("Serviço de autenticação indisponível") from exc
+        except AuthUnknownError as exc:
+            raise ServiceUnavailableError("Serviço de autenticação indisponível") from exc
         except Exception as exc:
-            raise AuthenticationError("Token inválido ou expirado") from exc
+            # Falhas inesperadas de transporte/SDK não significam que o token é inválido.
+            raise ServiceUnavailableError("Serviço de autenticação indisponível") from exc
 
         user = response.user if response else None
         if user is None:
