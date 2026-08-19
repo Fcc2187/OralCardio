@@ -6,6 +6,7 @@ import { BrowserRouter } from "react-router-dom";
 import { App } from "@/App";
 import { AchievementUnlockProvider } from "@/shared/achievements/AchievementUnlockProvider";
 import { AuthProvider } from "@/shared/auth/AuthProvider";
+import { NotificationSubscriptionProvider } from "@/features/notifications/NotificationSubscriptionProvider";
 import "@/styles/globals.css";
 
 const rootElement = document.getElementById("root");
@@ -20,9 +21,11 @@ createRoot(rootElement).render(
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <AuthProvider>
-          <AchievementUnlockProvider>
-            <App />
-          </AchievementUnlockProvider>
+          <NotificationSubscriptionProvider>
+            <AchievementUnlockProvider>
+              <App />
+            </AchievementUnlockProvider>
+          </NotificationSubscriptionProvider>
         </AuthProvider>
       </BrowserRouter>
     </QueryClientProvider>

@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Protocol
 from uuid import UUID
 
@@ -6,10 +7,13 @@ from app.repositories.records import (
     AchievementRecord,
     AppointmentRecord,
     BrushingSessionRecord,
+    ClaimedNotificationDeliveryRecord,
     EducationModuleRecord,
     FlossingLogRecord,
     HealthProfileRecord,
     ModuleProgressRecord,
+    NotificationPreferencesRecord,
+    PushSubscriptionRecord,
     UserAchievementRecord,
     UserRecord,
     UserStatsRecord,
@@ -128,3 +132,51 @@ class AppointmentRepository(Protocol):
     ) -> list[AppointmentRecord]: ...
 
     def has_any(self, user_id: UUID) -> bool: ...
+
+
+class NotificationRepository(Protocol):
+    def get_preferences(self, user_id: UUID) -> NotificationPreferencesRecord: ...
+
+    def update_preferences(
+        self,
+        user_id: UUID,
+        *,
+        enabled: bool,
+        brushing_enabled: bool,
+        brushing_times: tuple[str, ...],
+        flossing_enabled: bool,
+        flossing_time: str,
+        appointments_enabled: bool,
+        appointment_lead_minutes: tuple[int, ...],
+        quiet_hours_start: str,
+        quiet_hours_end: str,
+    ) -> NotificationPreferencesRecord: ...
+
+    def upsert_subscription(
+        self,
+        *,
+        endpoint: str,
+        p256dh: str,
+        auth_secret: str,
+        expiration_time: datetime | None,
+        device_label: str | None,
+        vapid_key_version: int,
+    ) -> PushSubscriptionRecord: ...
+
+    def unsubscribe(self, endpoint: str) -> bool: ...
+
+    def request_test_notification(self) -> UUID: ...
+
+
+class NotificationDispatchRepository(Protocol):
+    def claim_due_deliveries(
+        self, batch_size: int, lease_seconds: int, now: datetime
+    ) -> list[ClaimedNotificationDeliveryRecord]: ...
+
+    def complete_delivery(
+        self,
+        delivery_id: UUID,
+        outcome: str,
+        error_code: str | None,
+        retry_at: datetime | None,
+    ) -> None: ...

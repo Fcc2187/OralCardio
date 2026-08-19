@@ -31,3 +31,11 @@ def create_user_scoped_client(access_token: str) -> Client:
     client = create_client(settings.supabase_url, settings.supabase_anon_key)
     client.postgrest.auth(access_token)
     return client
+
+
+def create_notification_dispatch_client() -> Client:
+    """Cria o client privilegiado usado somente pelo worker de notificações."""
+    settings = get_settings()
+    if not settings.is_notification_dispatch_configured:
+        raise RuntimeError("Dispatcher de notificações não configurado")
+    return create_client(settings.supabase_url, settings.supabase_service_role_key)

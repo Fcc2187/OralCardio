@@ -17,5 +17,7 @@ export const educationModuleQueryKey = (slug: string) => ["education", "modules"
 export const appointmentsListQueryKey = ["appointments", "list"] as const;
 export const appointmentQueryKey = (id: string) => ["appointments", "detail", id] as const;
 
+export const notificationPreferencesQueryKey = ["notifications", "preferences"] as const;
+
 export const achievementRevealsQueryKey = (userId?: string) =>
   ["gamification", "achievement-reveals", userId] as const;

@@ -14,6 +14,7 @@ import { AchievementsPage } from "@/features/gamification/pages/AchievementsPage
 import { HealthCheckPage } from "@/features/health/pages/HealthCheckPage";
 import { HealthQuestionnairePage } from "@/features/onboarding/pages/HealthQuestionnairePage";
 import { ProfilePage } from "@/features/profile/pages/ProfilePage";
+import { NotificationSettingsPage } from "@/features/notifications/pages/NotificationSettingsPage";
 import { NotFoundPage } from "@/shared/components/layout/NotFoundPage";
 import { AppShell } from "@/shared/components/layout/AppShell";
 import { ProtectedRoute } from "@/shared/auth/ProtectedRoute";
@@ -45,6 +46,7 @@ export function App() {
           <Route path="/agenda/:id" element={<AppointmentDetailPage />} />
           <Route path="/agenda/:id/editar" element={<EditAppointmentPage />} />
           <Route path="/perfil" element={<ProfilePage />} />
+          <Route path="/perfil/notificacoes" element={<NotificationSettingsPage />} />
         </Route>
       </Route>
 

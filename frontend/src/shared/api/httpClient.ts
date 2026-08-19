@@ -90,5 +90,6 @@ export const httpClient = {
     request<T>(path, { method: "PUT", body: serializeBody(body) }),
   patch: <T>(path: string, body?: unknown) =>
     request<T>(path, { method: "PATCH", body: serializeBody(body) }),
-  delete: <T>(path: string) => request<T>(path, { method: "DELETE" }),
+  delete: <T>(path: string, body?: unknown) =>
+    request<T>(path, { method: "DELETE", body: serializeBody(body) }),
 };

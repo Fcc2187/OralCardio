@@ -18,7 +18,7 @@
     "@tanstack/react-query": "^5.62.11",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-router-dom": "^6.28.1",
+    "react-router-dom": "^7.18.2",
     "tailwindcss": "^4.3.3"
   },
   "devDependencies": {
@@ -40,6 +40,8 @@
     "typescript-eslint": "^8.19.1",
     "vite": "^6.0.7",
     "vite-plugin-pwa": "^0.21.1",
-    "vitest": "^2.1.8"
+    "vitest": "^4.1.11",
+    "workbox-core": "^7.4.1",
+    "workbox-precaching": "^7.4.1"
   }
 }

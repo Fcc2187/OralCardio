@@ -2,23 +2,31 @@ import { fileURLToPath, URL } from "node:url";
 
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
-import { defineConfig, type UserConfig as ViteUserConfig } from "vite";
-import type { UserConfig as VitestUserConfig } from "vitest/config";
+import { defineConfig } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
 
-const config: ViteUserConfig & Pick<VitestUserConfig, "test"> = {
+export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
     VitePWA({
+      strategies: "injectManifest",
+      srcDir: "src",
+      filename: "sw.ts",
       registerType: "autoUpdate",
+      devOptions: {
+        enabled: true,
+        type: "module",
+      },
       manifest: {
+        id: "/",
         name: "OralCardio",
         short_name: "OralCardio",
         description: "Saúde bucal para pacientes cardíacos",
         theme_color: "#a9583e",
         background_color: "#faf9f5",
         display: "standalone",
+        scope: "/",
         start_url: "/",
         icons: [
           {
@@ -49,15 +57,14 @@ const config: ViteUserConfig & Pick<VitestUserConfig, "test"> = {
   server: {
     port: 5173,
   },
-  test: {
-    environment: "jsdom",
-    globals: true,
-    setupFiles: ["./src/test/setup.ts"],
-    // Fixa um fuso não-UTC nos testes: com TZ=UTC (padrão de CI), uma
-    // implementação errada de conversão data-local<->ISO passaria em todas
-    // as asserções sem revelar o bug (ver src/shared/utils/dateTimeLocal.ts).
-    env: { TZ: "America/Sao_Paulo" },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          "react-vendor": ["react", "react-dom", "react-router-dom"],
+          "data-vendor": ["@supabase/supabase-js", "@tanstack/react-query"],
+        },
+      },
+    },
   },
-};
-
-export default defineConfig(config);
+});

@@ -19,7 +19,6 @@ function makeAppointment(scheduledAt: string, status: AppointmentStatus): Appoin
     clinic_phone: null,
     notes: null,
     status,
-    reminder_sent: false,
     created_at: scheduledAt,
     updated_at: scheduledAt,
   };

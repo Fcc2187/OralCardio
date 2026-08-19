@@ -9,6 +9,7 @@ from app.api.v1.endpoints import (
     gamification,
     health,
     health_profile,
+    notifications,
     users,
 )
 
@@ -22,3 +23,4 @@ api_router.include_router(education.router, tags=["education"])
 api_router.include_router(gamification.router, tags=["gamification"])
 api_router.include_router(dashboard.router, tags=["dashboard"])
 api_router.include_router(appointments.router, tags=["appointments"])
+api_router.include_router(notifications.router, tags=["notifications"])

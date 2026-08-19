@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.api.internal.notifications import router as internal_notification_router
 from app.api.v1.router import api_router
 from app.core.config import get_settings
 from app.core.exception_handlers import register_exception_handlers
@@ -9,7 +10,7 @@ from app.core.logging import configure_logging, register_request_id_middleware
 settings = get_settings()
 configure_logging(settings.log_level)
 
-app = FastAPI(title="CardioCare Connect API", version="0.1.0")
+app = FastAPI(title="OralCardio API", version="0.2.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -23,3 +24,4 @@ register_request_id_middleware(app)
 register_exception_handlers(app)
 
 app.include_router(api_router)
+app.include_router(internal_notification_router)

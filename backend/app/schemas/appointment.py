@@ -39,7 +39,6 @@ class AppointmentOutput(BaseModel):
     clinic_phone: str | None
     notes: str | None
     status: AppointmentStatus
-    reminder_sent: bool
     created_at: datetime
     updated_at: datetime
 

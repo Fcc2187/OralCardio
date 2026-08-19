@@ -9,8 +9,11 @@ neste arquivo — nenhum endpoint precisa ser tocado.
 from fastapi import Depends
 from supabase import Client
 
-from app.core.clock import BusinessClock, SaoPauloBusinessClock
+from app.core.clock import BusinessClock, SaoPauloBusinessClock, UtcClock
+from app.core.config import get_settings
+from app.core.exceptions import ServiceUnavailableError
 from app.core.security import get_user_scoped_client
+from app.core.supabase_client import create_notification_dispatch_client
 from app.domain.achievements import AchievementEvaluator
 from app.repositories.appointment_repository import SupabaseAppointmentRepository
 from app.repositories.brushing_repository import SupabaseBrushingRepository
@@ -18,6 +21,10 @@ from app.repositories.education_repository import SupabaseEducationRepository
 from app.repositories.flossing_repository import SupabaseFlossingRepository
 from app.repositories.gamification_repository import SupabaseGamificationRepository
 from app.repositories.health_profile_repository import SupabaseHealthProfileRepository
+from app.repositories.notification_repository import (
+    SupabaseNotificationDispatchRepository,
+    SupabaseNotificationRepository,
+)
 from app.repositories.user_repository import SupabaseUserRepository
 from app.services.achievement_snapshot_builder import AchievementSnapshotBuilder
 from app.services.appointment_service import AppointmentService
@@ -27,7 +34,12 @@ from app.services.education_service import EducationService
 from app.services.flossing_service import FlossingService
 from app.services.gamification_service import GamificationService
 from app.services.health_profile_service import HealthProfileService
+from app.services.notification_service import (
+    NotificationDispatchService,
+    NotificationService,
+)
 from app.services.user_service import UserService
+from app.services.web_push_gateway import VapidWebPushGateway
 
 
 def get_user_service(client: Client = Depends(get_user_scoped_client)) -> UserService:
@@ -97,3 +109,29 @@ def get_dashboard_service(
     clock: BusinessClock = Depends(get_business_clock),
 ) -> DashboardService:
     return DashboardService(user_service, health_profile_service, gamification_service, clock)
+
+
+def get_notification_service(
+    client: Client = Depends(get_user_scoped_client),
+) -> NotificationService:
+    settings = get_settings()
+    return NotificationService(
+        repository=SupabaseNotificationRepository(client),
+        vapid_public_key=settings.web_push_vapid_public_key,
+        vapid_key_version=settings.web_push_vapid_key_version,
+    )
+
+
+def get_notification_dispatch_service() -> NotificationDispatchService:
+    settings = get_settings()
+    if not settings.is_notification_dispatch_configured:
+        raise ServiceUnavailableError("Dispatcher de notificações não configurado")
+    client = create_notification_dispatch_client()
+    return NotificationDispatchService(
+        repository=SupabaseNotificationDispatchRepository(client),
+        gateway=VapidWebPushGateway(
+            private_key=settings.web_push_vapid_private_key,
+            subject=settings.web_push_vapid_subject,
+        ),
+        clock=UtcClock(),
+    )

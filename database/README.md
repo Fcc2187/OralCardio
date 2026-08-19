@@ -1,4 +1,4 @@
-# Banco de Dados — CardioCare Connect
+# Banco de Dados — OralCardio
 
 Scripts SQL para o projeto Supabase (PostgreSQL 15+). Aplique no **SQL Editor** do
 Supabase (ou via `supabase db push` / CLI) **nesta ordem**:
@@ -29,6 +29,14 @@ Supabase (ou via `supabase db push` / CLI) **nesta ordem**:
     idempotentes de claim/acknowledge com lease.
 11. `011_remove_caregivers.sql` — remove definitivamente políticas, funções,
     dados, tabela e enum do antigo modo cuidador.
+12. `012_notifications_core.sql` — cria preferências, horários de hábitos e
+    subscriptions Web Push com RLS e RPCs autenticadas.
+13. `013_notification_outbox.sql` — adiciona outbox, entregas por dispositivo,
+    supressão, leases, retry e invalidação em reagendamentos.
+14. `014_notification_cron.sql` — agenda o dispatcher e a retenção via
+    `pg_cron`/`pg_net`; permanece inerte enquanto os segredos não existirem no Vault.
+15. `015_remove_appointment_reminder_flag.sql` — remove o booleano legado
+    `appointments.reminder_sent`, substituído pela outbox auditável.
 
 > Faça backup do projeto Supabase antes de aplicar a `011`; os vínculos
 > excluídos só poderão ser recuperados a partir desse backup.
@@ -39,6 +47,8 @@ Supabase (ou via `supabase db push` / CLI) **nesta ordem**:
 2. Aplicar as migrações aditivas `009` e `010`.
 3. Publicar backend e frontend de forma coordenada.
 4. Aplicar a migração destrutiva `011` somente após retirar o código antigo.
+5. Na fase 4, aplicar `012` e `013`, publicar backend/frontend, aplicar `014`
+   e somente então executar `015`.
 
 ## Notas
 

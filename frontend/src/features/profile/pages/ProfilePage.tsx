@@ -6,9 +6,11 @@ import { useAuth } from "@/shared/auth/authContext";
 import { Button } from "@/shared/components/ui/Button";
 import { ErrorFeedback, LoadingFeedback } from "@/shared/components/ui/Feedback";
 import { TextField } from "@/shared/components/ui/TextField";
+import { LinkButton } from "@/shared/components/ui/LinkButton";
 import { Screen } from "@/shared/components/layout/Screen";
 
 import { userProfileQueryKey } from "@/shared/api/queryKeys";
+import { useNotifications } from "@/features/notifications/notificationContext";
 
 import { fetchUserProfile, updateUserProfile, type UserProfile } from "../api/userApi";
 
@@ -38,6 +40,7 @@ function ProfileForm({ profile }: { profile: UserProfile }) {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const notifications = useNotifications();
 
   const [fullName, setFullName] = useState(profile.full_name);
   const [phone, setPhone] = useState(profile.phone ?? "");
@@ -59,6 +62,7 @@ function ProfileForm({ profile }: { profile: UserProfile }) {
   }
 
   async function handleSignOut() {
+    await notifications.disable().catch(() => undefined);
     await signOut();
     navigate("/entrar", { replace: true });
   }
@@ -94,7 +98,9 @@ function ProfileForm({ profile }: { profile: UserProfile }) {
         </Button>
       </form>
 
-
+      <LinkButton to="/perfil/notificacoes" variant="secondary">
+        Configurar notificações
+      </LinkButton>
       <Button variant="secondary" onClick={handleSignOut}>
         Sair
       </Button>

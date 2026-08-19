@@ -24,3 +24,7 @@ class BusinessRuleViolationError(DomainError):
 
 class AuthenticationError(DomainError):
     """Token ausente, inválido ou expirado."""
+
+
+class ServiceUnavailableError(DomainError):
+    """Integração externa necessária ainda não foi configurada ou está indisponível."""

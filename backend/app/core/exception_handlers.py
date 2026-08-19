@@ -7,6 +7,7 @@ from app.core.exceptions import (
     ConflictError,
     EntityNotFoundError,
     PermissionDeniedError,
+    ServiceUnavailableError,
 )
 
 _STATUS_BY_EXCEPTION = {
@@ -15,6 +16,7 @@ _STATUS_BY_EXCEPTION = {
     PermissionDeniedError: 403,
     BusinessRuleViolationError: 422,
     AuthenticationError: 401,
+    ServiceUnavailableError: 503,
 }
 
 

@@ -21,7 +21,6 @@ def _to_record(row: dict) -> AppointmentRecord:
         clinic_phone=row.get("clinic_phone"),
         notes=row.get("notes"),
         status=AppointmentStatus(row["status"]),
-        reminder_sent=row["reminder_sent"],
         created_at=parse_required_datetime(row["created_at"]),
         updated_at=parse_required_datetime(row["updated_at"]),
     )

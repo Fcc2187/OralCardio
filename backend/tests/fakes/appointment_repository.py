@@ -34,7 +34,6 @@ class FakeAppointmentRepository:
             clinic_phone=clinic_phone,
             notes=notes,
             status=AppointmentStatus.SCHEDULED,
-            reminder_sent=False,
             created_at=now,
             updated_at=now,
         )

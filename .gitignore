@@ -15,6 +15,7 @@ frontend/dev-dist/
 # Ambiente
 .env
 *.env.local
+*.pem
 
 # Editor / OS
 .vscode/

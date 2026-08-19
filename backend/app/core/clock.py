@@ -9,6 +9,10 @@ class BusinessClock(Protocol):
     def today(self) -> date: ...
 
 
+class InstantClock(Protocol):
+    def now(self) -> datetime: ...
+
+
 def sao_paulo_date(instant: datetime) -> date:
     if instant.tzinfo is None:
         raise ValueError("O instante precisa conter fuso horário")
@@ -20,3 +24,8 @@ class SaoPauloBusinessClock:
 
     def today(self) -> date:
         return sao_paulo_date(datetime.now(UTC))
+
+
+class UtcClock:
+    def now(self) -> datetime:
+        return datetime.now(UTC)

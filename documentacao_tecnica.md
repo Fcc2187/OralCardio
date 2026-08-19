@@ -1,6 +1,6 @@
-# 📋 Documentação Técnica — CardioCare Connect
+# 📋 Documentação Técnica — OralCardio
 
-> **Versão:** 1.1.0
+> **Versão:** 1.2.0
 > **Data:** Agosto de 2026  
 > **Idioma do Código:** Inglês (padrão técnico)  
 > **Idioma da Interface:** Português (Brasil)
@@ -9,7 +9,7 @@
 
 ## 1. Visão Geral do Projeto
 
-O **CardioCare Connect** é uma aplicação web mobile-first voltada para **pacientes com condições cardíacas**, com foco na prevenção da **Endocardite Infecciosa** — uma infecção grave do coração que pode ser desencadeada por bactérias oriundas da boca durante uma má higiene oral.
+O **OralCardio** é uma aplicação web mobile-first voltada para **pacientes com condições cardíacas**, com foco na prevenção da **Endocardite Infecciosa** — uma infecção grave do coração que pode ser desencadeada por bactérias oriundas da boca durante uma má higiene oral.
 
 ### Objetivo Principal
 Engajar o paciente cardíaco em hábitos consistentes de saúde bucal através de:
@@ -29,6 +29,8 @@ Engajar o paciente cardíaco em hábitos consistentes de saúde bucal através d
 | **Banco de Dados** | PostgreSQL (via Supabase) | Dados relacionais estruturados, open source, robusto para dados de saúde |
 | **Autenticação** | Supabase Auth | Login com email/senha e social login já incluídos, JWT embutido |
 | **Storage** | Supabase Storage | Armazenamento de arquivos (ex: relatórios em PDF) |
+| **Notificações** | Web Push + VAPID | Padrão web sem dependência de aplicativo nativo ou fornecedor proprietário |
+| **Agendamento** | Supabase Cron + pg_net | Execução externa ao processo web, com histórico e controle operacional |
 
 ### Arquitetura Geral
 
@@ -53,6 +55,10 @@ Engajar o paciente cardíaco em hábitos consistentes de saúde bucal através d
 │  Dados do App │  │  Usuários/Senhas │
 └───────────────┘  └──────────────────┘
 ```
+
+O fluxo assíncrono de notificações usa outbox no PostgreSQL. O Supabase Cron
+aciona um dispatcher interno do FastAPI, que reivindica deliveries com lease e
+envia Web Push sem expor a service role aos endpoints de pacientes.
 
 ---
 
@@ -199,11 +205,31 @@ Sistema de pontos, níveis e conquistas para manter o engajamento do paciente.
 
 ---
 
+### 3.6 🔔 Notificações Push
+
+- Web Push padrão com identificação VAPID e service worker próprio.
+- Consentimento explícito; nenhuma permissão é solicitada automaticamente.
+- Horários sugeridos: escovação `08:00`/`20:00` e fio dental `21:00`.
+- Consultas podem avisar com antecedências configuráveis.
+- Escovação usa meta ordinal: o segundo lembrete exige duas escovações para
+  ser suprimido; fio dental é suprimido após o primeiro registro do dia.
+- Cancelar ou reagendar uma consulta invalida jobs anteriores.
+- Vários dispositivos recebem deliveries independentes.
+- Retry exponencial, lease, dead-letter e deduplicação persistida.
+- Todo o calendário segue `America/Sao_Paulo`.
+
+No iPhone/iPad, Web Push exige que a PWA seja adicionada à tela inicial. Isso
+não transforma o produto em aplicativo nativo e não exige publicação na App
+Store. No Android, a instalação na tela inicial é opcional em navegadores
+compatíveis. Consulte [o guia completo](docs/notificacoes-push.md).
+
+---
+
 ## 4. Banco de Dados — Documentação das Tabelas
 
 > **Schema:** `public`  
 > **Banco:** PostgreSQL 15+ (Supabase)  
-> **Quantidade atual:** 10 tabelas de domínio
+> **Quantidade atual:** 15 tabelas de domínio
 > **Padrão de ID:** UUID (Universally Unique Identifier)  
 > **Padrão de data:** TIMESTAMPTZ (com fuso horário)
 
@@ -391,7 +417,6 @@ Registro de consultas odontológicas agendadas pelo paciente.
 | `clinic_phone` | TEXT | ❌ | Telefone da clínica |
 | `notes` | TEXT | ❌ | Observações sobre a consulta |
 | `status` | ENUM | ✅ | Status atual (scheduled/completed/cancelled/rescheduled) |
-| `reminder_sent` | BOOLEAN | ✅ | Lembrete já enviado por notificação? |
 | `created_at` | TIMESTAMPTZ | ✅ | Data de criação |
 | `updated_at` | TIMESTAMPTZ | ✅ | Última atualização |
 
@@ -460,6 +485,22 @@ Tabela de **agregação de estatísticas** de gamificação. **Uma linha por usu
 
 ---
 
+### 4.11–4.15 Tabelas de notificações
+
+| Tabela | Responsabilidade |
+|---|---|
+| `notification_preferences` | Consentimento geral, categorias, antecedências e horário silencioso |
+| `habit_notification_schedules` | Horários locais, metas ordinais e próxima execução dos hábitos |
+| `push_subscriptions` | Endpoint e chaves de cada dispositivo, sem leitura direta pelo cliente |
+| `notification_jobs` | Outbox lógica idempotente com payload genérico e estado agregado |
+| `notification_deliveries` | Entrega, lease, tentativas e resultado por dispositivo |
+
+Constraints únicas impedem jobs duplicados e mais de uma delivery do mesmo job
+para o mesmo dispositivo. Endpoints e chaves Web Push são dados sensíveis e
+nunca são incluídos em logs ou respostas de leitura.
+
+---
+
 ## 5. Automações no Banco (Triggers)
 
 ### `handle_new_user()`
@@ -492,6 +533,17 @@ Tabela de **agregação de estatísticas** de gamificação. **Uma linha por usu
   15 minutos e bloqueio concorrente.
 - `acknowledge_achievement_reveals()` confirma a exibição sem duplicar efeitos.
 
+### Funções de notificações
+
+- `update_notification_preferences()` atualiza preferências e horários em uma
+  única transação autenticada.
+- `upsert_push_subscription()` associa atomicamente o endpoint ao usuário atual.
+- `enqueue_due_notification_jobs()` cria lembretes com chave de idempotência.
+- `claim_due_notification_deliveries()` usa `FOR UPDATE SKIP LOCKED` e lease.
+- `complete_notification_delivery()` confirma envio, retry, revogação ou dead-letter.
+- `notification_cron_tick()` chama o dispatcher somente quando URL/token
+  existem no Supabase Vault.
+
 ---
 
 ## 6. Segurança — Row Level Security (RLS)
@@ -510,6 +562,11 @@ Todas as tabelas possuem **RLS habilitado** no Supabase. Isso garante que cada u
 | `user_achievements` | SELECT somente dos próprios registros |
 | `education_modules` | SELECT do catálogo ativo |
 | `achievements` | SELECT do catálogo ativo |
+| `notification_preferences` | ALL somente nas próprias preferências |
+| `habit_notification_schedules` | ALL somente nos próprios horários |
+| `push_subscriptions` | Sem SELECT direto; escrita/revogação somente por RPC autenticada |
+| `notification_jobs` | Nenhum acesso de cliente; somente dispatcher interno |
+| `notification_deliveries` | Nenhum acesso de cliente; somente dispatcher interno |
 
 O banco continua sendo a autoridade final de autorização e pontuação. O
 FastAPI opera com o JWT do usuário autenticado, e nenhuma política concede
@@ -542,7 +599,11 @@ users
   ├──► education_modules
   │
   │ (N:N via user_achievements)
-  └──► achievements
+  ├──► achievements
+  │
+  ├──► notification_preferences ──► habit_notification_schedules
+  ├──► push_subscriptions
+  └──► notification_jobs ──► notification_deliveries
 ```
 
 ---
@@ -552,5 +613,6 @@ users
 - [x] **Fase 1 — Infraestrutura**: Criar projeto no Supabase, aplicar o schema SQL, configurar variáveis de ambiente
 - [x] **Fase 2 — Back-end (FastAPI)**: Criar as rotas de API (autenticação, usuários, escovação, consultas e gamificação)
 - [x] **Fase 3 — Front-end (React + Vite)**: Criar estrutura PWA mobile-first, telas e componentes
-- [ ] **Fase 4 — Integrações**: Notificações push para lembretes de hábitos e consultas
+- [ ] **Fase 4 — Integrações**: implementação pronta; falta aplicar migrações,
+  configurar VAPID/Vault e validar a entrega em dispositivos reais
 - [ ] **Fase 5 — Testes e Deploy**: Testes de integração e publicação

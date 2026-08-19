@@ -1,4 +1,4 @@
-# CardioCare Connect
+# OralCardio
 
 Aplicação web mobile-first para pacientes cardíacos, focada na prevenção da
 Endocardite Infecciosa através de hábitos consistentes de saúde bucal. Veja a
@@ -24,7 +24,7 @@ cardio-care/
 
 1. Crie um projeto em supabase.com.
 2. No **SQL Editor**, execute os arquivos de `database/` na ordem numérica
-   (`001` a `011`). Detalhes em [database/README.md](database/README.md).
+   (`001` a `015`). Detalhes em [database/README.md](database/README.md).
 3. Em **Settings → API**, copie a Project URL e a chave `anon`.
 
 ## 2. Backend (FastAPI)
@@ -56,6 +56,12 @@ npm run dev
 - App disponível em `http://localhost:5173`
 - Lint: `npm run lint`
 - Build de produção: `npm run build`
+
+## Notificações push
+
+O fluxo de usuário para iPhone/iPad e Android, a configuração VAPID, o Cron e
+o procedimento de validação estão em
+[docs/notificacoes-push.md](docs/notificacoes-push.md).
 
 ## Arquitetura e princípios
 

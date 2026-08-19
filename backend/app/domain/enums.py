@@ -51,3 +51,22 @@ class AppointmentStatus(StrEnum):
     COMPLETED = "completed"
     CANCELLED = "cancelled"
     RESCHEDULED = "rescheduled"
+
+
+class HabitNotificationType(StrEnum):
+    BRUSHING = "brushing"
+    FLOSSING = "flossing"
+
+
+class NotificationType(StrEnum):
+    BRUSHING_REMINDER = "brushing_reminder"
+    FLOSSING_REMINDER = "flossing_reminder"
+    APPOINTMENT_REMINDER = "appointment_reminder"
+    TEST = "test"
+
+
+class PushDeliveryOutcome(StrEnum):
+    SENT = "sent"
+    RETRY = "retry"
+    REVOKED = "revoked"
+    DEAD = "dead"

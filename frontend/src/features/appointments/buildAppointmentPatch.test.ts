@@ -20,7 +20,6 @@ const ORIGINAL: Appointment = {
   clinic_phone: "11999999999",
   notes: "Levar exames",
   status: "scheduled",
-  reminder_sent: false,
   created_at: "2026-01-01T00:00:00+00:00",
   updated_at: "2026-01-01T00:00:00+00:00",
 };

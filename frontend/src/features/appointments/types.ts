@@ -13,7 +13,6 @@ export interface Appointment {
   clinic_phone: string | null;
   notes: string | null;
   status: AppointmentStatus;
-  reminder_sent: boolean;
   created_at: string;
   updated_at: string;
 }

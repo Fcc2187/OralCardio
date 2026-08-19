@@ -6,7 +6,7 @@ mudanças no contrato público da API.
 """
 
 from dataclasses import dataclass, field
-from datetime import date, datetime
+from datetime import date, datetime, time
 from uuid import UUID
 
 from app.domain.enums import (
@@ -15,6 +15,8 @@ from app.domain.enums import (
     AppointmentType,
     BrushingZone,
     CardiacCondition,
+    HabitNotificationType,
+    NotificationType,
 )
 
 
@@ -144,6 +146,51 @@ class AppointmentRecord:
     clinic_phone: str | None
     notes: str | None
     status: AppointmentStatus
-    reminder_sent: bool
     created_at: datetime
     updated_at: datetime
+
+
+@dataclass(frozen=True)
+class HabitNotificationScheduleRecord:
+    id: UUID
+    habit_type: HabitNotificationType
+    local_time: time
+    target_ordinal: int
+    enabled: bool
+    next_due_at: datetime
+
+
+@dataclass(frozen=True)
+class NotificationPreferencesRecord:
+    id: UUID
+    user_id: UUID
+    enabled: bool
+    brushing_enabled: bool
+    brushing_times: tuple[time, ...]
+    flossing_enabled: bool
+    flossing_time: time
+    appointments_enabled: bool
+    appointment_lead_minutes: tuple[int, ...]
+    quiet_hours_start: time
+    quiet_hours_end: time
+    consented_at: datetime | None
+    created_at: datetime
+    updated_at: datetime
+
+
+@dataclass(frozen=True)
+class PushSubscriptionRecord:
+    id: UUID
+    active: bool
+
+
+@dataclass(frozen=True)
+class ClaimedNotificationDeliveryRecord:
+    delivery_id: UUID
+    job_id: UUID
+    notification_type: NotificationType
+    endpoint: str
+    p256dh: str
+    auth_secret: str
+    payload: dict
+    attempt_count: int
