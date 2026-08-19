@@ -1,7 +1,7 @@
 from datetime import datetime, time
 from uuid import UUID
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from app.application.contracts import (
     AchievementEvaluationDispatchSummary,
@@ -26,6 +26,22 @@ class NotificationPreferencesInput(BaseModel):
     appointment_lead_minutes: list[int] = Field(min_length=1, max_length=3)
     quiet_hours_start: time
     quiet_hours_end: time
+
+    @field_validator(
+        "brushing_times",
+        "flossing_time",
+        "quiet_hours_start",
+        "quiet_hours_end",
+    )
+    @classmethod
+    def require_minute_precision(cls, value: time | list[time]) -> time | list[time]:
+        values = value if isinstance(value, list) else [value]
+        if any(
+            item.second != 0 or item.microsecond != 0 or item.tzinfo is not None
+            for item in values
+        ):
+            raise ValueError("Os horários devem usar apenas horas e minutos, sem fuso")
+        return value
 
     def to_domain(self) -> NotificationPreferencesUpdate:
         return NotificationPreferencesUpdate(
@@ -89,6 +105,11 @@ class PushSubscriptionInput(BaseModel):
 
     @model_validator(mode="after")
     def validate_subscription(self) -> "PushSubscriptionInput":
+        if self.expiration_time is not None and (
+            self.expiration_time.tzinfo is None
+            or self.expiration_time.utcoffset() is None
+        ):
+            raise ValueError("A expiração da inscrição deve incluir o fuso horário")
         validate_push_endpoint(self.endpoint)
         validate_push_subscription_keys(self.keys.p256dh, self.keys.auth)
         return self

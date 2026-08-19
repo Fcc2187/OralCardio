@@ -43,6 +43,11 @@ Supabase (ou via `supabase db push` / CLI) **nesta ordem**:
 17. `017_remove_legacy_backend_rpcs.sql` — remove, após o rollout do backend,
     os RPCs antigos de conquistas e deliveries que não possuíam validação
     privilegiada ou token de fencing.
+18. `018_backend_integrity.sql` — adiciona RPCs atômicas para hábitos, módulos
+    e consultas; protege reuso de idempotência por fingerprint; corrige fila de
+    notificações, catálogo de conquistas, outbox e índices de paginação.
+19. `019_restrict_direct_mutations.sql` — revoga escrita direta autenticada
+    nas tabelas de domínio já cobertas pelas RPCs de 018.
 
 > Faça backup do projeto Supabase antes de aplicar a `011`; os vínculos
 > excluídos só poderão ser recuperados a partir desse backup.
@@ -57,6 +62,11 @@ Supabase (ou via `supabase db push` / CLI) **nesta ordem**:
    e somente então executar `015`.
 6. Aplicar `016`, publicar todas as instâncias do backend endurecido e, depois
    de drenar instâncias antigas e execuções do Cron, aplicar `017`.
+7. Aplicar `018`, publicar o backend e o frontend desta versão, validar a
+   criação de escovação, fio dental, módulo e consulta em staging.
+8. Somente depois de confirmar que não há instâncias antigas, aplicar `019`.
+   Esta última migration bloqueia escrita direta via PostgREST para impedir que
+   clientes burlem as regras de pontos e transição de estado.
 
 ## Notas
 

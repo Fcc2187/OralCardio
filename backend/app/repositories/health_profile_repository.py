@@ -45,12 +45,23 @@ class SupabaseHealthProfileRepository(SupabaseRepository):
         return _to_record(row) if row else None
 
     def upsert(self, user_id: UUID, values: dict) -> HealthProfileRecord:
-        payload = {**values, "user_id": str(user_id)}
-
         def operation():
-            response = (
-                self._client.table(_TABLE).upsert(payload, on_conflict="user_id").execute()
-            )
+            response = self._client.rpc(
+                "upsert_health_profile_v2",
+                {
+                    "p_cardiac_condition": values["cardiac_condition"],
+                    "p_cardiac_condition_detail": values["cardiac_condition_detail"],
+                    "p_has_pacemaker": values["has_pacemaker"],
+                    "p_has_prosthetic_valve": values["has_prosthetic_valve"],
+                    "p_medications": values["medications"],
+                    "p_allergies": values["allergies"],
+                    "p_last_dental_visit": values["last_dental_visit"],
+                    "p_brushing_frequency_before": values["brushing_frequency_before"],
+                    "p_dentist_name": values["dentist_name"],
+                    "p_dentist_phone": values["dentist_phone"],
+                    "p_cardiologist_name": values["cardiologist_name"],
+                },
+            ).execute()
             return response.data
 
         rows = self._run("Perfil de saúde", operation)

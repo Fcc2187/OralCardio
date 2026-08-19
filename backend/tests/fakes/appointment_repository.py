@@ -54,7 +54,9 @@ class FakeAppointmentRepository:
             return None
         return record
 
-    def update(self, appointment_id: UUID, user_id: UUID, values: dict) -> AppointmentRecord:
+    def update(
+        self, appointment_id: UUID, user_id: UUID, current: AppointmentRecord, values: dict
+    ) -> AppointmentRecord:
         record = self._appointments[appointment_id]
         mapped = dict(values)
         if "appointment_type" in mapped:
@@ -63,7 +65,9 @@ class FakeAppointmentRepository:
             mapped["status"] = AppointmentStatus(mapped["status"])
         if "scheduled_at" in mapped:
             mapped["scheduled_at"] = datetime.fromisoformat(mapped["scheduled_at"])
-        updated = replace(record, **mapped, updated_at=datetime.now(UTC))
+        updated = replace(
+            record, **mapped, updated_at=datetime.now(UTC), version=record.version + 1
+        )
         self._appointments[appointment_id] = updated
         return updated
 

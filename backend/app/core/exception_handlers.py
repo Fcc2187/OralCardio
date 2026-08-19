@@ -21,7 +21,8 @@ _STATUS_BY_EXCEPTION = {
 
 
 def _build_error_response(status_code: int, message: str) -> JSONResponse:
-    return JSONResponse(status_code=status_code, content={"detail": message})
+    headers = {"WWW-Authenticate": "Bearer"} if status_code == 401 else None
+    return JSONResponse(status_code=status_code, content={"detail": message}, headers=headers)
 
 
 def register_exception_handlers(app: FastAPI) -> None:

@@ -16,7 +16,7 @@ router = APIRouter()
 @router.post("/appointments", response_model=AppointmentOutput, status_code=201)
 def create_appointment(
     payload: AppointmentInput,
-    idempotency_key: IdempotencyKey = None,
+    idempotency_key: IdempotencyKey,
     current_user: CurrentUser = Depends(get_current_user),
     service: AppointmentService = Depends(get_appointment_service),
 ) -> AppointmentOutput:

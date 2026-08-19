@@ -31,7 +31,12 @@ class AchievementSnapshotBuilder:
     def build(self, user_id: UUID, stats: UserStatsRecord) -> AchievementSnapshot:
         active_modules = self._education_repository.list_active_modules()
         progress = self._education_repository.list_progress_by_user(user_id)
-        completed_modules_count = sum(1 for entry in progress if entry.is_completed)
+        active_module_ids = {module.id for module in active_modules}
+        completed_modules_count = sum(
+            1
+            for entry in progress
+            if entry.is_completed and entry.module_id in active_module_ids
+        )
 
         health_profile = self._health_profile_repository.get_by_user_id(user_id)
 

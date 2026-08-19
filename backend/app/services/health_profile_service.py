@@ -1,5 +1,7 @@
 from uuid import UUID
 
+from app.core.clock import BusinessClock, SaoPauloBusinessClock
+from app.core.exceptions import BusinessRuleViolationError
 from app.domain.enums import CardiacCondition
 from app.repositories.interfaces import HealthProfileRepository
 from app.repositories.records import HealthProfileRecord
@@ -11,9 +13,11 @@ class HealthProfileService:
         self,
         repository: HealthProfileRepository,
         gamification_service: PostMutationAchievementEvaluator,
+        clock: BusinessClock | None = None,
     ) -> None:
         self._repository = repository
         self._gamification_service = gamification_service
+        self._clock = clock or SaoPauloBusinessClock()
 
     def get_profile(self, user_id: UUID) -> HealthProfileRecord | None:
         return self._repository.get_by_user_id(user_id)
@@ -33,6 +37,10 @@ class HealthProfileService:
         dentist_phone: str | None,
         cardiologist_name: str | None,
     ) -> HealthProfileRecord:
+        if last_dental_visit is not None and last_dental_visit > self._clock.today().isoformat():
+            raise BusinessRuleViolationError(
+                "A data da última consulta odontológica não pode estar no futuro"
+            )
         # is_completed é derivado no servidor: se os campos obrigatórios do
         # questionário chegaram até aqui, é porque já passaram pela validação
         # do schema de entrada — o cliente nunca decide esse valor.

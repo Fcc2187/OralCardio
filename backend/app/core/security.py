@@ -63,17 +63,19 @@ class SupabaseTokenVerifier:
 def get_token_verifier() -> TokenVerifier:
     client = get_supabase_client()
     if client is None:
-        raise AuthenticationError("Supabase não configurado")
+        raise ServiceUnavailableError("Autenticação ainda não está configurada")
     return SupabaseTokenVerifier(client)
 
 
 def get_current_user(
     credentials: HTTPAuthorizationCredentials | None = Depends(_bearer_scheme),
-    verifier: TokenVerifier = Depends(get_token_verifier),
 ) -> CurrentUser:
     if credentials is None:
         raise AuthenticationError("Token de autenticação ausente")
-    return verifier.verify(credentials.credentials)
+    # Resolve a infraestrutura somente depois de validar a ausência do header.
+    # Sem isso, uma API sem Supabase configurado responderia 503 para uma
+    # requisição anônima, escondendo o erro de autenticação do cliente.
+    return get_token_verifier().verify(credentials.credentials)
 
 
 def get_user_scoped_client(current_user: CurrentUser = Depends(get_current_user)) -> Client:

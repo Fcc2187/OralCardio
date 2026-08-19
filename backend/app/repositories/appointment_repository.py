@@ -1,6 +1,7 @@
 from uuid import UUID
 
 from app.core.exceptions import EntityNotFoundError
+from app.core.idempotency import request_fingerprint
 from app.domain.enums import AppointmentStatus, AppointmentType
 from app.repositories.base import SupabaseRepository
 from app.repositories.parsing import parse_required_datetime
@@ -23,6 +24,7 @@ def _to_record(row: dict) -> AppointmentRecord:
         status=AppointmentStatus(row["status"]),
         created_at=parse_required_datetime(row["created_at"]),
         updated_at=parse_required_datetime(row["updated_at"]),
+        version=row.get("version", 1),
     )
 
 
@@ -41,7 +43,7 @@ class SupabaseAppointmentRepository(SupabaseRepository):
     ) -> AppointmentRecord:
         def operation():
             response = self._client.rpc(
-                "create_appointment_idempotent",
+                "create_appointment_v2",
                 {
                     "p_scheduled_at": scheduled_at,
                     "p_appointment_type": appointment_type.value,
@@ -51,6 +53,17 @@ class SupabaseAppointmentRepository(SupabaseRepository):
                     "p_clinic_phone": clinic_phone,
                     "p_notes": notes,
                     "p_idempotency_key": idempotency_key,
+                    "p_request_hash": request_fingerprint(
+                        {
+                            "scheduled_at": scheduled_at,
+                            "appointment_type": appointment_type.value,
+                            "dentist_name": dentist_name,
+                            "clinic_name": clinic_name,
+                            "clinic_address": clinic_address,
+                            "clinic_phone": clinic_phone,
+                            "notes": notes,
+                        }
+                    ),
                 },
             ).execute()
             return response.data
@@ -73,15 +86,37 @@ class SupabaseAppointmentRepository(SupabaseRepository):
         row = self._run("Consulta", operation)
         return _to_record(row) if row else None
 
-    def update(self, appointment_id: UUID, user_id: UUID, values: dict) -> AppointmentRecord:
+    def update(
+        self, appointment_id: UUID, user_id: UUID, current: AppointmentRecord, values: dict
+    ) -> AppointmentRecord:
+        merged = {
+            "scheduled_at": current.scheduled_at.isoformat(),
+            "appointment_type": current.appointment_type.value,
+            "dentist_name": current.dentist_name,
+            "clinic_name": current.clinic_name,
+            "clinic_address": current.clinic_address,
+            "clinic_phone": current.clinic_phone,
+            "notes": current.notes,
+            "status": current.status.value,
+            **values,
+        }
+
         def operation():
-            response = (
-                self._client.table(_TABLE)
-                .update(values)
-                .eq("id", str(appointment_id))
-                .eq("user_id", str(user_id))
-                .execute()
-            )
+            response = self._client.rpc(
+                "update_appointment_v2",
+                {
+                    "p_appointment_id": str(appointment_id),
+                    "p_expected_version": current.version,
+                    "p_scheduled_at": merged["scheduled_at"],
+                    "p_appointment_type": merged["appointment_type"],
+                    "p_dentist_name": merged["dentist_name"],
+                    "p_clinic_name": merged["clinic_name"],
+                    "p_clinic_address": merged["clinic_address"],
+                    "p_clinic_phone": merged["clinic_phone"],
+                    "p_notes": merged["notes"],
+                    "p_status": merged["status"],
+                },
+            ).execute()
             return response.data
 
         rows = self._run("Consulta", operation)
@@ -91,14 +126,10 @@ class SupabaseAppointmentRepository(SupabaseRepository):
 
     def delete(self, appointment_id: UUID, user_id: UUID) -> None:
         def operation():
-            response = (
-                self._client.table(_TABLE)
-                .delete()
-                .eq("id", str(appointment_id))
-                .eq("user_id", str(user_id))
-                .execute()
-            )
-            return response.data
+            self._client.rpc(
+                "delete_appointment_v2", {"p_appointment_id": str(appointment_id)}
+            ).execute()
+            return True
 
         rows = self._run("Consulta", operation)
         if not rows:
@@ -117,6 +148,7 @@ class SupabaseAppointmentRepository(SupabaseRepository):
                 .select("*")
                 .eq("user_id", str(user_id))
                 .order("scheduled_at", desc=True)
+                .order("id", desc=True)
             )
             if status is not None:
                 query = query.eq("status", status.value)

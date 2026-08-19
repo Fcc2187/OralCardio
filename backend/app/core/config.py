@@ -1,9 +1,17 @@
 import math
 import os
+from enum import StrEnum
 from functools import lru_cache
 
-from pydantic import AliasChoices, Field, model_validator
+from pydantic import AliasChoices, Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class Environment(StrEnum):
+    DEVELOPMENT = "development"
+    TEST = "test"
+    STAGING = "staging"
+    PRODUCTION = "production"
 
 
 class Settings(BaseSettings):
@@ -16,7 +24,7 @@ class Settings(BaseSettings):
         populate_by_name=True,
     )
 
-    env: str = "development"
+    env: Environment = Environment.DEVELOPMENT
     log_level: str = "INFO"
     supabase_url: str = ""
     supabase_publishable_key: str = Field(
@@ -28,17 +36,25 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("SUPABASE_SECRET_KEY", "SUPABASE_SERVICE_ROLE_KEY"),
     )
     cors_origins: str = "http://localhost:5173"
+    supabase_timeout_seconds: int = Field(default=15, ge=1, le=60)
     web_push_vapid_public_key: str = ""
     web_push_vapid_private_key: str = ""
     web_push_vapid_subject: str = "mailto:contato@example.com"
     web_push_vapid_key_version: int = 1
     notification_dispatch_token: str = ""
     notification_dispatch_batch_size: int = Field(default=50, ge=1, le=500)
-    notification_dispatch_lease_seconds: int = Field(default=300, ge=30, le=3600)
+    notification_dispatch_lease_seconds: int = Field(default=300, ge=30, le=900)
     notification_dispatch_workers: int = Field(default=10, ge=1, le=50)
     notification_push_timeout_seconds: int = Field(default=10, ge=1, le=60)
     achievement_dispatch_batch_size: int = Field(default=10, ge=1, le=100)
-    achievement_dispatch_lease_seconds: int = Field(default=300, ge=30, le=3600)
+    achievement_dispatch_lease_seconds: int = Field(default=300, ge=30, le=900)
+
+    @field_validator("env", mode="before")
+    @classmethod
+    def normalize_environment(cls, value: object) -> object:
+        if isinstance(value, str):
+            return value.strip().lower()
+        return value
 
     @property
     def cors_origin_list(self) -> list[str]:
@@ -65,7 +81,7 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def validate_production_configuration(self) -> "Settings":
-        if self.env.lower() != "production":
+        if self.env is not Environment.PRODUCTION:
             return self
 
         if not self.is_notification_dispatch_configured:

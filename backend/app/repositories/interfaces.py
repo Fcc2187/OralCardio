@@ -51,11 +51,11 @@ class BrushingRepository(Protocol):
     def get_by_id(self, session_id: UUID, user_id: UUID) -> BrushingSessionRecord | None: ...
 
     def update_zones(
-        self, session_id: UUID, user_id: UUID, zones_completed: list[BrushingZone]
+        self, session_id: UUID, user_id: UUID, zone: BrushingZone
     ) -> BrushingSessionRecord: ...
 
     def complete(
-        self, session_id: UUID, user_id: UUID, duration_seconds: int
+        self, session_id: UUID, user_id: UUID
     ) -> BrushingSessionRecord: ...
 
     def list_by_user(
@@ -123,7 +123,13 @@ class AppointmentRepository(Protocol):
 
     def get_by_id(self, appointment_id: UUID, user_id: UUID) -> AppointmentRecord | None: ...
 
-    def update(self, appointment_id: UUID, user_id: UUID, values: dict) -> AppointmentRecord: ...
+    def update(
+        self,
+        appointment_id: UUID,
+        user_id: UUID,
+        current: AppointmentRecord,
+        values: dict,
+    ) -> AppointmentRecord: ...
 
     def delete(self, appointment_id: UUID, user_id: UUID) -> None: ...
 

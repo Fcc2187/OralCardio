@@ -11,12 +11,13 @@ from supabase import Client
 
 from app.core.clock import BusinessClock, SaoPauloBusinessClock, UtcClock
 from app.core.config import get_settings
-from app.core.exceptions import ServiceUnavailableError
-from app.core.security import get_user_scoped_client
+from app.core.exceptions import PermissionDeniedError, ServiceUnavailableError
+from app.core.security import CurrentUser, get_current_user, get_user_scoped_client
 from app.core.supabase_client import (
     create_background_job_client,
     get_privileged_supabase_client,
 )
+from app.core.vapid import validate_vapid_configuration
 from app.domain.achievements import AchievementEvaluator
 from app.repositories.appointment_repository import SupabaseAppointmentRepository
 from app.repositories.brushing_repository import SupabaseBrushingRepository
@@ -58,6 +59,17 @@ def get_business_clock() -> BusinessClock:
     return SaoPauloBusinessClock()
 
 
+def require_completed_health_profile(
+    current_user: CurrentUser = Depends(get_current_user),
+    client: Client = Depends(get_user_scoped_client),
+) -> None:
+    profile = SupabaseHealthProfileRepository(client).get_by_user_id(current_user.id)
+    if profile is None or not profile.is_completed:
+        raise PermissionDeniedError(
+            "Conclua o perfil de saúde antes de acessar esta funcionalidade"
+        )
+
+
 def get_gamification_service(
     client: Client = Depends(get_user_scoped_client),
     clock: BusinessClock = Depends(get_business_clock),
@@ -80,8 +92,11 @@ def get_gamification_service(
 def get_health_profile_service(
     client: Client = Depends(get_user_scoped_client),
     gamification_service: GamificationService = Depends(get_gamification_service),
+    clock: BusinessClock = Depends(get_business_clock),
 ) -> HealthProfileService:
-    return HealthProfileService(SupabaseHealthProfileRepository(client), gamification_service)
+    return HealthProfileService(
+        SupabaseHealthProfileRepository(client), gamification_service, clock
+    )
 
 
 def get_brushing_service(
@@ -109,7 +124,9 @@ def get_appointment_service(
     client: Client = Depends(get_user_scoped_client),
     gamification_service: GamificationService = Depends(get_gamification_service),
 ) -> AppointmentService:
-    return AppointmentService(SupabaseAppointmentRepository(client), gamification_service)
+    return AppointmentService(
+        SupabaseAppointmentRepository(client), gamification_service, UtcClock()
+    )
 
 
 def get_dashboard_service(
@@ -136,6 +153,14 @@ def get_background_job_dispatch_service() -> BackgroundJobDispatchService:
     settings = get_settings()
     if not settings.is_notification_dispatch_configured:
         raise ServiceUnavailableError("Dispatcher de notificações não configurado")
+    try:
+        validate_vapid_configuration(
+            settings.web_push_vapid_public_key,
+            settings.web_push_vapid_private_key,
+            settings.web_push_vapid_subject,
+        )
+    except ValueError as exc:
+        raise ServiceUnavailableError("Configuração VAPID inválida") from exc
     client = create_background_job_client()
     clock = UtcClock()
     notification_dispatcher = NotificationDispatchService(

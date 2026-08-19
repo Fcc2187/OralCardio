@@ -1,5 +1,6 @@
 from uuid import UUID
 
+from app.core.idempotency import request_fingerprint
 from app.repositories.base import SupabaseRepository
 from app.repositories.parsing import parse_required_datetime
 from app.repositories.records import FlossingLogRecord
@@ -22,8 +23,12 @@ class SupabaseFlossingRepository(SupabaseRepository):
     ) -> FlossingLogRecord:
         def operation():
             response = self._client.rpc(
-                "create_flossing_log",
-                {"p_notes": notes, "p_idempotency_key": idempotency_key},
+                "create_flossing_log_v2",
+                {
+                    "p_notes": notes,
+                    "p_idempotency_key": idempotency_key,
+                    "p_request_hash": request_fingerprint({"notes": notes}),
+                },
             ).execute()
             return response.data
 
@@ -37,6 +42,7 @@ class SupabaseFlossingRepository(SupabaseRepository):
                 .select("*")
                 .eq("user_id", str(user_id))
                 .order("logged_at", desc=True)
+                .order("id", desc=True)
                 .range(offset, offset + limit - 1)
                 .execute()
             )

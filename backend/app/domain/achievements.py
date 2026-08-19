@@ -44,7 +44,7 @@ def _check_flossing_count(achievement: Achievement, snapshot: AchievementSnapsho
 
 
 def _check_module_completed(achievement: Achievement, snapshot: AchievementSnapshot) -> bool:
-    return snapshot.completed_modules_count >= 1
+    return snapshot.completed_modules_count >= achievement.condition_value
 
 
 def _check_all_modules_completed(achievement: Achievement, snapshot: AchievementSnapshot) -> bool:

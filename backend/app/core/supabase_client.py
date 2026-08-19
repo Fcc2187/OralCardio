@@ -20,7 +20,11 @@ def get_supabase_client() -> Client | None:
     return create_client(
         settings.supabase_url,
         settings.supabase_publishable_key,
-        options=ClientOptions(auto_refresh_token=False, persist_session=False),
+        options=ClientOptions(
+            auto_refresh_token=False,
+            persist_session=False,
+            postgrest_client_timeout=settings.supabase_timeout_seconds,
+        ),
     )
 
 
@@ -35,7 +39,11 @@ def create_user_scoped_client(access_token: str) -> Client:
     client = create_client(
         settings.supabase_url,
         settings.supabase_publishable_key,
-        options=ClientOptions(auto_refresh_token=False, persist_session=False),
+        options=ClientOptions(
+            auto_refresh_token=False,
+            persist_session=False,
+            postgrest_client_timeout=settings.supabase_timeout_seconds,
+        ),
     )
     client.postgrest.auth(access_token)
     return client
@@ -50,7 +58,11 @@ def get_privileged_supabase_client() -> Client | None:
     return create_client(
         settings.supabase_url,
         settings.supabase_secret_key,
-        options=ClientOptions(auto_refresh_token=False, persist_session=False),
+        options=ClientOptions(
+            auto_refresh_token=False,
+            persist_session=False,
+            postgrest_client_timeout=settings.supabase_timeout_seconds,
+        ),
     )
 
 

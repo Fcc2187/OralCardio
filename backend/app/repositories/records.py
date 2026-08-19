@@ -148,6 +148,7 @@ class AppointmentRecord:
     status: AppointmentStatus
     created_at: datetime
     updated_at: datetime
+    version: int = 1
 
 
 @dataclass(frozen=True)

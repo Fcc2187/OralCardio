@@ -1,7 +1,7 @@
-from datetime import UTC, datetime
 from uuid import UUID
 
 from app.core.exceptions import EntityNotFoundError
+from app.core.idempotency import request_fingerprint
 from app.domain.enums import BrushingZone
 from app.repositories.base import SupabaseRepository
 from app.repositories.parsing import parse_datetime, parse_required_datetime
@@ -31,10 +31,13 @@ class SupabaseBrushingRepository(SupabaseRepository):
     ) -> BrushingSessionRecord:
         def operation():
             response = self._client.rpc(
-                "create_brushing_session",
+                "create_brushing_session_v2",
                 {
                     "p_target_duration": target_duration,
                     "p_idempotency_key": idempotency_key,
+                    "p_request_hash": request_fingerprint(
+                        {"target_duration": target_duration}
+                    ),
                 },
             ).execute()
             return response.data
@@ -58,18 +61,13 @@ class SupabaseBrushingRepository(SupabaseRepository):
         return _to_record(row) if row else None
 
     def update_zones(
-        self, session_id: UUID, user_id: UUID, zones_completed: list[BrushingZone]
+        self, session_id: UUID, user_id: UUID, zone: BrushingZone
     ) -> BrushingSessionRecord:
-        payload = {"zones_completed": [zone.value for zone in zones_completed]}
-
         def operation():
-            response = (
-                self._client.table(_TABLE)
-                .update(payload)
-                .eq("id", str(session_id))
-                .eq("user_id", str(user_id))
-                .execute()
-            )
+            response = self._client.rpc(
+                "mark_brushing_zone_completed",
+                {"p_session_id": str(session_id), "p_zone": zone.value},
+            ).execute()
             return response.data
 
         rows = self._run("Sessão de escovação", operation)
@@ -78,22 +76,12 @@ class SupabaseBrushingRepository(SupabaseRepository):
         return _to_record(rows[0])
 
     def complete(
-        self, session_id: UUID, user_id: UUID, duration_seconds: int
+        self, session_id: UUID, user_id: UUID
     ) -> BrushingSessionRecord:
-        payload = {
-            "is_completed": True,
-            "duration_seconds": duration_seconds,
-            "completed_at": datetime.now(UTC).isoformat(),
-        }
-
         def operation():
-            response = (
-                self._client.table(_TABLE)
-                .update(payload)
-                .eq("id", str(session_id))
-                .eq("user_id", str(user_id))
-                .execute()
-            )
+            response = self._client.rpc(
+                "complete_brushing_session", {"p_session_id": str(session_id)}
+            ).execute()
             return response.data
 
         rows = self._run("Sessão de escovação", operation)
@@ -110,6 +98,7 @@ class SupabaseBrushingRepository(SupabaseRepository):
                 .select("*")
                 .eq("user_id", str(user_id))
                 .order("started_at", desc=True)
+                .order("id", desc=True)
                 .range(offset, offset + limit - 1)
                 .execute()
             )

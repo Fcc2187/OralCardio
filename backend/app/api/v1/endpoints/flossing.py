@@ -13,7 +13,7 @@ router = APIRouter()
 @router.post("/flossing-logs", response_model=FlossingLogOutput, status_code=201)
 def create_flossing_log(
     payload: FlossingLogInput,
-    idempotency_key: IdempotencyKey = None,
+    idempotency_key: IdempotencyKey,
     current_user: CurrentUser = Depends(get_current_user),
     service: FlossingService = Depends(get_flossing_service),
 ) -> FlossingLogOutput:

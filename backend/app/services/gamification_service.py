@@ -1,4 +1,5 @@
 import logging
+from dataclasses import replace
 from uuid import UUID
 
 from app.application.contracts import AchievementStatus
@@ -36,7 +37,7 @@ class GamificationService:
         stats = self._gamification_repository.get_stats(user_id)
         if stats is None:
             raise EntityNotFoundError("Estatísticas", str(user_id))
-        return stats
+        return self._with_effective_streak(stats)
 
     def list_achievements(self, user_id: UUID) -> list[AchievementStatus]:
         achievements = self._gamification_repository.list_active_achievements()
@@ -75,7 +76,7 @@ class GamificationService:
         unlocked = self._gamification_repository.list_unlocked_achievements(user_id)
         already_unlocked_ids = {ua.achievement_id for ua in unlocked}
 
-        snapshot = self._snapshot_builder.build(user_id, stats)
+        snapshot = self._snapshot_builder.build(user_id, self._with_effective_streak(stats))
 
         newly_unlocked = self._evaluator.evaluate(achievements, snapshot, already_unlocked_ids)
         for achievement in newly_unlocked:
@@ -98,3 +99,9 @@ class GamificationService:
 
     def acknowledge_reveals(self, achievement_ids: list[UUID]) -> None:
         self._gamification_repository.acknowledge_achievement_reveals(achievement_ids)
+
+    def _with_effective_streak(self, stats: UserStatsRecord) -> UserStatsRecord:
+        """Expira apenas a visualização do streak; o histórico não é reescrito."""
+        if stats.last_brushing_date is not None and stats.last_brushing_date < self._clock.today():
+            return replace(stats, current_streak_days=0)
+        return stats

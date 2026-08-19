@@ -1,4 +1,3 @@
-from datetime import UTC, datetime
 from uuid import UUID
 
 from app.core.exceptions import EntityNotFoundError
@@ -110,14 +109,10 @@ class SupabaseEducationRepository(SupabaseRepository):
         return _to_progress_record(row) if row else None
 
     def start_module(self, user_id: UUID, module_id: UUID) -> ModuleProgressRecord:
-        payload = {"user_id": str(user_id), "module_id": str(module_id)}
-
         def operation():
-            response = (
-                self._client.table(_PROGRESS_TABLE)
-                .upsert(payload, on_conflict="user_id,module_id")
-                .execute()
-            )
+            response = self._client.rpc(
+                "start_user_module_v2", {"p_module_id": str(module_id)}
+            ).execute()
             return response.data
 
         rows = self._run("Progresso de módulo", operation)
@@ -126,20 +121,14 @@ class SupabaseEducationRepository(SupabaseRepository):
     def complete_module(
         self, user_id: UUID, module_id: UUID, read_time_seconds: int | None
     ) -> ModuleProgressRecord:
-        payload = {
-            "is_completed": True,
-            "completed_at": datetime.now(UTC).isoformat(),
-            "read_time_seconds": read_time_seconds,
-        }
-
         def operation():
-            response = (
-                self._client.table(_PROGRESS_TABLE)
-                .update(payload)
-                .eq("user_id", str(user_id))
-                .eq("module_id", str(module_id))
-                .execute()
-            )
+            response = self._client.rpc(
+                "complete_user_module_v2",
+                {
+                    "p_module_id": str(module_id),
+                    "p_read_time_seconds": read_time_seconds,
+                },
+            ).execute()
             return response.data
 
         rows = self._run("Progresso de módulo", operation)

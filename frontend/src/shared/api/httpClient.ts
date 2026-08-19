@@ -82,10 +82,18 @@ function serializeBody(body: unknown): string | undefined {
   return body === undefined ? undefined : JSON.stringify(body);
 }
 
+function createIdempotencyKey(): string {
+  return crypto.randomUUID();
+}
+
 export const httpClient = {
   get: <T>(path: string) => request<T>(path, { method: "GET" }),
   post: <T>(path: string, body?: unknown) =>
-    request<T>(path, { method: "POST", body: serializeBody(body) }),
+    request<T>(path, {
+      method: "POST",
+      body: serializeBody(body),
+      headers: { "Idempotency-Key": createIdempotencyKey() },
+    }),
   put: <T>(path: string, body?: unknown) =>
     request<T>(path, { method: "PUT", body: serializeBody(body) }),
   patch: <T>(path: string, body?: unknown) =>

@@ -43,21 +43,26 @@ class FakeBrushingRepository:
         return record
 
     def update_zones(
-        self, session_id: UUID, user_id: UUID, zones_completed: list[BrushingZone]
+        self, session_id: UUID, user_id: UUID, zone: BrushingZone
     ) -> BrushingSessionRecord:
-        record = self._sessions[session_id]
-        updated = replace(record, zones_completed=zones_completed)
+        record = self.get_by_id(session_id, user_id)
+        if record is None:
+            raise KeyError(session_id)
+        zones = list(record.zones_completed)
+        if zone not in zones:
+            zones.append(zone)
+        updated = replace(record, zones_completed=zones)
         self._sessions[session_id] = updated
         return updated
 
-    def complete(
-        self, session_id: UUID, user_id: UUID, duration_seconds: int
-    ) -> BrushingSessionRecord:
-        record = self._sessions[session_id]
+    def complete(self, session_id: UUID, user_id: UUID) -> BrushingSessionRecord:
+        record = self.get_by_id(session_id, user_id)
+        if record is None:
+            raise KeyError(session_id)
         updated = replace(
             record,
             is_completed=True,
-            duration_seconds=duration_seconds,
+            duration_seconds=record.target_duration,
             completed_at=datetime.now(UTC),
         )
         self._sessions[session_id] = updated

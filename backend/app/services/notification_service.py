@@ -145,13 +145,22 @@ class NotificationDispatchService:
                         delivery.attempt_count, delivery.delivery_id.int
                     )
                 )
-            self._repository.complete_delivery(
-                delivery.delivery_id,
-                delivery.lease_token,
-                result.outcome.value,
-                result.error_code,
-                retry_at,
-            )
+            try:
+                self._repository.complete_delivery(
+                    delivery.delivery_id,
+                    delivery.lease_token,
+                    result.outcome.value,
+                    result.error_code,
+                    retry_at,
+                )
+            except Exception:
+                # Não abandona os ACKs seguintes: leases sem confirmação podem
+                # reenviar uma notificação já entregue.
+                logger.exception(
+                    "notification_delivery_ack_failed delivery_id=%s",
+                    delivery.delivery_id,
+                )
+                continue
             counters[result.outcome] += 1
 
         summary = DispatchSummary(
@@ -237,8 +246,20 @@ class BackgroundJobDispatchService:
         self._achievement_dispatcher = achievement_dispatcher
 
     def dispatch_once(self) -> BackgroundDispatchSummary:
-        notifications = self._notification_dispatcher.dispatch_once()
-        achievements = self._achievement_dispatcher.dispatch_once()
+        try:
+            notifications = self._notification_dispatcher.dispatch_once()
+        except Exception:
+            logger.exception("notification_dispatch_failed")
+            notifications = DispatchSummary(
+                claimed=0, sent=0, retried=0, revoked=0, dead=0
+            )
+        try:
+            achievements = self._achievement_dispatcher.dispatch_once()
+        except Exception:
+            logger.exception("achievement_dispatch_failed")
+            achievements = AchievementEvaluationDispatchSummary(
+                claimed=0, succeeded=0, retried=0
+            )
         return BackgroundDispatchSummary(
             notifications=notifications,
             achievement_evaluations=achievements,

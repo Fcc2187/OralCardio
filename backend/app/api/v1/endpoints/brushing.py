@@ -14,7 +14,7 @@ router = APIRouter()
 
 @router.post("/brushing-sessions", response_model=BrushingSessionOutput, status_code=201)
 def start_brushing_session(
-    idempotency_key: IdempotencyKey = None,
+    idempotency_key: IdempotencyKey,
     current_user: CurrentUser = Depends(get_current_user),
     service: BrushingService = Depends(get_brushing_service),
 ) -> BrushingSessionOutput:

@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import Header
 
 IdempotencyKey = Annotated[
-    str | None,
+    str,
     Header(
         alias="Idempotency-Key",
         min_length=8,
