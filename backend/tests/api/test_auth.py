@@ -1,4 +1,4 @@
-from fastapi.testclient import TestClient
+from starlette.testclient import TestClient
 
 
 def test_protected_endpoint_without_token_returns_401(client: TestClient) -> None:

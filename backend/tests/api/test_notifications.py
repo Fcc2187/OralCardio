@@ -1,4 +1,4 @@
-from fastapi.testclient import TestClient
+from starlette.testclient import TestClient
 
 
 def test_notification_preferences_require_authentication(client: TestClient) -> None:
@@ -22,4 +22,3 @@ def test_push_subscription_requires_authentication(client: TestClient) -> None:
 def test_internal_dispatch_is_unavailable_without_configuration(client: TestClient) -> None:
     response = client.post("/internal/v1/notifications/dispatch")
     assert response.status_code == 503
-

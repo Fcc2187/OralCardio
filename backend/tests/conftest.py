@@ -3,7 +3,7 @@ import os
 os.environ["ENV"] = "test"
 
 import pytest
-from fastapi.testclient import TestClient
+from starlette.testclient import TestClient
 
 from app.api.v1.endpoints import health as health_endpoint
 from app.main import app

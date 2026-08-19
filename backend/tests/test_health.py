@@ -1,4 +1,4 @@
-from fastapi.testclient import TestClient
+from starlette.testclient import TestClient
 
 
 def test_health_endpoint_returns_healthy_status(client: TestClient) -> None:

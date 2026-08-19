@@ -2,7 +2,7 @@ import logging
 import re
 
 from fastapi import FastAPI
-from fastapi.testclient import TestClient
+from starlette.testclient import TestClient
 
 from app.core.logging import configure_logging, register_request_id_middleware
 

@@ -1,4 +1,4 @@
-from fastapi.testclient import TestClient
+from starlette.testclient import TestClient
 
 
 def test_claim_achievement_reveals_requires_authentication(client: TestClient) -> None:

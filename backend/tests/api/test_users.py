@@ -1,7 +1,7 @@
 from datetime import UTC, datetime
 from uuid import uuid4
 
-from fastapi.testclient import TestClient
+from starlette.testclient import TestClient
 
 from app.api.deps import get_user_service
 from app.core.security import CurrentUser, get_current_user

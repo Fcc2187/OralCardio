@@ -1,4 +1,4 @@
-fastapi==0.115.6
+fastapi==0.141.1
 uvicorn[standard]==0.34.0
 pydantic==2.11.7
 pydantic-settings==2.7.1
@@ -12,3 +12,4 @@ postgrest==2.30.0
 gotrue==2.12.4
 storage3==2.30.0
 realtime==2.30.0
+setuptools>=83.0.0
