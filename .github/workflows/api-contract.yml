@@ -29,7 +29,7 @@ jobs:
           cache-dependency-path: backend/requirements.txt
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
       - run: python -m pip install -r backend/requirements.txt
       - run: python backend/scripts/export_openapi.py "$RUNNER_TEMP/openapi.json"
       - run: node frontend/scripts/check-api-contract.mjs "$RUNNER_TEMP/openapi.json"

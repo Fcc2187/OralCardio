@@ -17,7 +17,7 @@ cardio-care/
 ## Pré-requisitos
 
 - Python 3.11+
-- Node.js 20+
+- Node.js 22+ (Node.js 24 no CI e no Vercel)
 - Um projeto criado em [supabase.com](https://supabase.com) (gratuito)
 
 ## 1. Banco de dados (Supabase)

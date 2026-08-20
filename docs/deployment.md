@@ -86,7 +86,7 @@ Crie um projeto Vercel com:
 - `Root Directory`: `frontend`;
 - build command: `npm run build:production`;
 - output: `dist` (detectado pelo Vite);
-- Node.js: 20.
+- Node.js: 24.
 
 Cadastre no Vercel:
 
