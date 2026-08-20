@@ -106,7 +106,9 @@ class Settings(BaseSettings):
         if not self.cors_origin_list:
             raise ValueError("CORS_ORIGINS deve conter ao menos a origem pública do frontend")
         if not self.allowed_host_list or "*" in self.allowed_host_list:
-            raise ValueError("ALLOWED_HOSTS deve listar apenas hosts públicos específicos em produção")
+            raise ValueError(
+                "ALLOWED_HOSTS deve listar apenas hosts públicos específicos em produção"
+            )
         if self.expose_api_docs:
             raise ValueError("EXPOSE_API_DOCS não pode ser ativado em produção")
         for origin in self.cors_origin_list:
@@ -114,7 +116,9 @@ class Settings(BaseSettings):
         self._validate_public_https_url(self.supabase_url, "SUPABASE_URL")
         for host in self.allowed_host_list:
             if "://" in host or "/" in host or "@" in host:
-                raise ValueError("ALLOWED_HOSTS deve conter apenas nomes de host, sem protocolo ou caminho")
+                raise ValueError(
+                    "ALLOWED_HOSTS deve conter apenas nomes de host, sem protocolo ou caminho"
+                )
         worst_case_send_seconds = (
             math.ceil(
                 self.notification_dispatch_batch_size
