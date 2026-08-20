@@ -1,28 +1,39 @@
+import { lazy, Suspense } from "react";
 import { Route, Routes } from "react-router-dom";
 
-import { SignInPage } from "@/features/auth/pages/SignInPage";
-import { SignUpPage } from "@/features/auth/pages/SignUpPage";
-import { AppointmentDetailPage } from "@/features/appointments/pages/AppointmentDetailPage";
-import { AppointmentsListPage } from "@/features/appointments/pages/AppointmentsListPage";
-import { EditAppointmentPage } from "@/features/appointments/pages/EditAppointmentPage";
-import { NewAppointmentPage } from "@/features/appointments/pages/NewAppointmentPage";
-import { BrushingTimerPage } from "@/features/brushing/pages/BrushingTimerPage";
-import { DashboardPage } from "@/features/dashboard/pages/DashboardPage";
-import { EducationListPage } from "@/features/education/pages/EducationListPage";
-import { EducationModulePage } from "@/features/education/pages/EducationModulePage";
-import { AchievementsPage } from "@/features/gamification/pages/AchievementsPage";
-import { HealthCheckPage } from "@/features/health/pages/HealthCheckPage";
-import { HealthQuestionnairePage } from "@/features/onboarding/pages/HealthQuestionnairePage";
-import { ProfilePage } from "@/features/profile/pages/ProfilePage";
-import { NotificationSettingsPage } from "@/features/notifications/pages/NotificationSettingsPage";
 import { NotFoundPage } from "@/shared/components/layout/NotFoundPage";
 import { AppShell } from "@/shared/components/layout/AppShell";
 import { ProtectedRoute } from "@/shared/auth/ProtectedRoute";
 import { RedirectIfAuthenticated } from "@/shared/auth/RedirectIfAuthenticated";
 
+const SignInPage = lazy(async () => ({ default: (await import("@/features/auth/pages/SignInPage")).SignInPage }));
+const SignUpPage = lazy(async () => ({ default: (await import("@/features/auth/pages/SignUpPage")).SignUpPage }));
+const AppointmentDetailPage = lazy(async () => ({ default: (await import("@/features/appointments/pages/AppointmentDetailPage")).AppointmentDetailPage }));
+const AppointmentsListPage = lazy(async () => ({ default: (await import("@/features/appointments/pages/AppointmentsListPage")).AppointmentsListPage }));
+const EditAppointmentPage = lazy(async () => ({ default: (await import("@/features/appointments/pages/EditAppointmentPage")).EditAppointmentPage }));
+const NewAppointmentPage = lazy(async () => ({ default: (await import("@/features/appointments/pages/NewAppointmentPage")).NewAppointmentPage }));
+const BrushingTimerPage = lazy(async () => ({ default: (await import("@/features/brushing/pages/BrushingTimerPage")).BrushingTimerPage }));
+const DashboardPage = lazy(async () => ({ default: (await import("@/features/dashboard/pages/DashboardPage")).DashboardPage }));
+const EducationListPage = lazy(async () => ({ default: (await import("@/features/education/pages/EducationListPage")).EducationListPage }));
+const EducationModulePage = lazy(async () => ({ default: (await import("@/features/education/pages/EducationModulePage")).EducationModulePage }));
+const AchievementsPage = lazy(async () => ({ default: (await import("@/features/gamification/pages/AchievementsPage")).AchievementsPage }));
+const HealthCheckPage = lazy(async () => ({ default: (await import("@/features/health/pages/HealthCheckPage")).HealthCheckPage }));
+const HealthQuestionnairePage = lazy(async () => ({ default: (await import("@/features/onboarding/pages/HealthQuestionnairePage")).HealthQuestionnairePage }));
+const ProfilePage = lazy(async () => ({ default: (await import("@/features/profile/pages/ProfilePage")).ProfilePage }));
+const NotificationSettingsPage = lazy(async () => ({ default: (await import("@/features/notifications/pages/NotificationSettingsPage")).NotificationSettingsPage }));
+
+function RouteLoadingFallback() {
+  return (
+    <main aria-live="polite" className="mx-auto flex min-h-dvh w-full max-w-[28rem] items-center justify-center px-lg">
+      <p className="font-body text-body-md text-muted">Carregando…</p>
+    </main>
+  );
+}
+
 export function App() {
   return (
-    <Routes>
+    <Suspense fallback={<RouteLoadingFallback />}>
+      <Routes>
       {import.meta.env.DEV ? <Route path="/diagnostico" element={<HealthCheckPage />} /> : null}
 
       <Route element={<RedirectIfAuthenticated />}>
@@ -51,6 +62,7 @@ export function App() {
       </Route>
 
       <Route path="*" element={<NotFoundPage />} />
-    </Routes>
+      </Routes>
+    </Suspense>
   );
 }

@@ -24,7 +24,7 @@ cardio-care/
 
 1. Crie um projeto em supabase.com.
 2. No **SQL Editor**, execute os arquivos de `database/` na ordem numérica
-   (`001` a `017`). Detalhes em [database/README.md](database/README.md).
+   (`001` a `022`). Detalhes em [database/README.md](database/README.md).
 3. Em **Settings → API**, copie a Project URL e a chave `publishable`.
 
 ## 2. Backend (FastAPI)
@@ -66,6 +66,13 @@ npm run dev
 O fluxo de usuário para iPhone/iPad e Android, a configuração VAPID, o Cron e
 o procedimento de validação estão em
 [docs/notificacoes-push.md](docs/notificacoes-push.md).
+
+## Publicação
+
+O deploy recomendado usa Vercel para a PWA, Render para o FastAPI em container
+e Supabase para banco, Auth, Vault e Cron. O procedimento de staging,
+migrations, segredos, headers, rollout e rollback está em
+[docs/deployment.md](docs/deployment.md).
 
 ## Arquitetura e princípios
 

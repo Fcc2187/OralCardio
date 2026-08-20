@@ -2,6 +2,7 @@ from dataclasses import replace
 from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
+from app.core.pagination import AppointmentCursor
 from app.domain.enums import AppointmentStatus, AppointmentType
 from app.repositories.records import AppointmentRecord
 
@@ -78,14 +79,20 @@ class FakeAppointmentRepository:
         self,
         user_id: UUID,
         limit: int,
-        offset: int,
+        cursor: AppointmentCursor | None,
         status: AppointmentStatus | None,
     ) -> list[AppointmentRecord]:
         items = [a for a in self._appointments.values() if a.user_id == user_id]
         if status is not None:
             items = [a for a in items if a.status == status]
-        items.sort(key=lambda a: a.scheduled_at, reverse=True)
-        return items[offset : offset + limit]
+        items.sort(key=lambda a: (a.scheduled_at, a.id), reverse=True)
+        if cursor is not None:
+            items = [
+                item
+                for item in items
+                if (item.scheduled_at, item.id) < (cursor.scheduled_at, cursor.appointment_id)
+            ]
+        return items[:limit]
 
     def has_any(self, user_id: UUID) -> bool:
         return any(a.user_id == user_id for a in self._appointments.values())

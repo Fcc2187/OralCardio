@@ -7,6 +7,7 @@ import { NotificationContext } from "./notificationContext";
 import {
   disablePushSubscription,
   enablePushSubscription,
+  flushPendingPushRevocations,
   getCurrentPushSubscription,
   getPushPermissionState,
   synchronizeExistingSubscription,
@@ -24,6 +25,10 @@ export function NotificationSubscriptionProvider({ children }: { children: React
   const [hasSubscription, setHasSubscription] = useState(false);
   const [isBusy, setIsBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    void flushPendingPushRevocations();
+  }, []);
 
   const refresh = useCallback(async () => {
     const currentPermission = getPushPermissionState();
@@ -78,9 +83,8 @@ export function NotificationSubscriptionProvider({ children }: { children: React
     previousUserId.current = current;
 
     if (previous && !current) {
-      // Fallback para encerramentos externos ao ciclo centralizado. A
-      // revogação remota já não é possível sem token, mas remover localmente
-      // impede que este navegador receba conteúdo da sessão anterior.
+      // O tombstone persistido por disablePushSubscription será retomado pelo
+      // efeito acima mesmo após a sessão anterior desaparecer.
       void disablePushSubscription(false).finally(refresh);
       return;
     }

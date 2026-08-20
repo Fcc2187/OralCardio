@@ -3,6 +3,7 @@ from uuid import UUID
 
 from app.core.clock import InstantClock, UtcClock
 from app.core.exceptions import BusinessRuleViolationError, EntityNotFoundError
+from app.core.pagination import AppointmentCursor
 from app.domain.appointments import validate_status_transition
 from app.domain.enums import AppointmentStatus, AppointmentType
 from app.repositories.interfaces import AppointmentRepository
@@ -78,9 +79,13 @@ class AppointmentService:
         self._repository.delete(appointment_id, user_id)
 
     def list_appointments(
-        self, user_id: UUID, limit: int, offset: int, status: AppointmentStatus | None
+        self,
+        user_id: UUID,
+        limit: int,
+        cursor: AppointmentCursor | None,
+        status: AppointmentStatus | None,
     ) -> list[AppointmentRecord]:
-        return self._repository.list_by_user(user_id, limit, offset, status)
+        return self._repository.list_by_user(user_id, limit, cursor, status)
 
     def _ensure_scheduled_in_future(self, scheduled_at: str) -> None:
         value = datetime.fromisoformat(scheduled_at.replace("Z", "+00:00"))

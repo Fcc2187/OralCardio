@@ -4,3 +4,9 @@ export interface Page<T> {
   offset: number;
   has_more: boolean;
 }
+
+export interface CursorPage<T> {
+  items: T[];
+  limit: number;
+  next_cursor: string | null;
+}

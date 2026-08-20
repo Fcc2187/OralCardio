@@ -21,3 +21,20 @@ def get_health(
     if not health.database:
         response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
     return HealthStatusOutput.from_status(health)
+
+
+@router.get("/health/live", response_model=HealthStatusOutput)
+def get_liveness() -> HealthStatusOutput:
+    """Sonda de processo: não depende de rede, banco ou Supabase."""
+    return HealthStatusOutput(api=True, database=False)
+
+
+@router.get("/health/ready", response_model=HealthStatusOutput)
+def get_readiness(
+    response: Response, service: DefaultHealthService = Depends(get_health_service)
+) -> HealthStatusOutput:
+    """Sonda de readiness: só fica saudável quando a dependência essencial responde."""
+    health = service.check()
+    if not health.database:
+        response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+    return HealthStatusOutput.from_status(health)

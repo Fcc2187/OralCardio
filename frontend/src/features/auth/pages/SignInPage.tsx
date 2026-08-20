@@ -72,7 +72,7 @@ export function SignInPage() {
 
       <p className="text-center font-body text-body-sm text-muted">
         Ainda não tem conta?{" "}
-        <Link to="/criar-conta" className="text-primary-action">
+        <Link to="/criar-conta" className="text-primary-action underline underline-offset-2">
           Criar conta
         </Link>
       </p>

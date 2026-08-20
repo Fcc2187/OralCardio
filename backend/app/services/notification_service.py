@@ -21,6 +21,7 @@ from app.repositories.interfaces import (
     AchievementEvaluationDispatchRepository,
     NotificationDispatchRepository,
     NotificationRepository,
+    NotificationRevocationRepository,
 )
 from app.repositories.records import NotificationPreferencesRecord, PushSubscriptionRecord
 from app.services.interfaces import AchievementEvaluationService, PushGateway
@@ -74,6 +75,7 @@ class NotificationService:
         auth_secret: str,
         expiration_time: datetime | None,
         device_label: str | None,
+        revocation_token: str,
     ) -> PushSubscriptionRecord:
         self.get_vapid_public_key()
         return self._repository.upsert_subscription(
@@ -83,6 +85,7 @@ class NotificationService:
             expiration_time=expiration_time,
             device_label=device_label,
             vapid_key_version=self._vapid_key_version,
+            revocation_token=revocation_token,
         )
 
     def unsubscribe(self, endpoint: str) -> bool:
@@ -91,6 +94,16 @@ class NotificationService:
     def request_test_notification(self) -> UUID:
         self.get_vapid_public_key()
         return self._repository.request_test_notification()
+
+
+class PushRevocationService:
+    """Revoga uma capability de dispositivo sem depender da sessão expirada."""
+
+    def __init__(self, repository: NotificationRevocationRepository) -> None:
+        self._repository = repository
+
+    def revoke_with_token(self, endpoint: str, revocation_token: str) -> bool:
+        return self._repository.revoke_with_token(endpoint, revocation_token)
 
 
 class NotificationDispatchService:

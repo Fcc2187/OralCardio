@@ -4,10 +4,15 @@ from fastapi import APIRouter, Depends, Query
 
 from app.api.deps import get_appointment_service
 from app.api.headers import IdempotencyKey
+from app.core.pagination import (
+    AppointmentCursor,
+    decode_appointment_cursor,
+    encode_appointment_cursor,
+)
 from app.core.security import CurrentUser, get_current_user
 from app.domain.enums import AppointmentStatus
 from app.schemas.appointment import AppointmentInput, AppointmentOutput, AppointmentPatchInput
-from app.schemas.common import Page
+from app.schemas.common import CursorPage
 from app.services.appointment_service import AppointmentService
 
 router = APIRouter()
@@ -34,17 +39,25 @@ def create_appointment(
     return AppointmentOutput.from_record(result)
 
 
-@router.get("/appointments", response_model=Page[AppointmentOutput])
+@router.get("/appointments", response_model=CursorPage[AppointmentOutput])
 def list_appointments(
     limit: int = Query(default=20, ge=1, le=100),
-    offset: int = Query(default=0, ge=0),
+    cursor: str | None = Query(default=None, min_length=8, max_length=512),
     status: AppointmentStatus | None = Query(default=None),
     current_user: CurrentUser = Depends(get_current_user),
     service: AppointmentService = Depends(get_appointment_service),
-) -> Page[AppointmentOutput]:
-    appointments = service.list_appointments(current_user.id, limit + 1, offset, status)
+) -> CursorPage[AppointmentOutput]:
+    decoded_cursor = decode_appointment_cursor(cursor) if cursor else None
+    appointments = service.list_appointments(current_user.id, limit + 1, decoded_cursor, status)
     items = [AppointmentOutput.from_record(appointment) for appointment in appointments]
-    return Page.of(items, limit, offset)
+    visible_items = items[:limit]
+    next_cursor = None
+    if len(items) > limit:
+        last = appointments[limit - 1]
+        next_cursor = encode_appointment_cursor(
+            AppointmentCursor(scheduled_at=last.scheduled_at, appointment_id=last.id)
+        )
+    return CursorPage(items=visible_items, limit=limit, next_cursor=next_cursor)
 
 
 @router.get("/appointments/{appointment_id}", response_model=AppointmentOutput)

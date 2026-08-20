@@ -119,6 +119,7 @@ class SupabaseNotificationRepository(SupabaseRepository):
         expiration_time: datetime | None,
         device_label: str | None,
         vapid_key_version: int,
+        revocation_token: str,
     ) -> PushSubscriptionRecord:
         def operation():
             response = self._client.rpc(
@@ -132,6 +133,7 @@ class SupabaseNotificationRepository(SupabaseRepository):
                     ),
                     "p_device_label": device_label,
                     "p_vapid_key_version": vapid_key_version,
+                    "p_revocation_token": revocation_token,
                 },
             ).execute()
             return response.data
@@ -157,6 +159,20 @@ class SupabaseNotificationRepository(SupabaseRepository):
             return response.data
 
         return UUID(self._run("Notificação de teste", operation))
+
+
+class SupabaseNotificationRevocationRepository(SupabaseRepository):
+    """Adapter privilegiado para uma capability que só pode desligar Push."""
+
+    def revoke_with_token(self, endpoint: str, revocation_token: str) -> bool:
+        def operation():
+            response = self._client.rpc(
+                "revoke_push_subscription_with_token",
+                {"p_endpoint": endpoint, "p_revocation_token": revocation_token},
+            ).execute()
+            return response.data
+
+        return bool(self._run("Revogação de inscrição de notificação", operation))
 
 
 class SupabaseNotificationDispatchRepository(SupabaseRepository):

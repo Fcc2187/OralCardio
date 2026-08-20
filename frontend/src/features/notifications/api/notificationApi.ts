@@ -34,6 +34,16 @@ export function unregisterPushSubscription(endpoint: string): Promise<{ unsubscr
   return httpClient.delete("/api/v1/notifications/subscriptions/current", { endpoint });
 }
 
+export function revokePushSubscriptionWithDeviceToken(
+  endpoint: string,
+  revocationToken: string,
+): Promise<{ unsubscribed: boolean }> {
+  return httpClient.post("/api/v1/notifications/revocations", {
+    endpoint,
+    revocation_token: revocationToken,
+  });
+}
+
 export function requestTestNotification(): Promise<{ job_id: string; status: string }> {
   return httpClient.post("/api/v1/notifications/test");
 }

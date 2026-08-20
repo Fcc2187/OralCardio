@@ -3,14 +3,11 @@ import { localDateTimeInputToIso } from "@/shared/utils/dateTimeLocal";
 import type { AppointmentFormState } from "./appointmentFormState";
 import type { Appointment, AppointmentPatch } from "./types";
 
-function optionalPatchValue(formValue: string, originalValue: string | null): string | undefined {
+function optionalPatchValue(formValue: string, originalValue: string | null): string | null | undefined {
   const trimmed = formValue.trim();
   const original = originalValue ?? "";
   if (trimmed === original) return undefined;
-  // PATCH não consegue anular campo com `null` (o service filtra
-  // `is not None` antes de gravar) — só dentist_name tem min_length=1 no
-  // backend, então "" é o único jeito de realmente limpar um opcional.
-  return trimmed;
+  return trimmed === "" ? null : trimmed;
 }
 
 function assertMaxLength(value: string, maximum: number, label: string): void {

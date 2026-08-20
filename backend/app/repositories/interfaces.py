@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import Protocol
 from uuid import UUID
 
+from app.core.pagination import AppointmentCursor
 from app.domain.enums import AppointmentStatus, AppointmentType, BrushingZone
 from app.repositories.records import (
     AchievementRecord,
@@ -137,7 +138,7 @@ class AppointmentRepository(Protocol):
         self,
         user_id: UUID,
         limit: int,
-        offset: int,
+        cursor: AppointmentCursor | None,
         status: AppointmentStatus | None,
     ) -> list[AppointmentRecord]: ...
 
@@ -171,11 +172,16 @@ class NotificationRepository(Protocol):
         expiration_time: datetime | None,
         device_label: str | None,
         vapid_key_version: int,
+        revocation_token: str,
     ) -> PushSubscriptionRecord: ...
 
     def unsubscribe(self, endpoint: str) -> bool: ...
 
     def request_test_notification(self) -> UUID: ...
+
+
+class NotificationRevocationRepository(Protocol):
+    def revoke_with_token(self, endpoint: str, revocation_token: str) -> bool: ...
 
 
 class NotificationDispatchRepository(Protocol):

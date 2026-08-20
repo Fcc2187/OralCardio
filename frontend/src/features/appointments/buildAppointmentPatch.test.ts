@@ -37,10 +37,10 @@ describe("buildAppointmentPatch", () => {
     expect(buildAppointmentPatch(ORIGINAL, form, NOW_MS)).toEqual({ dentist_name: "Dr. Novo" });
   });
 
-  it("envia string vazia (não null) para opcional limpo — só assim o backend realmente apaga o campo", () => {
+  it("envia null para limpar um campo opcional", () => {
     const form = { ...appointmentToFormState(ORIGINAL), clinicName: "" };
 
-    expect(buildAppointmentPatch(ORIGINAL, form, NOW_MS)).toEqual({ clinic_name: "" });
+    expect(buildAppointmentPatch(ORIGINAL, form, NOW_MS)).toEqual({ clinic_name: null });
   });
 
   it("omite scheduled_at quando o instante não muda, mesmo com formato de string diferente (Z vs +00:00)", () => {

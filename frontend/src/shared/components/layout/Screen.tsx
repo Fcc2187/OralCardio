@@ -24,7 +24,7 @@ export function Screen({ title, subtitle, backTo, backLabel = "Voltar", children
   }, [title]);
 
   return (
-    <div className="mx-auto flex w-full max-w-[28rem] flex-col gap-lg px-lg py-xl">
+    <main className="mx-auto flex w-full max-w-[28rem] flex-col gap-lg px-lg py-xl">
       {backTo ? (
         <Link
           to={backTo}
@@ -42,6 +42,6 @@ export function Screen({ title, subtitle, backTo, backLabel = "Voltar", children
         </header>
       ) : null}
       {children}
-    </div>
+    </main>
   );
 }

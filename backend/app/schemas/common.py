@@ -19,3 +19,9 @@ class Page(BaseModel, Generic[T]):
             offset=offset,
             has_more=len(items) > limit,
         )
+
+
+class CursorPage(BaseModel, Generic[T]):
+    items: list[T]
+    limit: int
+    next_cursor: str | None

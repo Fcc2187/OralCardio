@@ -59,6 +59,7 @@ def subscribe(
         auth_secret=payload.keys.auth,
         expiration_time=payload.expiration_time,
         device_label=payload.device_label,
+        revocation_token=payload.revocation_token,
     )
     return PushSubscriptionOutput.from_record(record)
 
@@ -78,4 +79,3 @@ def request_test_notification(
     service: NotificationService = Depends(get_notification_service),
 ) -> TestNotificationOutput:
     return TestNotificationOutput(job_id=service.request_test_notification())
-

@@ -10,12 +10,14 @@ from app.api.v1.endpoints import (
     gamification,
     health,
     health_profile,
+    notification_revocations,
     notifications,
     users,
 )
 
 api_router = APIRouter(prefix="/api/v1")
 api_router.include_router(health.router, tags=["health"])
+api_router.include_router(notification_revocations.router, tags=["notifications"])
 api_router.include_router(users.router, tags=["users"])
 api_router.include_router(health_profile.router, tags=["health-profile"])
 api_router.include_router(

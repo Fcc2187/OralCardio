@@ -623,6 +623,12 @@ users
 - [x] **Fase 1 — Infraestrutura**: Criar projeto no Supabase, aplicar o schema SQL, configurar variáveis de ambiente
 - [x] **Fase 2 — Back-end (FastAPI)**: Criar as rotas de API (autenticação, usuários, escovação, consultas e gamificação)
 - [x] **Fase 3 — Front-end (React + Vite)**: Criar estrutura PWA mobile-first, telas e componentes
-- [ ] **Fase 4 — Integrações**: implementação pronta; falta aplicar migrações,
-  configurar VAPID/Vault e validar a entrega em dispositivos reais
-- [ ] **Fase 5 — Testes e Deploy**: Testes de integração e publicação
+- [x] **Fase 4 — Integrações**: Web Push, outbox, dispatcher, VAPID,
+  revelações de conquistas e PWA implementados. A ativação por ambiente segue
+  o guia de notificações e depende de segredos/Vault reais.
+- [ ] **Fase 5 — Testes e Deploy**: artefatos de Vercel/Render, CI, E2E,
+  migrations de hardening e runbooks implementados; falta a execução manual
+  de staging, configuração de contas/segredos/domínios e validação física.
+
+> O procedimento completo de publicação, rollback, CSP, Supabase Vault e
+> checklist em aparelhos está em [docs/deployment.md](docs/deployment.md).

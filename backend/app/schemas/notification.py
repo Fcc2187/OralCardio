@@ -102,6 +102,7 @@ class PushSubscriptionInput(BaseModel):
     keys: PushSubscriptionKeysInput
     expiration_time: datetime | None = None
     device_label: str | None = Field(default=None, max_length=80)
+    revocation_token: str = Field(min_length=43, max_length=128, pattern=r"^[A-Za-z0-9_-]+$")
 
     @model_validator(mode="after")
     def validate_subscription(self) -> "PushSubscriptionInput":
@@ -135,6 +136,16 @@ class PushUnsubscribeInput(BaseModel):
 
 class PushUnsubscribeOutput(BaseModel):
     unsubscribed: bool
+
+
+class PushRevocationInput(BaseModel):
+    endpoint: str = Field(min_length=1, max_length=4096, pattern=r"^https://")
+    revocation_token: str = Field(min_length=43, max_length=128, pattern=r"^[A-Za-z0-9_-]+$")
+
+    @model_validator(mode="after")
+    def validate_payload(self) -> "PushRevocationInput":
+        validate_push_endpoint(self.endpoint)
+        return self
 
 
 class TestNotificationOutput(BaseModel):

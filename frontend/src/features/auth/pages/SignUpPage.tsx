@@ -120,7 +120,7 @@ export function SignUpPage() {
 
       <p className="text-center font-body text-body-sm text-muted">
         Já tem conta?{" "}
-        <Link to="/entrar" className="text-primary-action">
+        <Link to="/entrar" className="text-primary-action underline underline-offset-2">
           Entrar
         </Link>
       </p>

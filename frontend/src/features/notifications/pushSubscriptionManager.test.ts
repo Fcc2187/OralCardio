@@ -60,12 +60,12 @@ describe("pushSubscriptionManager", () => {
       getKey: vi.fn(),
     } as unknown as PushSubscription;
 
-    expect(serializePushSubscription(subscription)).toEqual({
+    expect(serializePushSubscription(subscription, "a".repeat(43))).toEqual({
       endpoint: "https://push.example/subscription",
       keys: { p256dh: "public-key", auth: "auth-secret" },
       expiration_time: "2026-08-20T00:00:00.000Z",
       device_label: "Android",
+      revocation_token: "a".repeat(43),
     });
   });
 });
-

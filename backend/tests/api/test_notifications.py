@@ -14,6 +14,7 @@ def test_push_subscription_requires_authentication(client: TestClient) -> None:
             "keys": {"p256dh": "a" * 20, "auth": "b" * 10},
             "expiration_time": None,
             "device_label": "Teste",
+            "revocation_token": "a" * 43,
         },
     )
     assert response.status_code == 401

@@ -40,6 +40,8 @@ def test_production_rejects_lease_shorter_than_worst_case_batch() -> None:
             supabase_url="https://project.supabase.co",
             SUPABASE_PUBLISHABLE_KEY="sb_publishable_test",
             SUPABASE_SECRET_KEY="sb_secret_test",
+            cors_origins="https://app.example.com",
+            allowed_hosts="api.example.com",
             web_push_vapid_public_key="public",
             web_push_vapid_private_key="private",
             web_push_vapid_subject="mailto:ops@example.com",
@@ -48,4 +50,39 @@ def test_production_rejects_lease_shorter_than_worst_case_batch() -> None:
             notification_dispatch_workers=1,
             notification_push_timeout_seconds=10,
             notification_dispatch_lease_seconds=300,
+        )
+
+
+def test_production_rejects_non_public_cors_origin() -> None:
+    with pytest.raises(ValidationError, match="CORS_ORIGINS"):
+        Settings(
+            _env_file=None,
+            env="production",
+            supabase_url="https://project.supabase.co",
+            SUPABASE_PUBLISHABLE_KEY="sb_publishable_test",
+            SUPABASE_SECRET_KEY="sb_secret_test",
+            cors_origins="http://localhost:5173",
+            allowed_hosts="api.example.com",
+            web_push_vapid_public_key="public",
+            web_push_vapid_private_key="private",
+            web_push_vapid_subject="mailto:ops@example.com",
+            notification_dispatch_token="x" * 32,
+        )
+
+
+def test_production_disables_api_docs() -> None:
+    with pytest.raises(ValidationError, match="EXPOSE_API_DOCS"):
+        Settings(
+            _env_file=None,
+            env="production",
+            supabase_url="https://project.supabase.co",
+            SUPABASE_PUBLISHABLE_KEY="sb_publishable_test",
+            SUPABASE_SECRET_KEY="sb_secret_test",
+            cors_origins="https://app.example.com",
+            allowed_hosts="api.example.com",
+            expose_api_docs=True,
+            web_push_vapid_public_key="public",
+            web_push_vapid_private_key="private",
+            web_push_vapid_subject="mailto:ops@example.com",
+            notification_dispatch_token="x" * 32,
         )

@@ -1,0 +1,35 @@
+name: API contract
+
+on:
+  pull_request:
+    paths:
+      - "backend/**"
+      - "frontend/src/features/appointments/**"
+      - "frontend/src/features/notifications/**"
+      - "frontend/scripts/check-api-contract.mjs"
+      - ".github/workflows/api-contract.yml"
+  push:
+    branches: [main]
+    paths:
+      - "backend/**"
+      - "frontend/**"
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: python -m pip install -r backend/requirements.txt
+      - run: python backend/scripts/export_openapi.py "$RUNNER_TEMP/openapi.json"
+      - run: node frontend/scripts/check-api-contract.mjs "$RUNNER_TEMP/openapi.json"

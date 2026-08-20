@@ -36,6 +36,8 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("SUPABASE_SECRET_KEY", "SUPABASE_SERVICE_ROLE_KEY"),
     )
     cors_origins: str = "http://localhost:5173"
+    allowed_hosts: str = "localhost,127.0.0.1,testserver"
+    expose_api_docs: bool | None = None
     supabase_timeout_seconds: int = Field(default=15, ge=1, le=60)
     web_push_vapid_public_key: str = ""
     web_push_vapid_private_key: str = ""
@@ -59,6 +61,17 @@ class Settings(BaseSettings):
     @property
     def cors_origin_list(self) -> list[str]:
         return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
+
+    @property
+    def allowed_host_list(self) -> list[str]:
+        return [host.strip() for host in self.allowed_hosts.split(",") if host.strip()]
+
+    @property
+    def api_docs_enabled(self) -> bool:
+        """Mantém a documentação local e a fecha em produção por padrão."""
+        if self.expose_api_docs is not None:
+            return self.expose_api_docs
+        return self.env is not Environment.PRODUCTION
 
     @property
     def is_supabase_configured(self) -> bool:
@@ -90,6 +103,18 @@ class Settings(BaseSettings):
             raise ValueError("NOTIFICATION_DISPATCH_TOKEN deve ter ao menos 32 caracteres")
         if "*" in self.cors_origin_list:
             raise ValueError("CORS_ORIGINS não pode conter '*' em produção")
+        if not self.cors_origin_list:
+            raise ValueError("CORS_ORIGINS deve conter ao menos a origem pública do frontend")
+        if not self.allowed_host_list or "*" in self.allowed_host_list:
+            raise ValueError("ALLOWED_HOSTS deve listar apenas hosts públicos específicos em produção")
+        if self.expose_api_docs:
+            raise ValueError("EXPOSE_API_DOCS não pode ser ativado em produção")
+        for origin in self.cors_origin_list:
+            self._validate_public_https_url(origin, "CORS_ORIGINS")
+        self._validate_public_https_url(self.supabase_url, "SUPABASE_URL")
+        for host in self.allowed_host_list:
+            if "://" in host or "/" in host or "@" in host:
+                raise ValueError("ALLOWED_HOSTS deve conter apenas nomes de host, sem protocolo ou caminho")
         worst_case_send_seconds = (
             math.ceil(
                 self.notification_dispatch_batch_size
@@ -102,6 +127,27 @@ class Settings(BaseSettings):
                 "NOTIFICATION_DISPATCH_LEASE_SECONDS é insuficiente para o lote configurado"
             )
         return self
+
+    @staticmethod
+    def _validate_public_https_url(value: str, variable_name: str) -> None:
+        from urllib.parse import urlparse
+
+        parsed = urlparse(value)
+        forbidden_hosts = {"localhost", "127.0.0.1", "::1"}
+        if (
+            parsed.scheme != "https"
+            or not parsed.hostname
+            or parsed.hostname.lower() in forbidden_hosts
+            or parsed.username
+            or parsed.password
+            or parsed.path not in {"", "/"}
+            or parsed.params
+            or parsed.query
+            or parsed.fragment
+        ):
+            raise ValueError(
+                f"{variable_name} deve conter uma URL HTTPS pública, sem credenciais ou caminho"
+            )
 
 
 @lru_cache

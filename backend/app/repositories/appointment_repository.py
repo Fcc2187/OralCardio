@@ -2,6 +2,7 @@ from uuid import UUID
 
 from app.core.exceptions import EntityNotFoundError
 from app.core.idempotency import request_fingerprint
+from app.core.pagination import AppointmentCursor
 from app.domain.enums import AppointmentStatus, AppointmentType
 from app.repositories.base import SupabaseRepository
 from app.repositories.parsing import parse_required_datetime
@@ -139,21 +140,20 @@ class SupabaseAppointmentRepository(SupabaseRepository):
         self,
         user_id: UUID,
         limit: int,
-        offset: int,
+        cursor: AppointmentCursor | None,
         status: AppointmentStatus | None,
     ) -> list[AppointmentRecord]:
         def operation():
-            query = (
-                self._client.table(_TABLE)
-                .select("*")
-                .eq("user_id", str(user_id))
-                .order("scheduled_at", desc=True)
-                .order("id", desc=True)
+            response = self._client.rpc(
+                "list_appointments_cursor_v3",
+                {
+                    "p_limit": limit,
+                    "p_cursor_scheduled_at": cursor.scheduled_at.isoformat() if cursor else None,
+                    "p_cursor_id": str(cursor.appointment_id) if cursor else None,
+                    "p_status": status.value if status else None,
+                },
             )
-            if status is not None:
-                query = query.eq("status", status.value)
-            response = query.range(offset, offset + limit - 1).execute()
-            return response.data
+            return response.execute().data
 
         rows = self._run("Consulta", operation)
         return [_to_record(row) for row in rows]

@@ -48,6 +48,12 @@ Supabase (ou via `supabase db push` / CLI) **nesta ordem**:
     notificações, catálogo de conquistas, outbox e índices de paginação.
 19. `019_restrict_direct_mutations.sql` — revoga escrita direta autenticada
     nas tabelas de domínio já cobertas pelas RPCs de 018.
+20. `020_appointment_cursor_pagination.sql` — substitui a paginação instável
+    por offset na agenda por cursor composto de data e UUID.
+21. `021_push_revocation_tokens.sql` — adiciona capability de revogação de
+    Push que sobrevive a logout offline, sem expor dados da subscription.
+22. `022_remove_legacy_push_subscription_rpc.sql` — remove a permissão do RPC
+    legado após backend e frontend compatíveis com a migration 021 estarem no ar.
 
 > Faça backup do projeto Supabase antes de aplicar a `011`; os vínculos
 > excluídos só poderão ser recuperados a partir desse backup.
@@ -67,6 +73,8 @@ Supabase (ou via `supabase db push` / CLI) **nesta ordem**:
 8. Somente depois de confirmar que não há instâncias antigas, aplicar `019`.
    Esta última migration bloqueia escrita direta via PostgREST para impedir que
    clientes burlem as regras de pontos e transição de estado.
+9. Aplicar `020` e `021`, publicar backend e frontend desta versão, validar a
+   agenda por cursor e o logout offline de Push; somente então aplicar `022`.
 
 ## Notas
 

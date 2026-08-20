@@ -52,9 +52,11 @@ abra o aviso repetidamente. A permissão deve ser restaurada nas configurações
 de notificações do navegador ou do sistema operacional. Depois, basta voltar
 à página de notificações do OralCardio.
 
-Ao sair da conta, a subscription do dispositivo é revogada. Em aparelho
-compartilhado, isso impede que o próximo usuário receba lembretes da conta
-anterior.
+Ao sair da conta, a subscription do dispositivo é revogada. Se o aparelho
+estiver sem rede, a PWA preserva uma capability local que só permite desligar
+aquele endpoint e repete a revogação na próxima abertura, mesmo depois que o
+JWT anterior expirou. Em aparelho compartilhado, isso impede que o próximo
+usuário receba lembretes da conta anterior.
 
 ## Para desenvolvimento e operação
 
@@ -82,6 +84,8 @@ Aplicar, em ordem, depois da `011`:
 3. Publicar backend e frontend da fase 4.
 4. `014_notification_cron.sql`
 5. `015_remove_appointment_reminder_flag.sql`
+6. Para o estado endurecido atual, aplicar também `016` a `021`, publicar
+   backend/frontend compatíveis e só então aplicar `022`.
 
 A `014` agenda o Cron, mas ele não chama endereço algum enquanto os segredos
 esperados não existirem no Supabase Vault.
