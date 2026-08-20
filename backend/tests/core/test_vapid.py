@@ -9,7 +9,7 @@ from cryptography.hazmat.primitives.serialization import (
     PublicFormat,
 )
 
-from app.core.vapid import validate_vapid_configuration
+from app.core.vapid import load_vapid_private_key, validate_vapid_configuration
 
 
 def _key_pair() -> tuple[str, str]:
@@ -38,6 +38,18 @@ def test_validate_vapid_configuration_accepts_escaped_pem_newlines() -> None:
         private_pem.strip().replace("\n", "\\n"),
         "mailto:ops@example.com",
     )
+
+
+def test_load_vapid_private_key_rejects_a_non_ec_key() -> None:
+    from cryptography.hazmat.primitives.asymmetric import rsa
+
+    private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    private_pem = private_key.private_bytes(
+        Encoding.PEM, PrivateFormat.PKCS8, NoEncryption()
+    ).decode("ascii")
+
+    with pytest.raises(ValueError, match="curva P-256"):
+        load_vapid_private_key(private_pem)
 
 
 def test_validate_vapid_configuration_rejects_mismatched_pair() -> None:

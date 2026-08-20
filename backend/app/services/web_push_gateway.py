@@ -1,9 +1,11 @@
 import json
 
+from py_vapid import Vapid
 from pywebpush import WebPushException, webpush
 
 from app.application.contracts import PushSendResult
 from app.core.exceptions import BusinessRuleViolationError
+from app.core.vapid import load_vapid_private_key
 from app.domain.enums import PushDeliveryOutcome
 from app.domain.notifications import validate_push_endpoint, validate_push_subscription_keys
 from app.repositories.records import ClaimedNotificationDeliveryRecord
@@ -14,7 +16,7 @@ _REVOKED_STATUS_CODES = {404, 410}
 
 class VapidWebPushGateway:
     def __init__(self, private_key: str, subject: str, timeout_seconds: int = 10) -> None:
-        self._private_key = private_key
+        self._private_key = load_vapid_private_key(private_key)
         self._subject = subject
         self._timeout_seconds = timeout_seconds
 
@@ -28,7 +30,7 @@ class VapidWebPushGateway:
                     "keys": {"p256dh": delivery.p256dh, "auth": delivery.auth_secret},
                 },
                 data=json.dumps(delivery.payload, ensure_ascii=False),
-                vapid_private_key=self._private_key,
+                vapid_private_key=Vapid(self._private_key),
                 vapid_claims={"sub": self._subject},
                 ttl=86400,
                 timeout=self._timeout_seconds,
