@@ -20,8 +20,16 @@ const apiUrl = parseUrl("VITE_API_BASE_URL");
 const forbiddenHosts = new Set(["localhost", "127.0.0.1", "::1"]);
 
 for (const [name, url] of [["VITE_SUPABASE_URL", supabaseUrl], ["VITE_API_BASE_URL", apiUrl]]) {
-  if (url.protocol !== "https:" || forbiddenHosts.has(url.hostname) || url.username || url.password) {
-    console.error(`${name} deve usar HTTPS público, sem credenciais na URL.`);
+  if (
+    url.protocol !== "https:" ||
+    forbiddenHosts.has(url.hostname) ||
+    url.username ||
+    url.password ||
+    url.pathname !== "/" ||
+    url.search ||
+    url.hash
+  ) {
+    console.error(`${name} deve usar HTTPS público, sem credenciais, caminho, query ou fragmento.`);
     process.exit(1);
   }
 }

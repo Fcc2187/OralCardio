@@ -37,8 +37,18 @@ export function validateAppEnv(rawEnv: RawEnv, strictProduction = false): AppEnv
   if (strictProduction) {
     const forbiddenHosts = new Set(["localhost", "127.0.0.1", "::1"]);
     for (const url of [parsedSupabaseUrl, parsedApiUrl]) {
-      if (url.protocol !== "https:" || forbiddenHosts.has(url.hostname) || url.username || url.password) {
-        throw new Error("Produção exige URLs HTTPS públicas, sem credenciais e sem localhost.");
+      if (
+        url.protocol !== "https:" ||
+        forbiddenHosts.has(url.hostname) ||
+        url.username ||
+        url.password ||
+        url.pathname !== "/" ||
+        url.search ||
+        url.hash
+      ) {
+        throw new Error(
+          "Produção exige URLs HTTPS públicas, sem credenciais, caminho, query ou fragmento.",
+        );
       }
     }
     if (!parsedSupabaseUrl.hostname.endsWith(".supabase.co")) {
