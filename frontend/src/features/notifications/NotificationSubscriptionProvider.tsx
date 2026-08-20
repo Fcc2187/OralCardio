@@ -15,7 +15,15 @@ import {
 import type { PushPermissionState } from "./types";
 
 function errorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : "Não foi possível atualizar as notificações.";
+  if (
+    error instanceof TypeError &&
+    /load failed|failed to fetch|networkerror/i.test(error.message)
+  ) {
+    return "Não foi possível sincronizar este dispositivo. Verifique a conexão e tente novamente.";
+  }
+  return error instanceof Error
+    ? error.message
+    : "Não foi possível atualizar as notificações.";
 }
 
 export function NotificationSubscriptionProvider({ children }: { children: ReactNode }) {
@@ -94,16 +102,22 @@ export function NotificationSubscriptionProvider({ children }: { children: React
     }
 
     async function reconcile() {
-      const state = getPushPermissionState();
-      if (state === "granted") {
-        // Permissão concedida não é consentimento para uma nova inscrição.
-        // Só sincronizamos uma assinatura previamente criada pelo usuário.
-        await synchronizeExistingSubscription();
+      try {
+        const state = getPushPermissionState();
+        if (state === "granted") {
+          // Permissão concedida não é consentimento para uma nova inscrição.
+          // Só sincronizamos uma assinatura previamente criada pelo usuário.
+          await synchronizeExistingSubscription();
+        }
+        setError(null);
+      } catch (nextError) {
+        setError(errorMessage(nextError));
+      } finally {
+        await refresh();
       }
-      await refresh();
     }
 
-    void reconcile().catch(() => refresh());
+    void reconcile();
   }, [refresh, user?.id]);
 
   useEffect(() => {
@@ -122,7 +136,10 @@ export function NotificationSubscriptionProvider({ children }: { children: React
     if (!user) return;
     const reconcile = () => {
       if (document.visibilityState === "visible" && getPushPermissionState() === "granted") {
-        void synchronizeExistingSubscription().finally(refresh);
+        void synchronizeExistingSubscription()
+          .then(() => setError(null))
+          .catch((nextError: unknown) => setError(errorMessage(nextError)))
+          .finally(refresh);
       }
     };
     const onMessage = (event: MessageEvent) => {

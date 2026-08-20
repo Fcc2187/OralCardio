@@ -42,7 +42,7 @@ def validate_vapid_configuration(public_key: str, private_key: str, subject: str
 def _load_private_pem(value: str) -> bytes:
     normalized_value = value.strip().replace("\\n", "\n")
     if "-----BEGIN" in normalized_value:
-        return f"{normalized_value}\n".encode("utf-8")
+        return f"{normalized_value}\n".encode()
     try:
         return Path(value).read_bytes()
     except OSError:

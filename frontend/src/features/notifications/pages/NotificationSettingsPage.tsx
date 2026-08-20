@@ -127,7 +127,9 @@ function NotificationSettingsForm({ initialValue }: { initialValue: Notification
       <Card variant="canvas">
         <h2 className="text-title-md">Este dispositivo</h2>
         <p className="mt-xs font-body text-body-sm text-muted">
-          {permissionDescription(notifications.permission, notifications.hasSubscription)}
+          {notifications.error && notifications.hasSubscription
+            ? "A inscrição local existe, mas a sincronização precisa ser concluída."
+            : permissionDescription(notifications.permission, notifications.hasSubscription)}
         </p>
         {notifications.error ? (
           <p role="alert" className="mt-sm font-body text-body-sm text-error">
@@ -139,10 +141,12 @@ function NotificationSettingsForm({ initialValue }: { initialValue: Notification
         notifications.permission !== "denied" ? (
           <Button
             className="mt-md"
-            variant={notifications.hasSubscription ? "secondary" : "primary"}
+            variant={
+              notifications.hasSubscription && !notifications.error ? "secondary" : "primary"
+            }
             disabled={notifications.isBusy}
             onClick={() =>
-              void (notifications.hasSubscription
+              void (notifications.hasSubscription && !notifications.error
                 ? notifications.disable()
                 : notifications.enable()
               ).catch(() => undefined)
@@ -150,9 +154,11 @@ function NotificationSettingsForm({ initialValue }: { initialValue: Notification
           >
             {notifications.isBusy
               ? "Atualizando…"
-              : notifications.hasSubscription
+              : notifications.hasSubscription && !notifications.error
                 ? "Desativar neste dispositivo"
-                : "Ativar neste dispositivo"}
+                : notifications.hasSubscription
+                  ? "Tentar sincronizar novamente"
+                  : "Ativar neste dispositivo"}
           </Button>
         ) : null}
 
