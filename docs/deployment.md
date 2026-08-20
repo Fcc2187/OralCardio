@@ -40,6 +40,8 @@ versionados.
    logout e Push.
 7. Depois que não existir mais instância antiga de backend, aplique
    `022_remove_legacy_push_subscription_rpc.sql`.
+8. Aplique `023_fix_notification_delivery_reconciliation.sql` para corrigir o
+   trigger que reconcilia entregas ao alterar preferências de notificação.
 
 O `022` não deve ser antecipado: ele remove a permissão do RPC usado pela
 versão anterior do backend durante a transição.

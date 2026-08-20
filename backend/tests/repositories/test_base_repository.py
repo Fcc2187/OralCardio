@@ -5,6 +5,7 @@ from app.core.exceptions import (
     BusinessRuleViolationError,
     ConflictError,
     EntityNotFoundError,
+    ServiceUnavailableError,
 )
 from app.repositories.base import SupabaseRepository
 
@@ -56,11 +57,13 @@ def test_run_falls_back_to_generic_message_when_raise_exception_has_no_message(
         repository._run("registro", operation)
 
 
-def test_run_propagates_unknown_error_codes(repository: SupabaseRepository) -> None:
+def test_run_translates_unknown_database_errors_into_service_unavailable(
+    repository: SupabaseRepository,
+) -> None:
     def operation() -> None:
         raise APIError({"code": "22P02", "message": "invalid input syntax"})
 
-    with pytest.raises(APIError):
+    with pytest.raises(ServiceUnavailableError, match="temporariamente indisponível"):
         repository._run("registro", operation)
 
 

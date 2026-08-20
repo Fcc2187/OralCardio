@@ -1,6 +1,6 @@
 \set ON_ERROR_STOP on
 
--- Teste transacional da fase 4. Requer as migrações 001-017.
+-- Teste transacional da fase 4. Requer as migrações 001-023.
 begin;
 
 set local session_replication_role = replica;
@@ -52,7 +52,8 @@ select * from public.upsert_push_subscription(
   encode(decode(repeat('02', 16), 'hex'), 'base64'),
   null,
   'Dispositivo de teste',
-  1
+  1,
+  repeat('a', 43)
 );
 
 do $$

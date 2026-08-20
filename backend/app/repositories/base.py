@@ -1,3 +1,4 @@
+import logging
 from collections.abc import Callable
 from typing import TypeVar
 
@@ -8,9 +9,11 @@ from app.core.exceptions import (
     BusinessRuleViolationError,
     ConflictError,
     EntityNotFoundError,
+    ServiceUnavailableError,
 )
 
 T = TypeVar("T")
+logger = logging.getLogger(__name__)
 
 _UNIQUE_VIOLATION = "23505"
 _NOT_FOUND = "PGRST116"
@@ -44,7 +47,14 @@ class SupabaseRepository:
                 raise BusinessRuleViolationError(
                     exc.message or f"{entity}: operação inválida"
                 ) from exc
-            raise
+            logger.exception(
+                "supabase_operation_failed entity=%s code=%s",
+                entity,
+                exc.code,
+            )
+            raise ServiceUnavailableError(
+                f"{entity}: serviço de dados temporariamente indisponível"
+            ) from exc
 
     @staticmethod
     def _maybe_single_data(response: object) -> dict | None:
