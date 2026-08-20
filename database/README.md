@@ -58,6 +58,12 @@ Supabase (ou via `supabase db push` / CLI) **nesta ordem**:
     de entregas pendentes acionada ao alterar preferências ou subscriptions.
 24. `024_fix_push_revocation_digest_search_path.sql` — disponibiliza o schema
     protegido do `pgcrypto` às RPCs que armazenam o hash do token de revogação.
+25. `025_fix_notification_job_status_enum.sql` — tipa explicitamente o status
+    enum ao criar lembretes vencidos e evita falha `42804` no dispatcher.
+26. `026_fix_notification_delivery_claim_conflict.sql` — elimina a ambiguidade
+    do `job_id` no `ON CONFLICT` que reivindica entregas para o worker.
+27. `027_fix_notification_claim_variable_resolution.sql` — define que nomes
+    conflitantes no claim são colunas SQL, eliminando ambiguidades do PL/pgSQL.
 
 > Faça backup do projeto Supabase antes de aplicar a `011`; os vínculos
 > excluídos só poderão ser recuperados a partir desse backup.

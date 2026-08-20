@@ -1,6 +1,6 @@
 \set ON_ERROR_STOP on
 
--- Teste transacional da fase 4. Requer as migrações 001-024.
+-- Teste transacional da fase 4. Requer as migrações 001-027.
 begin;
 
 set local session_replication_role = replica;

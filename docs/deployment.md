@@ -44,6 +44,12 @@ versionados.
    trigger que reconcilia entregas ao alterar preferências de notificação.
 9. Aplique `024_fix_push_revocation_digest_search_path.sql` para permitir que
    as RPCs de Push usem o `digest()` fornecido pelo `pgcrypto` no Supabase.
+10. Aplique `025_fix_notification_job_status_enum.sql` para corrigir o tipo do
+    status criado pelo enfileirador de lembretes de hábitos.
+11. Aplique `026_fix_notification_delivery_claim_conflict.sql` para eliminar a
+    ambiguidade do identificador do job ao reivindicar entregas pendentes.
+12. Aplique `027_fix_notification_claim_variable_resolution.sql` para tornar a
+    resolução entre parâmetros de saída e colunas determinística no dispatcher.
 
 O `022` não deve ser antecipado: ele remove a permissão do RPC usado pela
 versão anterior do backend durante a transição.
