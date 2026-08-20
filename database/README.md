@@ -56,6 +56,8 @@ Supabase (ou via `supabase db push` / CLI) **nesta ordem**:
     legado após backend e frontend compatíveis com a migration 021 estarem no ar.
 23. `023_fix_notification_delivery_reconciliation.sql` — corrige a reconciliação
     de entregas pendentes acionada ao alterar preferências ou subscriptions.
+24. `024_fix_push_revocation_digest_search_path.sql` — disponibiliza o schema
+    protegido do `pgcrypto` às RPCs que armazenam o hash do token de revogação.
 
 > Faça backup do projeto Supabase antes de aplicar a `011`; os vínculos
 > excluídos só poderão ser recuperados a partir desse backup.

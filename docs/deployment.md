@@ -42,6 +42,8 @@ versionados.
    `022_remove_legacy_push_subscription_rpc.sql`.
 8. Aplique `023_fix_notification_delivery_reconciliation.sql` para corrigir o
    trigger que reconcilia entregas ao alterar preferências de notificação.
+9. Aplique `024_fix_push_revocation_digest_search_path.sql` para permitir que
+   as RPCs de Push usem o `digest()` fornecido pelo `pgcrypto` no Supabase.
 
 O `022` não deve ser antecipado: ele remove a permissão do RPC usado pela
 versão anterior do backend durante a transição.

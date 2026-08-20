@@ -181,7 +181,13 @@ function NotificationSettingsForm({ initialValue }: { initialValue: Notification
           </p>
         ) : null}
         {testMutation.isError ? (
-          <ErrorFeedback message="Não foi possível enfileirar a notificação de teste." />
+          <ErrorFeedback
+            message={
+              testMutation.error instanceof Error
+                ? testMutation.error.message
+                : "Não foi possível enfileirar a notificação de teste."
+            }
+          />
         ) : null}
       </Card>
 
