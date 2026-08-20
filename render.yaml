@@ -2,6 +2,7 @@ services:
   - type: web
     name: oralcardio-api
     runtime: docker
+    plan: free
     rootDir: backend
     healthCheckPath: /api/v1/health/ready
     autoDeploy: false
@@ -29,4 +30,4 @@ services:
       - key: WEB_PUSH_VAPID_KEY_VERSION
         value: "1"
       - key: NOTIFICATION_DISPATCH_TOKEN
-        generateValue: true
+        sync: false
