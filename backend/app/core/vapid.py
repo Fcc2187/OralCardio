@@ -40,11 +40,12 @@ def validate_vapid_configuration(public_key: str, private_key: str, subject: str
 
 
 def _load_private_pem(value: str) -> bytes:
-    if "-----BEGIN" in value:
-        return value.encode("utf-8")
+    normalized_value = value.strip().replace("\\n", "\n")
+    if "-----BEGIN" in normalized_value:
+        return f"{normalized_value}\n".encode("utf-8")
     try:
         return Path(value).read_bytes()
-    except OSError as exc:
+    except OSError:
         raise ValueError(
             "WEB_PUSH_VAPID_PRIVATE_KEY deve apontar para um arquivo PEM legível"
-        ) from exc
+        ) from None
