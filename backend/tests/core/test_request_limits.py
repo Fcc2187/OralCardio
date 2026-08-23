@@ -3,7 +3,6 @@ from fastapi.testclient import TestClient
 from app.api import deps
 from app.api.v1.endpoints import health as health_endpoint
 from app.main import app
-from app.services.health_service import DefaultHealthService
 
 
 class _HealthyRepository:
@@ -11,7 +10,7 @@ class _HealthyRepository:
         return True
 
 
-class _RevocationService:
+class _RevocationRepository:
     def __init__(self) -> None:
         self.calls = 0
 
@@ -20,9 +19,9 @@ class _RevocationService:
         return True
 
 
-def test_oversized_body_is_rejected_before_revocation_service() -> None:
-    service = _RevocationService()
-    app.dependency_overrides[deps.get_push_revocation_service] = lambda: service
+def test_oversized_body_is_rejected_before_revocation_repository() -> None:
+    repository = _RevocationRepository()
+    app.dependency_overrides[deps.get_push_revocation_repository] = lambda: repository
 
     try:
         with TestClient(app, client=("oversized-body-test", 50000)) as client:
@@ -37,12 +36,12 @@ def test_oversized_body_is_rejected_before_revocation_service() -> None:
         app.dependency_overrides.clear()
 
     assert response.status_code == 413, response.text
-    assert service.calls == 0
+    assert repository.calls == 0
 
 
-def test_chunked_oversized_body_is_rejected_before_revocation_service() -> None:
-    service = _RevocationService()
-    app.dependency_overrides[deps.get_push_revocation_service] = lambda: service
+def test_chunked_oversized_body_is_rejected_before_revocation_repository() -> None:
+    repository = _RevocationRepository()
+    app.dependency_overrides[deps.get_push_revocation_repository] = lambda: repository
     body = iter([b'{"endpoint":"https://updates.push.services.mozilla.com/', b"a" * 65_536])
 
     try:
@@ -56,12 +55,12 @@ def test_chunked_oversized_body_is_rejected_before_revocation_service() -> None:
         app.dependency_overrides.clear()
 
     assert response.status_code == 413, response.text
-    assert service.calls == 0
+    assert repository.calls == 0
 
 
 def test_valid_revocation_request_remains_available() -> None:
-    service = _RevocationService()
-    app.dependency_overrides[deps.get_push_revocation_service] = lambda: service
+    repository = _RevocationRepository()
+    app.dependency_overrides[deps.get_push_revocation_repository] = lambda: repository
 
     try:
         with TestClient(app, client=("valid-revocation-test", 50000)) as client:
@@ -77,13 +76,11 @@ def test_valid_revocation_request_remains_available() -> None:
 
     assert response.status_code == 200
     assert response.json() == {"unsubscribed": True}
-    assert service.calls == 1
+    assert repository.calls == 1
 
 
 def test_dependency_backed_public_routes_throttle_bursts() -> None:
-    app.dependency_overrides[health_endpoint.get_health_service] = (
-        lambda: DefaultHealthService(_HealthyRepository())
-    )
+    app.dependency_overrides[health_endpoint.get_health_repository] = _HealthyRepository
 
     try:
         with TestClient(app, client=("rate-limit-test", 50000)) as client:

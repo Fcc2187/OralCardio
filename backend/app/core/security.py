@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import Protocol
 from uuid import UUID
 
 from fastapi import Depends
@@ -20,20 +19,8 @@ class CurrentUser:
     access_token: str
 
 
-class TokenVerifier(Protocol):
-    """Contrato para validar um access token e resolver o usuário autenticado."""
-
-    def verify(self, access_token: str) -> CurrentUser: ...
-
-
 class SupabaseTokenVerifier:
-    """Valida o token chamando o Supabase Auth (`auth.get_user`).
-
-    Custa um round-trip de rede por requisição, mas é a validação mais simples
-    de auditar. Como `get_current_user` depende só da interface `TokenVerifier`,
-    trocar por verificação local via JWKS no futuro não exige tocar em nenhum
-    endpoint ou service.
-    """
+    """Valida o token chamando o Supabase Auth (`auth.get_user`)."""
 
     def __init__(self, anonymous_client: Client) -> None:
         self._client = anonymous_client
@@ -60,7 +47,7 @@ class SupabaseTokenVerifier:
         return CurrentUser(id=UUID(user.id), email=user.email, access_token=access_token)
 
 
-def get_token_verifier() -> TokenVerifier:
+def get_token_verifier() -> SupabaseTokenVerifier:
     client = get_supabase_client()
     if client is None:
         raise ServiceUnavailableError("Autenticação ainda não está configurada")

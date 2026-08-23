@@ -1,14 +1,8 @@
 from typing import Protocol
 from uuid import UUID
 
-from app.application.contracts import HealthStatus, PushSendResult
+from app.application.contracts import PushSendResult
 from app.repositories.records import ClaimedNotificationDeliveryRecord
-
-
-class HealthService(Protocol):
-    """Contrato para a regra de negócio de verificação de saúde da aplicação."""
-
-    def check(self) -> HealthStatus: ...
 
 
 class PushGateway(Protocol):

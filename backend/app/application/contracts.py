@@ -10,16 +10,6 @@ from app.repositories.records import (
 
 
 @dataclass(frozen=True)
-class HealthStatus:
-    api: bool
-    database: bool
-
-    @property
-    def is_healthy(self) -> bool:
-        return self.api and self.database
-
-
-@dataclass(frozen=True)
 class PushSendResult:
     outcome: PushDeliveryOutcome
     error_code: str | None = None

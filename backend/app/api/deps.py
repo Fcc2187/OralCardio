@@ -28,6 +28,7 @@ from app.repositories.gamification_repository import (
     SupabaseGamificationRepository,
 )
 from app.repositories.health_profile_repository import SupabaseHealthProfileRepository
+from app.repositories.interfaces import NotificationRevocationRepository
 from app.repositories.notification_repository import (
     SupabaseNotificationDispatchRepository,
     SupabaseNotificationRepository,
@@ -47,7 +48,6 @@ from app.services.notification_service import (
     BackgroundJobDispatchService,
     NotificationDispatchService,
     NotificationService,
-    PushRevocationService,
 )
 from app.services.user_service import UserService
 from app.services.web_push_gateway import VapidWebPushGateway
@@ -151,11 +151,11 @@ def get_notification_service(
     )
 
 
-def get_push_revocation_service() -> PushRevocationService:
+def get_push_revocation_repository() -> NotificationRevocationRepository:
     client = get_privileged_supabase_client()
     if client is None:
         raise ServiceUnavailableError("Revogação de notificações não configurada")
-    return PushRevocationService(SupabaseNotificationRevocationRepository(client))
+    return SupabaseNotificationRevocationRepository(client)
 
 
 def get_background_job_dispatch_service() -> BackgroundJobDispatchService:
