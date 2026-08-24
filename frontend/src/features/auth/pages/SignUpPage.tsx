@@ -12,7 +12,7 @@ import { useAuth } from "@/shared/auth/authContext";
 import { translateAuthError } from "../authErrorMessages";
 
 export function SignUpPage() {
-  const { signUp } = useAuth();
+  const { signInWithGoogle, signUp } = useAuth();
   const navigate = useNavigate();
 
   const [fullName, setFullName] = useState("");
@@ -53,6 +53,18 @@ export function SignUpPage() {
       } else {
         navigate("/", { replace: true });
       }
+    } catch (signUpError) {
+      setError(translateAuthError(signUpError));
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  async function handleGoogleSignUp() {
+    setError(null);
+    setIsSubmitting(true);
+    try {
+      await signInWithGoogle();
     } catch (signUpError) {
       setError(translateAuthError(signUpError));
     } finally {
@@ -115,6 +127,9 @@ export function SignUpPage() {
 
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? "Criando conta…" : "Criar conta"}
+        </Button>
+        <Button type="button" variant="secondary" disabled={isSubmitting} onClick={handleGoogleSignUp}>
+          Continuar com Google
         </Button>
       </form>
 

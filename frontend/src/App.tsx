@@ -8,6 +8,7 @@ import { RedirectIfAuthenticated } from "@/shared/auth/RedirectIfAuthenticated";
 
 const SignInPage = lazy(async () => ({ default: (await import("@/features/auth/pages/SignInPage")).SignInPage }));
 const SignUpPage = lazy(async () => ({ default: (await import("@/features/auth/pages/SignUpPage")).SignUpPage }));
+const OAuthCallbackPage = lazy(async () => ({ default: (await import("@/features/auth/pages/OAuthCallbackPage")).OAuthCallbackPage }));
 const AppointmentDetailPage = lazy(async () => ({ default: (await import("@/features/appointments/pages/AppointmentDetailPage")).AppointmentDetailPage }));
 const AppointmentsListPage = lazy(async () => ({ default: (await import("@/features/appointments/pages/AppointmentsListPage")).AppointmentsListPage }));
 const EditAppointmentPage = lazy(async () => ({ default: (await import("@/features/appointments/pages/EditAppointmentPage")).EditAppointmentPage }));
@@ -35,6 +36,8 @@ export function App() {
     <Suspense fallback={<RouteLoadingFallback />}>
       <Routes>
       {import.meta.env.DEV ? <Route path="/diagnostico" element={<HealthCheckPage />} /> : null}
+
+      <Route path="/auth/callback" element={<OAuthCallbackPage />} />
 
       <Route element={<RedirectIfAuthenticated />}>
         <Route path="/entrar" element={<SignInPage />} />

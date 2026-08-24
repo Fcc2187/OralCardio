@@ -144,6 +144,34 @@ No Supabase Auth, configure `Site URL` e `Redirect URLs` para os domínios de
 staging e produção. Configure SMTP real antes de convidar pacientes, incluindo
 confirmação de e-mail e recuperação de senha.
 
+### Google OAuth
+
+Para cada ambiente, configure o provedor Google no painel do Supabase Auth e
+use um cliente OAuth separado no Google Cloud. No cliente do Google, cadastre
+como **Authorized redirect URI** exatamente:
+
+```text
+https://<project-ref>.supabase.co/auth/v1/callback
+```
+
+Esse URI é o callback entre Google e Supabase; não use a URL da Vercel nele.
+No Supabase, cadastre a `Site URL` oficial e permita os callbacks da aplicação:
+
+```text
+http://localhost:5173/auth/callback
+https://app.seu-dominio.com/auth/callback
+https://*-<time-ou-conta>.vercel.app/auth/callback
+```
+
+Em produção, mantenha a URL exata. O padrão de preview serve apenas para os
+deploys temporários da Vercel. `VITE_SUPABASE_URL` e
+`VITE_SUPABASE_ANON_KEY` já são suficientes no frontend: nunca adicione o
+client secret do Google, token de provedor ou chave de serviço ao Vercel.
+
+Valide em staging: primeira entrada com Google, entrada com o mesmo e-mail já
+confirmado por senha (vínculo automático de identidade), cancelamento no Google
+e retorno à rota originalmente solicitada.
+
 Depois que o backend HTTPS estiver saudável, guarde no Vault:
 
 ```sql

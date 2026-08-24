@@ -14,7 +14,7 @@ interface LocationState {
 }
 
 export function SignInPage() {
-  const { signIn } = useAuth();
+  const { signIn, signInWithGoogle } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -36,6 +36,19 @@ export function SignInPage() {
       await signIn(email.trim(), password);
       const state = location.state as LocationState | null;
       navigate(state?.from?.pathname ?? "/", { replace: true });
+    } catch (signInError) {
+      setError(translateAuthError(signInError));
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  async function handleGoogleSignIn() {
+    setError(null);
+    setIsSubmitting(true);
+    try {
+      const state = location.state as LocationState | null;
+      await signInWithGoogle(state?.from?.pathname);
     } catch (signInError) {
       setError(translateAuthError(signInError));
     } finally {
@@ -67,6 +80,9 @@ export function SignInPage() {
 
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? "Entrando…" : "Entrar"}
+        </Button>
+        <Button type="button" variant="secondary" disabled={isSubmitting} onClick={handleGoogleSignIn}>
+          Continuar com Google
         </Button>
       </form>
 

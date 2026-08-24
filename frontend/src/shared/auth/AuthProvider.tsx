@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { setCurrentAccessToken, supabaseClient } from "@/lib/supabaseClient";
+import { clearOAuthReturnPath, saveOAuthReturnPath } from "@/features/auth/oauthReturnPath";
 import {
   configureSessionSignOut,
   requestSessionSignOut,
@@ -65,6 +66,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) throw error;
   }
 
+  async function signInWithGoogle(returnTo?: string): Promise<void> {
+    saveOAuthReturnPath(returnTo);
+    try {
+      const { error } = await supabaseClient.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: `${window.location.origin}/auth/callback` },
+      });
+      if (error) throw error;
+    } catch (error) {
+      clearOAuthReturnPath();
+      throw error;
+    }
+  }
+
   async function signUp({ email, password, fullName }: SignUpParams): Promise<SignUpResult> {
     // full_name precisa ir em options.data: o trigger handle_new_user() do
     // banco lê raw_user_meta_data->>'full_name' para criar public.users:
@@ -88,6 +103,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     user: session?.user ?? null,
     isLoading,
     signIn,
+    signInWithGoogle,
     signUp,
     signOut,
   };
