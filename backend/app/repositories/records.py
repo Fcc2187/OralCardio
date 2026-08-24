@@ -15,7 +15,6 @@ from app.domain.enums import (
     AppointmentType,
     BrushingZone,
     CardiacCondition,
-    HabitNotificationType,
     NotificationType,
 )
 
@@ -149,16 +148,6 @@ class AppointmentRecord:
     created_at: datetime
     updated_at: datetime
     version: int = 1
-
-
-@dataclass(frozen=True)
-class HabitNotificationScheduleRecord:
-    id: UUID
-    habit_type: HabitNotificationType
-    local_time: time
-    target_ordinal: int
-    enabled: bool
-    next_due_at: datetime
 
 
 @dataclass(frozen=True)

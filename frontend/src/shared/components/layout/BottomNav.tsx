@@ -9,43 +9,19 @@ interface NavDestination {
   icon: (props: SVGProps<SVGSVGElement>) => JSX.Element;
 }
 
+function ImageIcon({ src, ...props }: SVGProps<SVGSVGElement> & { src: string }) {
+  return (
+    <svg viewBox="0 0 24 24" {...props}>
+      <image href={src} width="24" height="24" preserveAspectRatio="xMidYMid meet" />
+    </svg>
+  );
+}
+
 function HomeIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} {...props}>
       <path d="M3 11.5 12 4l9 7.5" strokeLinecap="round" strokeLinejoin="round" />
       <path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function BrushIcon(props: SVGProps<SVGSVGElement>) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} {...props}>
-      <path d="M14 3 5 12a4 4 0 0 0 5.66 5.66L19.32 8.7" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="m14 3 3 3" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M9.5 14.5 15 20" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function BookIcon(props: SVGProps<SVGSVGElement>) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} {...props}>
-      <path
-        d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5v-15Z"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path d="M4 20.5A2.5 2.5 0 0 1 6.5 18H20" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function CalendarIcon(props: SVGProps<SVGSVGElement>) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} {...props}>
-      <rect x="3.5" y="5" width="17" height="16" rx="2" />
-      <path d="M8 3v4M16 3v4M3.5 10h17" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
@@ -66,9 +42,9 @@ function UserIcon(props: SVGProps<SVGSVGElement>) {
 // acessível pelo botão "Ver conquistas" do dashboard (Screen com backTo).
 const DESTINATIONS: NavDestination[] = [
   { to: "/", label: "Início", icon: HomeIcon },
-  { to: "/escovar", label: "Escovar", icon: BrushIcon },
-  { to: "/educacao", label: "Estudar", icon: BookIcon },
-  { to: "/agenda", label: "Agenda", icon: CalendarIcon },
+  { to: "/escovar", label: "Escovar", icon: (props) => <ImageIcon src="/images/escovacao.png" {...props} /> },
+  { to: "/educacao", label: "Estudar", icon: (props) => <ImageIcon src="/images/leitura.png" {...props} /> },
+  { to: "/agenda", label: "Agenda", icon: (props) => <ImageIcon src="/images/agenda.png" {...props} /> },
   { to: "/perfil", label: "Perfil", icon: UserIcon },
 ];
 

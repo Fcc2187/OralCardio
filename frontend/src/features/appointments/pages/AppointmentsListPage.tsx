@@ -1,7 +1,6 @@
 import { useMemo } from "react";
 
 import { Button } from "@/shared/components/ui/Button";
-import { EmptyState } from "@/shared/components/ui/EmptyState";
 import { ErrorFeedback, LoadingFeedback } from "@/shared/components/ui/Feedback";
 import { LinkButton } from "@/shared/components/ui/LinkButton";
 import { Screen } from "@/shared/components/layout/Screen";
@@ -47,10 +46,12 @@ export function AppointmentsListPage() {
       <LinkButton to="/agenda/nova">Nova consulta</LinkButton>
 
       {isEmpty ? (
-        <EmptyState
-          title="Nenhuma consulta agendada"
-          message="Agende sua próxima visita ao dentista para manter o acompanhamento em dia."
-        />
+        <div className="flex flex-col items-center gap-sm rounded-lg border border-hairline bg-canvas p-xl text-center">
+          <p className="font-display text-title-md">Nenhuma consulta agendada</p>
+          <p className="font-body text-body-sm text-muted">
+            Agende sua próxima visita ao dentista para manter o acompanhamento em dia.
+          </p>
+        </div>
       ) : (
         <>
           {groups.overdue.length > 0 ? (

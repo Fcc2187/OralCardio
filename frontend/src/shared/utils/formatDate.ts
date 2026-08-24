@@ -11,29 +11,9 @@ const dateTimeLongFormatter = new Intl.DateTimeFormat("pt-BR", {
   minute: "2-digit",
   timeZone: BUSINESS_TIME_ZONE,
 });
-const dateShortFormatter = new Intl.DateTimeFormat("pt-BR", {
-  day: "2-digit",
-  month: "2-digit",
-  year: "numeric",
-  timeZone: BUSINESS_TIME_ZONE,
-});
-const timeFormatter = new Intl.DateTimeFormat("pt-BR", {
-  hour: "2-digit",
-  minute: "2-digit",
-  timeZone: BUSINESS_TIME_ZONE,
-});
-
 // Datas clínicas e de agenda seguem o mesmo calendário de negócio da API.
 export function formatDateTimeLong(iso: string): string {
   return dateTimeLongFormatter.format(new Date(iso));
-}
-
-export function formatDateShort(iso: string): string {
-  return dateShortFormatter.format(new Date(iso));
-}
-
-export function formatTime(iso: string): string {
-  return timeFormatter.format(new Date(iso));
 }
 
 /** Diferença em dias de calendário (não em blocos de 24h) entre dois

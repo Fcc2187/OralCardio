@@ -1,6 +1,6 @@
-import type { ModuleContentBlock } from "./types";
+import type { ModuleContentBlock, ModuleTextBlock } from "./types";
 
-function isTextBlock(value: unknown): value is ModuleContentBlock {
+function isTextBlock(value: unknown): value is ModuleTextBlock {
   if (typeof value !== "object" || value === null) return false;
   const block = value as Record<string, unknown>;
   return block.type === "text" && typeof block.title === "string" && typeof block.body === "string";

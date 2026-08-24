@@ -40,6 +40,7 @@ export function FlossingCard({ flossingsToday }: FlossingCardProps) {
 
   return (
     <Card variant="canvas">
+      <img src="/images/fio-dental.png" alt="" aria-hidden="true" className="mb-sm size-12 object-contain" />
       <p className="font-body text-body-sm font-medium">
         {displayCount === 0
           ? "Já usou fio dental hoje?"

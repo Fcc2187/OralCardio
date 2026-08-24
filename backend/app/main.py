@@ -10,6 +10,7 @@ from app.core.config import get_settings
 from app.core.exception_handlers import register_exception_handlers
 from app.core.http_security import register_http_security_headers
 from app.core.logging import configure_logging, register_request_id_middleware
+from app.core.request_limits import RequestLimitsMiddleware
 from app.core.vapid import validate_vapid_configuration
 
 settings = get_settings()
@@ -48,6 +49,7 @@ app.add_middleware(
 if settings.env.value == "production":
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.allowed_host_list)
 
+app.add_middleware(RequestLimitsMiddleware)
 register_request_id_middleware(app)
 register_http_security_headers(app)
 register_exception_handlers(app)

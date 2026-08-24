@@ -30,8 +30,12 @@ export interface ModuleTextBlock {
   body: string;
 }
 
-/** União discriminada dos blocos de conteúdo. Hoje só existe "text" nos
- * dados semeados, mas o parser (`parseModuleContent`) já descarta qualquer
- * `type` desconhecido em vez de quebrar, então novos tipos podem chegar do
- * backend sem exigir mudança aqui além de estender esta união. */
-export type ModuleContentBlock = ModuleTextBlock;
+export interface ModuleVideoBlock {
+  type: "video";
+  title: string;
+  src: string;
+}
+
+/** O conteúdo vindo do banco é texto. Vídeos locais são acrescentados pela
+ * tela do módulo após esse conteúdo ter sido validado. */
+export type ModuleContentBlock = ModuleTextBlock | ModuleVideoBlock;

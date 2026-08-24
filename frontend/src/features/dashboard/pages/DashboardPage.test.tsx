@@ -51,4 +51,15 @@ describe("DashboardPage", () => {
     expect(screen.getByText("Ainda não escovou hoje")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Escovar agora" })).toBeInTheDocument();
   });
+
+  it("mostra o ícone PNG do nível, inclusive para Guardião do Coração", () => {
+    useDashboardQuery.mockReturnValue({
+      data: { ...SUMMARY, level: 6, level_name: "Guardião do Coração" },
+      isPending: false,
+      isError: false,
+    });
+    const { container } = render(<DashboardPage />, { wrapper });
+
+    expect(container.querySelector('img[src="/images/guardiao-coracao.png"]')).toBeInTheDocument();
+  });
 });
