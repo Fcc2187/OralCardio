@@ -47,6 +47,21 @@ export default defineConfig({
           },
         ],
       },
+      workbox: {
+        globIgnores: ["**/videos/*.mp4"],
+        runtimeCaching: [
+          {
+            urlPattern: /\/videos\/.*\.mp4$/i,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "education-videos",
+              expiration: { maxEntries: 6, maxAgeSeconds: 60 * 60 * 24 * 30 },
+              cacheableResponse: { statuses: [0, 200] },
+              rangeRequests: true,
+            },
+          },
+        ],
+      },
     }),
   ],
   resolve: {

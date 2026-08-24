@@ -38,12 +38,17 @@ export function AchievementsPage() {
   return (
     <Screen title="Conquistas" backTo="/" backLabel="Início">
       <Card variant="coral">
-        <p className="font-body text-body-sm font-medium">{stats.level_name}</p>
-        <p className="mt-xs text-display-sm">{stats.total_points} pontos</p>
-        <p className="mt-xs font-body text-body-sm">
-          {stats.current_streak_days} {stats.current_streak_days === 1 ? "dia" : "dias"} seguidos
-          · recorde de {stats.longest_streak_days}
-        </p>
+        <div className="flex items-center justify-between gap-md">
+          <div>
+            <p className="font-body text-body-sm font-medium">{stats.level_name}</p>
+            <p className="mt-xs text-display-sm">{stats.total_points} pontos</p>
+            <p className="mt-xs font-body text-body-sm">
+              {stats.current_streak_days} {stats.current_streak_days === 1 ? "dia" : "dias"} seguidos
+              · recorde de {stats.longest_streak_days}
+            </p>
+          </div>
+          <img src="/images/conquistas.png" alt="" aria-hidden="true" className="size-16 shrink-0 object-contain" />
+        </div>
       </Card>
 
       <div className="flex flex-col gap-md">

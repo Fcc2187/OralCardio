@@ -8,6 +8,15 @@ import { FlossingCard } from "@/features/flossing/components/FlossingCard";
 
 import { useDashboardQuery } from "../api/useDashboardQuery";
 
+const LEVEL_IMAGE_BY_NAME: Record<string, string> = {
+  Semente: "/images/semente.png",
+  Broto: "/images/broto.png",
+  Raiz: "/images/raiz.png",
+  Flor: "/images/flor.png",
+  Fruto: "/images/fruto.png",
+  "Guardião do Coração": "/images/guardiao-coracao.png",
+};
+
 export function DashboardPage() {
   const { data, isPending, isError, refetch } = useDashboardQuery();
 
@@ -58,6 +67,14 @@ export function DashboardPage() {
             <p className="font-body text-body-sm text-muted">Nível</p>
             <p className="text-title-lg font-display">{data.level_name}</p>
           </div>
+          {LEVEL_IMAGE_BY_NAME[data.level_name] ? (
+            <img
+              src={LEVEL_IMAGE_BY_NAME[data.level_name]}
+              alt=""
+              aria-hidden="true"
+              className="size-16 object-contain"
+            />
+          ) : null}
           <Badge variant="coral">{data.total_points} pontos</Badge>
         </div>
       </Card>

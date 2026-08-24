@@ -17,6 +17,15 @@ import { parseModuleContent } from "../parseModuleContent";
 import { useModuleStart } from "../useModuleStart";
 import { useVisibleReadingTime } from "../useVisibleReadingTime";
 
+const MODULE_VIDEO_BY_SLUG: Record<string, string | null> = {
+  "conexao-boca-coracao": "/videos/video-1.mp4",
+  "o-que-e-bacteremia": "/videos/video-2.mp4",
+  "entendendo-endocardite": "/videos/video-3.mp4",
+  "gengivite-risco-silencioso": "/videos/video-4.mp4",
+  "tecnicas-escovacao-fio-dental": "/videos/video-5.mp4",
+  "medicamentos-cardiacos-odontologia": null, // slot reservado para video-6.mp4
+};
+
 export function EducationModulePage() {
   const { slug = "" } = useParams<{ slug: string }>();
   const queryClient = useQueryClient();
@@ -61,6 +70,11 @@ export function EducationModulePage() {
 
   const module = query.data;
   const blocks = parseModuleContent(module.content);
+  const videoSrc = MODULE_VIDEO_BY_SLUG[module.slug];
+  const videoIsPending = module.slug === "medicamentos-cardiacos-odontologia" && videoSrc === null;
+  const contentWithVideo = videoSrc
+    ? [...blocks, { type: "video" as const, title: "Vídeo instrutivo", src: videoSrc }]
+    : blocks;
 
   return (
     <Screen
@@ -69,7 +83,10 @@ export function EducationModulePage() {
       backTo="/educacao"
       backLabel="Educação"
     >
-      <ModuleContent blocks={blocks} fallbackDescription={module.description} />
+      <ModuleContent blocks={contentWithVideo} fallbackDescription={module.description} />
+      {videoIsPending ? (
+        <p className="font-body text-body-sm text-muted">Vídeo instrutivo em breve.</p>
+      ) : null}
 
       {completeMutation.isError ? (
         <ErrorFeedback message="Não foi possível salvar sua conclusão. Tente novamente." />

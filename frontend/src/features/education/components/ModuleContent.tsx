@@ -31,6 +31,21 @@ export function ModuleContent({ blocks, fallbackDescription }: ModuleContentProp
                 </p>
               </div>
             );
+          case "video":
+            return (
+              <figure key={index} className="flex flex-col gap-sm">
+                <video
+                  className="w-full rounded-lg bg-black"
+                  controls
+                  preload="metadata"
+                  playsInline
+                  src={block.src}
+                />
+                <figcaption className="font-body text-body-sm text-muted">
+                  {block.title}
+                </figcaption>
+              </figure>
+            );
           default:
             return null;
         }

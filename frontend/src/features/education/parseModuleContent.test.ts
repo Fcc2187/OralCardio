@@ -31,6 +31,17 @@ describe("parseModuleContent", () => {
     ]);
   });
 
+  it("descarta vídeos: eles são associados localmente pela página do módulo", () => {
+    expect(
+      parseModuleContent({
+        sections: [
+          { type: "video", title: "Aula", src: "/videos/video-1.mp4" },
+          { type: "video", title: "Externo", src: "https://example.com/video.mp4" },
+        ],
+      }),
+    ).toEqual([]);
+  });
+
   it("filtra blocos válidos misturados com blocos malformados, sem lançar", () => {
     const content = {
       sections: [
