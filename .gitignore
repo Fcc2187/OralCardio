@@ -21,3 +21,6 @@ frontend/dev-dist/
 # Editor / OS
 .vscode/
 .DS_Store
+
+# Guias locais de desenvolvimento
+workflow.txt
