@@ -2,10 +2,21 @@ export const FIELD_WRAPPER = "flex w-full flex-col gap-xs";
 
 export const FIELD_LABEL = "font-body text-body-sm font-medium text-body-strong";
 
+export const FIELD_CONTROL = "relative";
+
+export const FIELD_LEADING_ICON =
+  "pointer-events-none absolute inset-y-0 left-md flex items-center text-primary-action";
+
+export const FIELD_TRAILING_ACTION = "absolute inset-y-0 right-xxs flex items-center";
+
 const FIELD_INPUT_BASE =
   "rounded-md border border-hairline bg-canvas px-md py-sm font-body text-body-md text-ink outline-none focus-visible:border-primary-action focus-visible:ring-[3px] focus-visible:ring-primary-action/15 disabled:cursor-not-allowed disabled:opacity-60";
 
-export const FIELD_INPUT = `min-h-tap-target-min ${FIELD_INPUT_BASE}`;
+export const FIELD_INPUT = `min-h-tap-target-min w-full ${FIELD_INPUT_BASE}`;
+
+export const FIELD_INPUT_WITH_LEADING_ICON = "pl-11";
+
+export const FIELD_INPUT_WITH_TRAILING_ACTION = "pr-12";
 
 export const FIELD_TEXTAREA = `min-h-24 resize-y ${FIELD_INPUT_BASE}`;
 
