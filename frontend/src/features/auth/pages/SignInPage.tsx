@@ -56,13 +56,13 @@ export function SignInPage() {
       footer={
         <p className="font-body text-body-sm text-muted">
           Ainda não tem conta?{" "}
-          <Link to="/criar-conta" className="text-primary-action underline underline-offset-2">
+          <Link to="/criar-conta" className="font-semibold text-primary-action hover:underline">
             Criar conta
           </Link>
         </p>
       }
     >
-      <form noValidate onSubmit={handleSubmit} className="flex flex-col gap-md">
+      <form noValidate onSubmit={handleSubmit} className="flex flex-col gap-3.5">
         <TextField
           label="E-mail"
           name="email"
@@ -93,9 +93,24 @@ export function SignInPage() {
           }}
         />
 
+        {/* TODO(v2.0.0): reativar ao implementar a rota de recuperação de senha.
+        <div className="flex justify-end -mt-1">
+          <Link
+            to="/entrar"
+            onClick={(e) => {
+              e.preventDefault();
+              setError("Para recuperar sua senha, entre em contato com o suporte ou redefina pelo link enviado ao seu e-mail.");
+            }}
+            className="font-body text-body-sm text-primary-action underline-offset-2 hover:underline"
+          >
+            Esqueceu sua senha?
+          </Link>
+        </div>
+        */}
+
         {error ? <ErrorFeedback message={error} /> : null}
 
-        <Button type="submit" disabled={isSubmitting} className="mt-xs">
+        <Button type="submit" disabled={isSubmitting} className="mt-1 h-12">
           {isSubmitting ? "Entrando…" : "Entrar"}
         </Button>
       </form>

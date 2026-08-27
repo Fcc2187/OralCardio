@@ -76,75 +76,90 @@ export function SignUpPage() {
       footer={
         <p className="font-body text-body-sm text-muted">
           Já tem conta?{" "}
-          <Link to="/entrar" className="text-primary-action underline underline-offset-2">
+          <Link to="/entrar" className="font-semibold text-primary-action hover:underline">
             Entrar
           </Link>
         </p>
       }
     >
-      <form noValidate onSubmit={handleSubmit} className="grid gap-md min-[1024px]:grid-cols-2">
-        <TextField
-          label="Nome completo"
-          name="name"
-          autoComplete="name"
-          placeholder="Digite seu nome"
-          required
-          value={fullName}
-          error={fieldErrors.fullName}
-          leadingIcon={<UserIcon />}
-          onChange={(event) => {
-            setFullName(event.target.value);
-            setFieldErrors((current) => ({ ...current, fullName: undefined }));
-          }}
-        />
-        <PasswordField
-          label="Senha"
-          name="password"
-          autoComplete="new-password"
-          placeholder="Mínimo de 6 caracteres"
-          required
-          minLength={6}
-          value={password}
-          error={fieldErrors.password}
-          leadingIcon={<LockIcon />}
-          onChange={(event) => {
-            setPassword(event.target.value);
-            setFieldErrors((current) => ({ ...current, password: undefined }));
-          }}
-        />
-        <TextField
-          label="E-mail"
-          name="email"
-          type="email"
-          autoComplete="email"
-          placeholder="Digite seu e-mail"
-          required
-          value={email}
-          error={fieldErrors.email}
-          leadingIcon={<EmailIcon />}
-          onChange={(event) => {
-            setEmail(event.target.value);
-            setFieldErrors((current) => ({ ...current, email: undefined }));
-          }}
-        />
-        <PasswordField
-          label="Confirmar senha"
-          name="confirm-password"
-          autoComplete="new-password"
-          placeholder="Digite novamente sua senha"
-          required
-          value={confirmPassword}
-          error={fieldErrors.confirmPassword}
-          leadingIcon={<LockIcon />}
-          onChange={(event) => {
-            setConfirmPassword(event.target.value);
-            setFieldErrors((current) => ({ ...current, confirmPassword: undefined }));
-          }}
-        />
+      <form
+        noValidate
+        onSubmit={handleSubmit}
+        className="grid grid-cols-1 gap-x-5 gap-y-3.5 min-[640px]:grid-cols-2"
+      >
+        <div className="min-[640px]:col-start-1 min-[640px]:row-start-1">
+          <TextField
+            label="Nome completo"
+            name="name"
+            autoComplete="name"
+            placeholder="Digite seu nome"
+            required
+            value={fullName}
+            error={fieldErrors.fullName}
+            leadingIcon={<UserIcon />}
+            onChange={(event) => {
+              setFullName(event.target.value);
+              setFieldErrors((current) => ({ ...current, fullName: undefined }));
+            }}
+          />
+        </div>
 
-        {error ? <div className="min-[1024px]:col-span-2"><ErrorFeedback message={error} /></div> : null}
+        <div className="min-[640px]:col-start-1 min-[640px]:row-start-2">
+          <TextField
+            label="E-mail"
+            name="email"
+            type="email"
+            autoComplete="email"
+            placeholder="Digite seu e-mail"
+            required
+            value={email}
+            error={fieldErrors.email}
+            leadingIcon={<EmailIcon />}
+            onChange={(event) => {
+              setEmail(event.target.value);
+              setFieldErrors((current) => ({ ...current, email: undefined }));
+            }}
+          />
+        </div>
 
-        <Button type="submit" disabled={isSubmitting} className="mt-xs min-[1024px]:col-span-2">
+        <div className="min-[640px]:col-start-2 min-[640px]:row-start-1">
+          <PasswordField
+            label="Senha"
+            name="password"
+            autoComplete="new-password"
+            placeholder="Mínimo de 6 caracteres"
+            required
+            minLength={6}
+            value={password}
+            error={fieldErrors.password}
+            leadingIcon={<LockIcon />}
+            onChange={(event) => {
+              setPassword(event.target.value);
+              setFieldErrors((current) => ({ ...current, password: undefined }));
+            }}
+          />
+        </div>
+
+        <div className="min-[640px]:col-start-2 min-[640px]:row-start-2">
+          <PasswordField
+            label="Confirmar senha"
+            name="confirm-password"
+            autoComplete="new-password"
+            placeholder="Digite novamente sua senha"
+            required
+            value={confirmPassword}
+            error={fieldErrors.confirmPassword}
+            leadingIcon={<LockIcon />}
+            onChange={(event) => {
+              setConfirmPassword(event.target.value);
+              setFieldErrors((current) => ({ ...current, confirmPassword: undefined }));
+            }}
+          />
+        </div>
+
+        {error ? <div className="col-span-full"><ErrorFeedback message={error} /></div> : null}
+
+        <Button type="submit" disabled={isSubmitting} className="col-span-full mt-2 h-12">
           {isSubmitting ? "Criando conta…" : "Criar conta"}
         </Button>
       </form>
