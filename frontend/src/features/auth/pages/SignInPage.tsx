@@ -4,11 +4,13 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/shared/components/ui/Button";
 import { ErrorFeedback } from "@/shared/components/ui/Feedback";
 import { TextField } from "@/shared/components/ui/TextField";
-import { Screen } from "@/shared/components/layout/Screen";
 import { useAuth } from "@/shared/auth/authContext";
 
 import { translateAuthError } from "../authErrorMessages";
 import { validateSignInFields, type SignInFieldErrors } from "../authValidation";
+import { AuthLayout } from "../components/AuthLayout";
+import { EmailIcon, LockIcon } from "../components/AuthIcons";
+import { PasswordField } from "../components/PasswordField";
 
 interface LocationState {
   from?: { pathname: string };
@@ -47,27 +49,44 @@ export function SignInPage() {
   }
 
   return (
-    <Screen title="Entrar" subtitle="Acesse sua conta do OralCardio">
-      <form noValidate onSubmit={handleSubmit} className="flex flex-col gap-lg">
+    <AuthLayout
+      mode="sign-in"
+      title="Bem-vindo(a)! 👋"
+      subtitle="Acesse sua conta do OralCardio"
+      footer={
+        <p className="font-body text-body-sm text-muted">
+          Ainda não tem conta?{" "}
+          <Link to="/criar-conta" className="text-primary-action underline underline-offset-2">
+            Criar conta
+          </Link>
+        </p>
+      }
+    >
+      <form noValidate onSubmit={handleSubmit} className="flex flex-col gap-md">
         <TextField
           label="E-mail"
+          name="email"
           type="email"
           autoComplete="email"
+          placeholder="Digite seu e-mail"
           required
           value={email}
           error={fieldErrors.email}
+          leadingIcon={<EmailIcon />}
           onChange={(event) => {
             setEmail(event.target.value);
             setFieldErrors((current) => ({ ...current, email: undefined }));
           }}
         />
-        <TextField
+        <PasswordField
           label="Senha"
-          type="password"
+          name="password"
           autoComplete="current-password"
+          placeholder="Digite sua senha"
           required
           value={password}
           error={fieldErrors.password}
+          leadingIcon={<LockIcon />}
           onChange={(event) => {
             setPassword(event.target.value);
             setFieldErrors((current) => ({ ...current, password: undefined }));
@@ -76,17 +95,10 @@ export function SignInPage() {
 
         {error ? <ErrorFeedback message={error} /> : null}
 
-        <Button type="submit" disabled={isSubmitting}>
+        <Button type="submit" disabled={isSubmitting} className="mt-xs">
           {isSubmitting ? "Entrando…" : "Entrar"}
         </Button>
       </form>
-
-      <p className="text-center font-body text-body-sm text-muted">
-        Ainda não tem conta?{" "}
-        <Link to="/criar-conta" className="text-primary-action underline underline-offset-2">
-          Criar conta
-        </Link>
-      </p>
-    </Screen>
+    </AuthLayout>
   );
 }

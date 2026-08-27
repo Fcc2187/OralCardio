@@ -39,4 +39,18 @@ describe("SignUpPage", () => {
     expect(screen.getByText("A senha precisa ter pelo menos 6 caracteres.")).toBeInTheDocument();
     expect(screen.getByText("As senhas não coincidem.")).toBeInTheDocument();
   });
+
+  it("keeps the confirmation state in the auth layout", async () => {
+    useAuthMock.mockReturnValue({ signUp: vi.fn().mockResolvedValue({ needsEmailConfirmation: true }) });
+    renderPage();
+
+    fireEvent.change(screen.getByLabelText("Nome completo"), { target: { value: "Ana Silva" } });
+    fireEvent.change(screen.getByLabelText("E-mail"), { target: { value: "ana@example.com" } });
+    fireEvent.change(screen.getByLabelText("Senha"), { target: { value: "123456" } });
+    fireEvent.change(screen.getByLabelText("Confirmar senha"), { target: { value: "123456" } });
+    fireEvent.click(screen.getByRole("button", { name: "Criar conta" }));
+
+    expect(await screen.findByRole("heading", { name: "Quase lá" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Voltar para entrar" })).toHaveAttribute("href", "/entrar");
+  });
 });
