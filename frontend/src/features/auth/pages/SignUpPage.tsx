@@ -97,21 +97,6 @@ export function SignUpPage() {
             setFieldErrors((current) => ({ ...current, fullName: undefined }));
           }}
         />
-        <TextField
-          label="E-mail"
-          name="email"
-          type="email"
-          autoComplete="email"
-          placeholder="Digite seu e-mail"
-          required
-          value={email}
-          error={fieldErrors.email}
-          leadingIcon={<EmailIcon />}
-          onChange={(event) => {
-            setEmail(event.target.value);
-            setFieldErrors((current) => ({ ...current, email: undefined }));
-          }}
-        />
         <PasswordField
           label="Senha"
           name="password"
@@ -126,6 +111,21 @@ export function SignUpPage() {
           onChange={(event) => {
             setPassword(event.target.value);
             setFieldErrors((current) => ({ ...current, password: undefined }));
+          }}
+        />
+        <TextField
+          label="E-mail"
+          name="email"
+          type="email"
+          autoComplete="email"
+          placeholder="Digite seu e-mail"
+          required
+          value={email}
+          error={fieldErrors.email}
+          leadingIcon={<EmailIcon />}
+          onChange={(event) => {
+            setEmail(event.target.value);
+            setFieldErrors((current) => ({ ...current, email: undefined }));
           }}
         />
         <PasswordField

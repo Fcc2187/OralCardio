@@ -35,12 +35,16 @@ export function AuthLayout({ mode, title, subtitle, children, footer }: AuthLayo
   }, [title]);
 
   return (
-    <main className="min-h-dvh bg-canvas min-[1024px]:grid min-[1024px]:grid-cols-[minmax(18rem,0.8fr)_minmax(0,1.2fr)]">
+    <main className="min-h-dvh bg-canvas min-[1024px]:m-xs min-[1024px]:grid min-[1024px]:min-h-[calc(100dvh-0.5rem)] min-[1024px]:grid-cols-[minmax(17rem,0.65fr)_minmax(0,1.35fr)] min-[1024px]:overflow-hidden min-[1024px]:rounded-lg min-[1024px]:border min-[1024px]:border-hairline-soft">
       <aside className="relative hidden overflow-hidden bg-surface-soft px-xxl py-xxl min-[1024px]:flex min-[1024px]:flex-col min-[1024px]:items-center min-[1024px]:justify-center">
         <div className="flex max-w-[24rem] flex-col items-center text-center">
           <Brand />
           <p className="mt-lg font-body text-body-md text-muted">{mode === "sign-in" ? "Cuidar do seu sorriso é cuidar do seu coração." : "Comece hoje a cuidar da sua saúde bucal e cardíaca."}</p>
-          <span className="my-lg text-primary-action" aria-hidden="true">♥</span>
+          <div className="my-lg flex w-24 items-center gap-xs text-primary-action" aria-hidden="true">
+            <span className="h-px flex-1 bg-primary-action/40" />
+            <span>♥</span>
+            <span className="h-px flex-1 bg-primary-action/40" />
+          </div>
           <img src={ILLUSTRATIONS[mode]} alt="" className="max-h-80 w-full object-contain" />
         </div>
       </aside>
