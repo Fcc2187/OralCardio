@@ -10,6 +10,7 @@ import { LinkButton } from "@/shared/components/ui/LinkButton";
 import { useAuth } from "@/shared/auth/authContext";
 
 import { translateAuthError } from "../authErrorMessages";
+import { type SignUpFieldErrors, validateSignUpFields } from "../authValidation";
 
 export function SignUpPage() {
   const { signUp } = useAuth();
@@ -20,6 +21,7 @@ export function SignUpPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<SignUpFieldErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [needsEmailConfirmation, setNeedsEmailConfirmation] = useState(false);
 
@@ -27,24 +29,13 @@ export function SignUpPage() {
     event.preventDefault();
     setError(null);
 
-    const normalizedName = fullName.trim();
-    if (normalizedName.length === 0) {
-      setError("Informe seu nome completo.");
-      return;
-    }
-    if (!/^\S+@\S+\.\S+$/.test(email.trim())) {
-      setError("Informe um e-mail válido.");
-      return;
-    }
-    if (password.length < 6) {
-      setError("A senha precisa ter pelo menos 6 caracteres.");
-      return;
-    }
-    if (password !== confirmPassword) {
-      setError("As senhas não coincidem.");
+    const validationErrors = validateSignUpFields({ fullName, email, password, confirmPassword });
+    setFieldErrors(validationErrors);
+    if (Object.keys(validationErrors).length > 0) {
       return;
     }
 
+    const normalizedName = fullName.trim();
     setIsSubmitting(true);
     try {
       const result = await signUp({ email: email.trim(), password, fullName: normalizedName });
@@ -76,13 +67,17 @@ export function SignUpPage() {
 
   return (
     <Screen title="Criar conta" subtitle="Comece a cuidar da sua saúde bucal e cardíaca">
-      <form onSubmit={handleSubmit} className="flex flex-col gap-lg">
+      <form noValidate onSubmit={handleSubmit} className="flex flex-col gap-lg">
         <TextField
           label="Nome completo"
           autoComplete="name"
           required
           value={fullName}
-          onChange={(event) => setFullName(event.target.value)}
+          error={fieldErrors.fullName}
+          onChange={(event) => {
+            setFullName(event.target.value);
+            setFieldErrors((current) => ({ ...current, fullName: undefined }));
+          }}
         />
         <TextField
           label="E-mail"
@@ -90,7 +85,11 @@ export function SignUpPage() {
           autoComplete="email"
           required
           value={email}
-          onChange={(event) => setEmail(event.target.value)}
+          error={fieldErrors.email}
+          onChange={(event) => {
+            setEmail(event.target.value);
+            setFieldErrors((current) => ({ ...current, email: undefined }));
+          }}
         />
         <TextField
           label="Senha"
@@ -100,7 +99,11 @@ export function SignUpPage() {
           minLength={6}
           hint="Mínimo de 6 caracteres"
           value={password}
-          onChange={(event) => setPassword(event.target.value)}
+          error={fieldErrors.password}
+          onChange={(event) => {
+            setPassword(event.target.value);
+            setFieldErrors((current) => ({ ...current, password: undefined }));
+          }}
         />
         <TextField
           label="Confirmar senha"
@@ -108,7 +111,11 @@ export function SignUpPage() {
           autoComplete="new-password"
           required
           value={confirmPassword}
-          onChange={(event) => setConfirmPassword(event.target.value)}
+          error={fieldErrors.confirmPassword}
+          onChange={(event) => {
+            setConfirmPassword(event.target.value);
+            setFieldErrors((current) => ({ ...current, confirmPassword: undefined }));
+          }}
         />
 
         {error ? <ErrorFeedback message={error} /> : null}

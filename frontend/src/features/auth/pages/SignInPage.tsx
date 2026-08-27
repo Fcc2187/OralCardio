@@ -8,6 +8,7 @@ import { Screen } from "@/shared/components/layout/Screen";
 import { useAuth } from "@/shared/auth/authContext";
 
 import { translateAuthError } from "../authErrorMessages";
+import { validateSignInFields, type SignInFieldErrors } from "../authValidation";
 
 interface LocationState {
   from?: { pathname: string };
@@ -21,13 +22,15 @@ export function SignInPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<SignInFieldErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
-    if (!/^\S+@\S+\.\S+$/.test(email.trim()) || password.length === 0) {
-      setError("Informe e-mail e senha válidos.");
+    const validationErrors = validateSignInFields({ email, password });
+    setFieldErrors(validationErrors);
+    if (Object.keys(validationErrors).length > 0) {
       return;
     }
     setIsSubmitting(true);
@@ -45,14 +48,18 @@ export function SignInPage() {
 
   return (
     <Screen title="Entrar" subtitle="Acesse sua conta do OralCardio">
-      <form onSubmit={handleSubmit} className="flex flex-col gap-lg">
+      <form noValidate onSubmit={handleSubmit} className="flex flex-col gap-lg">
         <TextField
           label="E-mail"
           type="email"
           autoComplete="email"
           required
           value={email}
-          onChange={(event) => setEmail(event.target.value)}
+          error={fieldErrors.email}
+          onChange={(event) => {
+            setEmail(event.target.value);
+            setFieldErrors((current) => ({ ...current, email: undefined }));
+          }}
         />
         <TextField
           label="Senha"
@@ -60,7 +67,11 @@ export function SignInPage() {
           autoComplete="current-password"
           required
           value={password}
-          onChange={(event) => setPassword(event.target.value)}
+          error={fieldErrors.password}
+          onChange={(event) => {
+            setPassword(event.target.value);
+            setFieldErrors((current) => ({ ...current, password: undefined }));
+          }}
         />
 
         {error ? <ErrorFeedback message={error} /> : null}
