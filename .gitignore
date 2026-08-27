@@ -24,3 +24,6 @@ frontend/dev-dist/
 
 # Guias locais de desenvolvimento
 workflow.txt
+
+# Worktrees locais
+.worktrees/
