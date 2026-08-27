@@ -28,6 +28,7 @@ function Brand() {
 
 export function AuthLayout({ mode, title, subtitle, children, footer }: AuthLayoutProps) {
   const headingRef = useRef<HTMLHeadingElement>(null);
+  const isSignUp = mode === "sign-up";
 
   useEffect(() => {
     document.title = `${title} — OralCardio`;
@@ -49,8 +50,8 @@ export function AuthLayout({ mode, title, subtitle, children, footer }: AuthLayo
         </div>
       </aside>
 
-      <section className="flex min-h-dvh flex-col px-lg py-xl min-[1024px]:items-center min-[1024px]:justify-center min-[1024px]:px-xxl">
-        <div className="w-full max-w-[28rem]">
+      <section className="flex min-h-dvh flex-col px-lg py-xl min-[1024px]:min-h-0 min-[1024px]:items-center min-[1024px]:justify-center min-[1024px]:px-xxl">
+        <div className={`w-full ${isSignUp ? "max-w-[52rem]" : "max-w-[28rem]"}`}>
           {mode === "sign-in" ? (
             <header className="mb-xl flex flex-col items-center text-center min-[1024px]:hidden">
               <Brand />
@@ -63,7 +64,7 @@ export function AuthLayout({ mode, title, subtitle, children, footer }: AuthLayo
             </Link>
           )}
 
-          <div className="rounded-lg bg-white p-lg shadow-soft min-[1024px]:p-xl">
+          <div className={`rounded-lg bg-white shadow-soft ${isSignUp ? "p-lg min-[1024px]:p-lg" : "p-lg min-[1024px]:p-xl"}`}>
             <header className="mb-lg flex flex-col gap-xs">
               <h1 ref={headingRef} tabIndex={-1} className="text-display-sm outline-none">{title}</h1>
               <p className="font-body text-body-md text-muted">{subtitle}</p>

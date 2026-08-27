@@ -104,7 +104,6 @@ export function SignUpPage() {
           placeholder="Mínimo de 6 caracteres"
           required
           minLength={6}
-          hint="Mínimo de 6 caracteres"
           value={password}
           error={fieldErrors.password}
           leadingIcon={<LockIcon />}
