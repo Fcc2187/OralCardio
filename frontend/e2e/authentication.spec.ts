@@ -4,12 +4,63 @@ import { expect, test } from "@playwright/test";
 test("a tela de entrada é navegável e não possui violações a11y críticas", async ({ page }) => {
   await page.goto("/entrar");
 
-  await expect(page.getByRole("heading", { name: "Entrar" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Bem-vindo(a)! 👋" })).toBeVisible();
   await expect(page.getByLabel("E-mail")).toBeVisible();
-  await expect(page.getByLabel("Senha")).toBeVisible();
+  await expect(page.getByRole("textbox", { name: "Senha", exact: true })).toBeVisible();
 
   const accessibility = await new AxeBuilder({ page }).analyze();
   expect(accessibility.violations).toEqual([]);
+});
+
+test("a senha pode ser exibida sem perder seu rótulo acessível", async ({ page }) => {
+  await page.goto("/entrar");
+
+  const password = page.getByRole("textbox", { name: "Senha", exact: true });
+  await password.fill("segredo");
+  await page.getByRole("button", { name: "Mostrar senha" }).click();
+
+  await expect(password).toHaveAttribute("type", "text");
+  await expect(page.getByRole("button", { name: "Ocultar senha" })).toBeVisible();
+});
+
+test("o cadastro preserva os quatro campos e o retorno para entrar", async ({ page }, testInfo) => {
+  await page.goto("/criar-conta");
+
+  const backLink = page.getByRole("link", { name: /Voltar/ });
+  if (testInfo.project.name === "mobile-chrome") {
+    await expect(backLink).toHaveAttribute("href", "/entrar");
+  } else {
+    await expect(backLink).toBeHidden();
+  }
+  await expect(page.getByLabel("Nome completo")).toBeVisible();
+  await expect(page.getByLabel("E-mail")).toBeVisible();
+  await expect(page.getByRole("textbox", { name: "Senha", exact: true })).toBeVisible();
+  await expect(page.getByRole("textbox", { name: "Confirmar senha" })).toBeVisible();
+});
+
+test("o cadastro com resposta mockada mostra a confirmação de e-mail", async ({ page }) => {
+  await page.route("https://ci-placeholder.supabase.co/auth/v1/signup", async (route) => {
+    const request = route.request().postDataJSON();
+    expect(request.email).toBe("ana@example.com");
+    expect(request.data.full_name).toBe("Ana Silva");
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        user: { id: "test-user", aud: "authenticated", role: "authenticated", email: request.email },
+        session: null,
+      }),
+    });
+  });
+
+  await page.goto("/criar-conta");
+  await page.getByLabel("Nome completo").fill("Ana Silva");
+  await page.getByLabel("E-mail").fill("ana@example.com");
+  await page.getByRole("textbox", { name: "Senha", exact: true }).fill("123456");
+  await page.getByRole("textbox", { name: "Confirmar senha" }).fill("123456");
+  await page.getByRole("button", { name: "Criar conta" }).click();
+
+  await expect(page.getByRole("heading", { name: "Quase lá" })).toBeVisible();
+  await expect(page.getByText("ana@example.com")).toBeVisible();
 });
 
 test("uma rota da PWA pode ser aberta diretamente", async ({ page }) => {
