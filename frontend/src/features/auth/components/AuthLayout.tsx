@@ -25,7 +25,7 @@ export function AuthLayout({ mode, title, subtitle, children, footer }: AuthLayo
   return (
     <main className="min-h-dvh bg-canvas min-[1024px]:grid min-[1024px]:grid-cols-2">
       <aside className="relative hidden overflow-hidden bg-surface-soft px-xxl py-xxl min-[1024px]:flex min-[1024px]:flex-col min-[1024px]:items-center min-[1024px]:justify-center">
-        <div className="flex max-w-sm flex-col items-center text-center">
+        <div className="flex max-w-[24rem] flex-col items-center text-center">
           <img src="/images/auth/oral-cardio-mark.svg" alt="OralCardio" className="h-auto w-52" />
           <p className="mt-lg font-body text-body-md text-muted">{mode === "sign-in" ? "Cuidar do seu sorriso é cuidar do seu coração." : "Comece hoje a cuidar da sua saúde bucal e cardíaca."}</p>
           <span className="my-lg text-primary-action" aria-hidden="true">♥</span>
