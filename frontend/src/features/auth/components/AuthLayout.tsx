@@ -10,9 +10,20 @@ interface AuthLayoutProps {
 }
 
 const ILLUSTRATIONS = {
-  "sign-in": "/images/auth/sign-in-illustration.svg",
-  "sign-up": "/images/auth/sign-up-illustration.svg",
+  "sign-in": "/images/auth/sign-in-illustration-v2.png",
+  "sign-up": "/images/auth/sign-up-illustration-v2.png",
 } as const;
+
+function Brand() {
+  return (
+    <div className="flex flex-col items-center text-center">
+      <svg aria-hidden="true" viewBox="0 0 24 24" className="size-12 fill-none stroke-primary-action stroke-[1.5]">
+        <path d="M20.8 4.8a5.2 5.2 0 0 0-7.4 0L12 6.2l-1.4-1.4a5.2 5.2 0 1 0-7.4 7.4L12 21l8.8-8.8a5.2 5.2 0 0 0 0-7.4Z" />
+      </svg>
+      <span className="mt-xs font-display text-display-md text-ink">OralCardio</span>
+    </div>
+  );
+}
 
 export function AuthLayout({ mode, title, subtitle, children, footer }: AuthLayoutProps) {
   const headingRef = useRef<HTMLHeadingElement>(null);
@@ -26,7 +37,7 @@ export function AuthLayout({ mode, title, subtitle, children, footer }: AuthLayo
     <main className="min-h-dvh bg-canvas min-[1024px]:grid min-[1024px]:grid-cols-2">
       <aside className="relative hidden overflow-hidden bg-surface-soft px-xxl py-xxl min-[1024px]:flex min-[1024px]:flex-col min-[1024px]:items-center min-[1024px]:justify-center">
         <div className="flex max-w-[24rem] flex-col items-center text-center">
-          <img src="/images/auth/oral-cardio-mark.svg" alt="OralCardio" className="h-auto w-52" />
+          <Brand />
           <p className="mt-lg font-body text-body-md text-muted">{mode === "sign-in" ? "Cuidar do seu sorriso é cuidar do seu coração." : "Comece hoje a cuidar da sua saúde bucal e cardíaca."}</p>
           <span className="my-lg text-primary-action" aria-hidden="true">♥</span>
           <img src={ILLUSTRATIONS[mode]} alt="" className="max-h-80 w-full object-contain" />
@@ -37,7 +48,7 @@ export function AuthLayout({ mode, title, subtitle, children, footer }: AuthLayo
         <div className="w-full max-w-[28rem]">
           {mode === "sign-in" ? (
             <header className="mb-xl flex flex-col items-center text-center min-[1024px]:hidden">
-              <img src="/images/auth/oral-cardio-mark.svg" alt="OralCardio" className="h-auto w-40" />
+              <Brand />
               <p className="mt-sm font-body text-body-sm text-muted">Cuidar do seu sorriso é cuidar do seu coração.</p>
               <span className="mt-xs text-primary-action" aria-hidden="true">♥</span>
             </header>

@@ -14,7 +14,7 @@ describe("AuthLayout", () => {
     );
 
     expect(screen.getByRole("link", { name: /Voltar/ })).toHaveAttribute("href", "/entrar");
-    expect(screen.getByRole("img", { name: "OralCardio" })).toBeInTheDocument();
+    expect(screen.getByText("OralCardio")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Criar conta" })).toBeInTheDocument();
   });
 });
