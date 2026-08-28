@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import date, timedelta
+from datetime import UTC, date, datetime, timedelta
 from uuid import UUID
 
 import pytest
@@ -45,18 +45,59 @@ class _StubGamificationService:
         return self._stats
 
 
+@dataclass(frozen=True)
+class _StubModuleProgress:
+    is_completed: bool
+
+
+@dataclass(frozen=True)
+class _StubModuleWithProgress:
+    progress: _StubModuleProgress | None
+
+
+class _StubEducationService:
+    def __init__(self, completion_states: tuple[bool | None, ...]) -> None:
+        self._modules = [
+            _StubModuleWithProgress(
+                progress=_StubModuleProgress(is_completed=state) if state is not None else None
+            )
+            for state in completion_states
+        ]
+
+    def list_modules_with_progress(self, user_id: UUID) -> list[_StubModuleWithProgress]:
+        return self._modules
+
+
+@dataclass(frozen=True)
+class _StubAppointment:
+    scheduled_at: datetime
+
+
+class _StubAppointmentService:
+    def __init__(self, scheduled_at: datetime | None) -> None:
+        self._appointment = _StubAppointment(scheduled_at) if scheduled_at else None
+
+    def get_next_scheduled(self, user_id: UUID) -> _StubAppointment | None:
+        return self._appointment
+
+
 def _build_service(
     user_id: UUID,
     *,
     last_brushing_date: date | None,
     last_flossing_date: date | None,
     health_profile: _StubHealthProfile | None = _StubHealthProfile(is_completed=True),
+    total_points: int = 10,
+    level: int = 1,
+    level_name: str = "Semente",
+    education_completion_states: tuple[bool | None, ...] = (),
+    next_appointment_at: datetime | None = None,
 ) -> DashboardService:
     stats = UserStatsRecord(
         user_id=user_id,
-        total_points=10,
-        level=1,
-        level_name="Semente",
+        total_points=total_points,
+        level=level,
+        level_name=level_name,
         current_streak_days=1,
         longest_streak_days=1,
         total_brushings=1,
@@ -70,6 +111,8 @@ def _build_service(
         user_service=_StubUserService(_StubUser(full_name="Maria Silva")),
         health_profile_service=_StubHealthProfileService(health_profile),
         gamification_service=_StubGamificationService(stats),
+        education_service=_StubEducationService(education_completion_states),
+        appointment_service=_StubAppointmentService(next_appointment_at),
         clock=FakeBusinessClock(_TODAY),
     )
 
@@ -158,3 +201,65 @@ def test_health_profile_completed_reflects_the_profile_state(
     summary = service.get_summary(user_id)
 
     assert summary.health_profile_completed is expected
+
+
+def test_level_progress_exposes_current_and_next_thresholds(user_id: UUID) -> None:
+    service = _build_service(
+        user_id,
+        last_brushing_date=None,
+        last_flossing_date=None,
+        total_points=1_875,
+        level=4,
+        level_name="Flor",
+    )
+
+    summary = service.get_summary(user_id)
+
+    assert summary.current_level_min_points == 1_875
+    assert summary.next_level_name == "Fruto"
+    assert summary.next_level_min_points == 3_750
+
+
+def test_max_level_has_no_next_level(user_id: UUID) -> None:
+    service = _build_service(
+        user_id,
+        last_brushing_date=None,
+        last_flossing_date=None,
+        total_points=7_500,
+        level=6,
+        level_name="Guardião do Coração",
+    )
+
+    summary = service.get_summary(user_id)
+
+    assert summary.current_level_min_points == 7_500
+    assert summary.next_level_name is None
+    assert summary.next_level_min_points is None
+
+
+def test_education_progress_counts_active_and_completed_modules(user_id: UUID) -> None:
+    service = _build_service(
+        user_id,
+        last_brushing_date=None,
+        last_flossing_date=None,
+        education_completion_states=(True, False, None, True),
+    )
+
+    summary = service.get_summary(user_id)
+
+    assert summary.completed_education_modules == 2
+    assert summary.total_education_modules == 4
+
+
+def test_next_appointment_exposes_only_its_timestamp(user_id: UUID) -> None:
+    scheduled_at = datetime(2026, 8, 30, 10, tzinfo=UTC)
+    service = _build_service(
+        user_id,
+        last_brushing_date=None,
+        last_flossing_date=None,
+        next_appointment_at=scheduled_at,
+    )
+
+    summary = service.get_summary(user_id)
+
+    assert summary.next_appointment_at == scheduled_at

@@ -64,6 +64,8 @@ Supabase (ou via `supabase db push` / CLI) **nesta ordem**:
     do `job_id` no `ON CONFLICT` que reivindica entregas para o worker.
 27. `027_fix_notification_claim_variable_resolution.sql` — define que nomes
     conflitantes no claim são colunas SQL, eliminando ambiguidades do PL/pgSQL.
+28. `028_update_level_thresholds.sql` — atualiza os seis limites de progressão
+    da v2.0.0 e reconcilia nível/nome dos usuários sem alterar seus pontos.
 
 > Faça backup do projeto Supabase antes de aplicar a `011`; os vínculos
 > excluídos só poderão ser recuperados a partir desse backup.
@@ -85,6 +87,8 @@ Supabase (ou via `supabase db push` / CLI) **nesta ordem**:
    clientes burlem as regras de pontos e transição de estado.
 9. Aplicar `020` e `021`, publicar backend e frontend desta versão, validar a
    agenda por cursor e o logout offline de Push; somente então aplicar `022`.
+10. Aplicar `028` antes de publicar a Home v2.0.0, validando em staging que os
+    pontos foram preservados e que nível/nome foram recalculados.
 
 ## Notas
 

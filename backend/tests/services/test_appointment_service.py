@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
 import pytest
@@ -14,6 +16,14 @@ class _SpyGamificationService:
 
     def evaluate_after_mutation(self, user_id: UUID) -> None:
         self.evaluate_calls.append(user_id)
+
+
+@dataclass(frozen=True)
+class _FakeInstantClock:
+    current: datetime
+
+    def now(self) -> datetime:
+        return self.current
 
 
 @pytest.fixture
@@ -105,3 +115,31 @@ def test_create_appointment_is_idempotent_when_key_is_reused(
     second = service.create_appointment(**values)
 
     assert second.id == first.id
+
+
+def test_next_scheduled_returns_the_nearest_future_appointment_for_the_user(
+    user_id: UUID, gamification_spy: _SpyGamificationService
+) -> None:
+    service = AppointmentService(
+        FakeAppointmentRepository(),
+        gamification_spy,
+        _FakeInstantClock(datetime(2026, 8, 28, 12, tzinfo=UTC)),
+    )
+    later = _create(service, user_id)
+    nearest = service.create_appointment(
+        user_id=user_id,
+        scheduled_at="2026-08-30T10:00:00+00:00",
+        appointment_type=AppointmentType.CLEANING,
+        dentist_name="Dr. Bruno",
+        clinic_name=None,
+        clinic_address=None,
+        clinic_phone=None,
+        notes=None,
+    )
+    _create(service, uuid4())
+
+    result = service.get_next_scheduled(user_id)
+
+    assert result is not None
+    assert result.id == nearest.id
+    assert result.id != later.id

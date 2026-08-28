@@ -87,6 +87,9 @@ class AppointmentService:
     ) -> list[AppointmentRecord]:
         return self._repository.list_by_user(user_id, limit, cursor, status)
 
+    def get_next_scheduled(self, user_id: UUID) -> AppointmentRecord | None:
+        return self._repository.get_next_scheduled(user_id, self._clock.now())
+
     def _ensure_scheduled_in_future(self, scheduled_at: str) -> None:
         value = datetime.fromisoformat(scheduled_at.replace("Z", "+00:00"))
         if value <= self._clock.now():

@@ -1,10 +1,10 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-
+import { ArrowRight } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { invalidateGamifiedQueries } from "@/shared/api/invalidateGamifiedQueries";
+
 import { createIdempotencyKey } from "@/shared/api/httpClient";
+import { invalidateGamifiedQueries } from "@/shared/api/invalidateGamifiedQueries";
 import { Button } from "@/shared/components/ui/Button";
-import { Card } from "@/shared/components/ui/Card";
 import { ErrorFeedback } from "@/shared/components/ui/Feedback";
 
 import { logFlossing } from "../api/flossingApi";
@@ -17,11 +17,6 @@ function safeDailyCount(value: number): number {
   return Number.isFinite(value) && value >= 0 ? Math.trunc(value) : 0;
 }
 
-/** A conquista "Fio Dental Frequente" exige 30 registros — se o único
- * retorno visual fosse o toast de conquista, o botão pareceria quebrado 29
- * vezes seguidas. Por isso o card sempre mostra um estado explícito de
- * sucesso, independente de ter desbloqueado algo. `mutation.isSuccess`
- * cobre o instante entre a resposta chegar e o dashboard revalidar. */
 export function FlossingCard({ flossingsToday }: FlossingCardProps) {
   const queryClient = useQueryClient();
   const idempotencyKeyRef = useRef<string | null>(null);
@@ -38,34 +33,56 @@ export function FlossingCard({ flossingsToday }: FlossingCardProps) {
     },
   });
 
+  const buttonLabel = mutation.isPending
+    ? "Registrando…"
+    : displayCount === 0
+      ? "Registrar uso"
+      : "Registrar novamente";
+
   return (
-    <Card variant="canvas">
-      <img src="/images/fio-dental.png" alt="" aria-hidden="true" className="mb-sm size-12 object-contain" />
-      <p className="font-body text-body-sm font-medium">
-        {displayCount === 0
-          ? "Já usou fio dental hoje?"
-          : `${displayCount} ${displayCount === 1 ? "uso" : "usos"} de fio dental hoje ✓`}
-      </p>
+    <article className="rounded-2xl border border-hairline-soft bg-white p-6 shadow-xs">
+      <div className="flex items-start gap-4">
+        <div className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-canvas p-2 min-[1024px]:size-16">
+          <img
+            src="/images/home/flossing.webp"
+            alt=""
+            aria-hidden="true"
+            className="size-10 object-contain min-[1024px]:size-11"
+          />
+        </div>
+
+        <div className="flex-1">
+          <h2 className="font-display text-[1.25rem] font-normal leading-tight text-ink min-[1024px]:text-[1.35rem]">
+            Já usou fio dental hoje?
+          </h2>
+          <p className="mt-1 font-body text-body-sm text-muted leading-snug">
+            {displayCount === 0
+              ? "Use o fio dental pelo menos uma vez ao dia."
+              : `${displayCount} ${displayCount === 1 ? "uso" : "usos"} de fio dental hoje ✓`}
+          </p>
+        </div>
+      </div>
 
       {mutation.isError ? (
-        <ErrorFeedback message="Não foi possível registrar. Tente novamente." />
+        <div className="mt-3">
+          <ErrorFeedback message="Não foi possível registrar. Tente novamente." />
+        </div>
       ) : null}
 
-      <Button
-        variant="secondary"
-        className="mt-md"
-        onClick={() => {
-          idempotencyKeyRef.current ??= createIdempotencyKey();
-          mutation.mutate(idempotencyKeyRef.current);
-        }}
-        disabled={mutation.isPending}
-      >
-        {mutation.isPending
-          ? "Registrando…"
-          : displayCount === 0
-            ? "Registrar fio dental"
-            : "Registrar novamente"}
-      </Button>
-    </Card>
+      <div className="mt-4 flex justify-end">
+        <Button
+          variant="secondary"
+          className="h-10 rounded-full px-5 font-body text-body-sm font-medium text-primary-action min-h-tap-target-min inline-flex items-center gap-1.5"
+          onClick={() => {
+            idempotencyKeyRef.current ??= createIdempotencyKey();
+            mutation.mutate(idempotencyKeyRef.current);
+          }}
+          disabled={mutation.isPending}
+        >
+          <span>{buttonLabel}</span>
+          <ArrowRight aria-hidden="true" className="size-4" />
+        </Button>
+      </div>
+    </article>
   );
 }

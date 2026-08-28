@@ -27,9 +27,9 @@
  */
 @theme {
   /* Cores — extraídas de DESIGN.md sem alteração de valor */
-  --color-primary: #a9583e;
-  --color-primary-action: #a9583e; /* botões: usa o "active" original como padrão, ver nota 1 */
-  --color-primary-pressed: #8a4732;
+  --color-primary: #a04a2e;
+  --color-primary-action: #a04a2e; /* #a04a2e atinge 4.88:1 de contraste WCAG AA sobre fundos canvas/suaves */
+  --color-primary-pressed: #8a3f27;
   --color-primary-disabled: #e6dfd8;
 
   --color-ink: #141413;

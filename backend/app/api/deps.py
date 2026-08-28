@@ -135,9 +135,18 @@ def get_dashboard_service(
     user_service: UserService = Depends(get_user_service),
     health_profile_service: HealthProfileService = Depends(get_health_profile_service),
     gamification_service: GamificationService = Depends(get_gamification_service),
+    education_service: EducationService = Depends(get_education_service),
+    appointment_service: AppointmentService = Depends(get_appointment_service),
     clock: BusinessClock = Depends(get_business_clock),
 ) -> DashboardService:
-    return DashboardService(user_service, health_profile_service, gamification_service, clock)
+    return DashboardService(
+        user_service,
+        health_profile_service,
+        gamification_service,
+        education_service,
+        appointment_service,
+        clock,
+    )
 
 
 def get_notification_service(

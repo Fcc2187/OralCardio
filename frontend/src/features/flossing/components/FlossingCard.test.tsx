@@ -26,7 +26,7 @@ describe("FlossingCard", () => {
 
   it("incrementa a contagem local a cada novo registro", async () => {
     render(<FlossingCard flossingsToday={0} />, { wrapper });
-    fireEvent.click(screen.getByRole("button", { name: "Registrar fio dental" }));
+    fireEvent.click(screen.getByRole("button", { name: "Registrar uso" }));
     await waitFor(() => expect(screen.getByText("1 uso de fio dental hoje ✓")).toBeInTheDocument());
     fireEvent.click(screen.getByRole("button", { name: "Registrar novamente" }));
     await waitFor(() => expect(screen.getByText("2 usos de fio dental hoje ✓")).toBeInTheDocument());

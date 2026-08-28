@@ -4,7 +4,7 @@ Os scripts validam pontuação ilimitada, idempotência da conclusão, streak,
 fronteira de meia-noite em São Paulo, revelação diferida, preferências de
 notificação, RLS de subscriptions, supressão, outbox, lease e reagendamento.
 
-Com o Supabase local iniciado e as migrações `001` a `017` aplicadas, execute
+Com o Supabase local iniciado e as migrações `001` a `028` aplicadas, execute
 como o usuário administrativo do PostgreSQL:
 
 ```powershell

@@ -2,27 +2,18 @@ import { HttpContractError, httpClient, type HttpRequestOptions } from "@/shared
 
 export interface DashboardSummary {
   full_name: string;
-  health_profile_completed: boolean;
-  brushed_today: boolean;
-  flossed_today: boolean;
   brushings_today: number;
   flossings_today: number;
   current_streak_days: number;
   total_points: number;
   level: number;
   level_name: string;
-}
-
-type DashboardSummaryResponse = Omit<
-  DashboardSummary,
-  "brushings_today" | "flossings_today"
-> &
-  Partial<Pick<DashboardSummary, "brushings_today" | "flossings_today">>;
-
-function normalizeDailyCount(value: number | undefined, legacyCompleted: boolean): number {
-  return value !== undefined && Number.isInteger(value) && value >= 0
-    ? value
-    : Number(legacyCompleted);
+  current_level_min_points: number;
+  next_level_name: string | null;
+  next_level_min_points: number | null;
+  completed_education_modules: number;
+  total_education_modules: number;
+  next_appointment_at: string | null;
 }
 
 function requireString(value: unknown, field: string): string {
@@ -37,39 +28,66 @@ function requireFiniteNonNegativeNumber(value: unknown, field: string): number {
   return value;
 }
 
-function requireBoolean(value: unknown, field: string): boolean {
-  if (typeof value !== "boolean") throw new HttpContractError(`/api/v1/dashboard (${field})`);
+function requireNonNegativeInteger(value: unknown, field: string): number {
+  if (typeof value !== "number" || !Number.isInteger(value) || value < 0) {
+    throw new HttpContractError(`/api/v1/dashboard (${field})`);
+  }
   return value;
 }
 
-export function parseDashboardSummary(response: unknown): DashboardSummaryResponse {
-  if (typeof response !== "object" || response === null) throw new HttpContractError("/api/v1/dashboard");
-  const value = response as Record<string, unknown>;
-  const brushingsToday = value.brushings_today;
-  const flossingsToday = value.flossings_today;
-  return {
-    full_name: requireString(value.full_name, "full_name"),
-    health_profile_completed: requireBoolean(value.health_profile_completed, "health_profile_completed"),
-    brushed_today: requireBoolean(value.brushed_today, "brushed_today"),
-    flossed_today: typeof value.flossed_today === "boolean" ? value.flossed_today : false,
-    current_streak_days: requireFiniteNonNegativeNumber(value.current_streak_days, "current_streak_days"),
-    total_points: requireFiniteNonNegativeNumber(value.total_points, "total_points"),
-    level: requireFiniteNonNegativeNumber(value.level, "level"),
-    level_name: requireString(value.level_name, "level_name"),
-    ...(typeof brushingsToday === "number" ? { brushings_today: brushingsToday } : {}),
-    ...(typeof flossingsToday === "number" ? { flossings_today: flossingsToday } : {}),
-  };
+function requireNullableString(value: unknown, field: string): string | null {
+  if (value === null) return null;
+  if (typeof value === "string") return value;
+  throw new HttpContractError(`/api/v1/dashboard (${field})`);
 }
 
-export function normalizeDashboardSummary(response: DashboardSummaryResponse): DashboardSummary {
+function requireNullableFiniteNonNegativeNumber(value: unknown, field: string): number | null {
+  if (value === null) return null;
+  if (typeof value === "number" && Number.isFinite(value) && value >= 0) return value;
+  throw new HttpContractError(`/api/v1/dashboard (${field})`);
+}
+
+export function parseDashboardSummary(response: unknown): DashboardSummary {
+  if (typeof response !== "object" || response === null) throw new HttpContractError("/api/v1/dashboard");
+  const value = response as Record<string, unknown>;
+
+  const nextLevelName = requireNullableString(value.next_level_name, "next_level_name");
+  const nextLevelMinPoints = requireNullableFiniteNonNegativeNumber(
+    value.next_level_min_points,
+    "next_level_min_points",
+  );
+
+  if ((nextLevelName === null) !== (nextLevelMinPoints === null)) {
+    throw new HttpContractError("/api/v1/dashboard (next_level pair mismatch)");
+  }
+
   return {
-    ...response,
-    brushings_today: normalizeDailyCount(response.brushings_today, response.brushed_today),
-    flossings_today: normalizeDailyCount(response.flossings_today, response.flossed_today),
+    full_name: requireString(value.full_name, "full_name"),
+    brushings_today: requireNonNegativeInteger(value.brushings_today, "brushings_today"),
+    flossings_today: requireNonNegativeInteger(value.flossings_today, "flossings_today"),
+    current_streak_days: requireNonNegativeInteger(value.current_streak_days, "current_streak_days"),
+    total_points: requireFiniteNonNegativeNumber(value.total_points, "total_points"),
+    level: requireNonNegativeInteger(value.level, "level"),
+    level_name: requireString(value.level_name, "level_name"),
+    current_level_min_points: requireFiniteNonNegativeNumber(
+      value.current_level_min_points,
+      "current_level_min_points",
+    ),
+    next_level_name: nextLevelName,
+    next_level_min_points: nextLevelMinPoints,
+    completed_education_modules: requireNonNegativeInteger(
+      value.completed_education_modules,
+      "completed_education_modules",
+    ),
+    total_education_modules: requireNonNegativeInteger(
+      value.total_education_modules,
+      "total_education_modules",
+    ),
+    next_appointment_at: requireNullableString(value.next_appointment_at, "next_appointment_at"),
   };
 }
 
 export async function fetchDashboard(options?: HttpRequestOptions): Promise<DashboardSummary> {
   const response = await httpClient.get<unknown>("/api/v1/dashboard", options);
-  return normalizeDashboardSummary(parseDashboardSummary(response));
+  return parseDashboardSummary(response);
 }
