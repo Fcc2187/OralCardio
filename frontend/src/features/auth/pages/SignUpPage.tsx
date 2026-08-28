@@ -127,9 +127,10 @@ export function SignUpPage() {
             label="Senha"
             name="password"
             autoComplete="new-password"
-            placeholder="Mínimo de 6 caracteres"
+            placeholder="Crie uma senha forte"
+            hint="Mínimo de 8 caracteres, letras maiúsculas e minúsculas, um número e um caractere especial. Senhas muito comuns não são aceitas."
             required
-            minLength={6}
+            minLength={8}
             value={password}
             error={fieldErrors.password}
             leadingIcon={<LockIcon />}

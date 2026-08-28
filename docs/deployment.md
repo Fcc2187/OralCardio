@@ -144,6 +144,31 @@ No Supabase Auth, configure `Site URL` e `Redirect URLs` para os domínios de
 staging e produção. Configure SMTP real antes de convidar pacientes, incluindo
 confirmação de e-mail e recuperação de senha.
 
+### Política de senhas
+
+No projeto Supabase de staging e produção, configure a política para exigir
+no mínimo 8 caracteres, letras maiúsculas e minúsculas, números e caracteres
+especiais. Ative a proteção contra senhas vazadas quando o plano suportar o
+recurso e revise os limites de tentativas de cadastro e login. A validação no
+React é apenas feedback antecipado; o Supabase Auth deve rejeitar a senha
+diretamente na API.
+
+Após configurar um projeto **descartável** de integração, confirme o boundary
+server-side sem usar chaves de produção:
+
+```powershell
+$env:SUPABASE_TEST_URL = "https://seu-projeto-de-teste.supabase.co"
+$env:SUPABASE_TEST_ANON_KEY = "sua-chave-publica-de-teste"
+$env:SUPABASE_TEST_EMAIL = "email-controlado@seu-dominio-de-teste.com"
+cd frontend
+npm run test:integration
+```
+
+O e-mail deve pertencer ao ambiente descartável e não pode ser usado em
+produção. O teste verifica, isoladamente, comprimento, maiúscula, minúscula,
+número e caractere especial; sem essas variáveis ele é ignorado. Não execute
+esse comando contra produção.
+
 Depois que o backend HTTPS estiver saudável, guarde no Vault:
 
 ```sql
