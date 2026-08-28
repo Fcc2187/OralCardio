@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pydantic import BaseModel
 
 from app.application.contracts import DashboardSummary
@@ -14,6 +16,12 @@ class DashboardOutput(BaseModel):
     total_points: int
     level: int
     level_name: str
+    current_level_min_points: int
+    next_level_name: str | None
+    next_level_min_points: int | None
+    completed_education_modules: int
+    total_education_modules: int
+    next_appointment_at: datetime | None
 
     @classmethod
     def from_summary(cls, summary: DashboardSummary) -> "DashboardOutput":

@@ -39,7 +39,7 @@ test("o cadastro preserva os quatro campos e o retorno para entrar", async ({ pa
 });
 
 test("o cadastro com resposta mockada mostra a confirmação de e-mail", async ({ page }) => {
-  await page.route("https://ci-placeholder.supabase.co/auth/v1/signup", async (route) => {
+  await page.route("**/auth/v1/signup", async (route) => {
     const request = route.request().postDataJSON();
     expect(request.email).toBe("ana@example.com");
     expect(request.data.full_name).toBe("Ana Silva");

@@ -199,4 +199,30 @@ end;
 $$;
 
 reset role;
+
+do $$
+begin
+  if exists (
+    select 1
+      from (values
+        (0, 1::smallint, 'Semente'),
+        (249, 1::smallint, 'Semente'),
+        (250, 2::smallint, 'Broto'),
+        (749, 2::smallint, 'Broto'),
+        (750, 3::smallint, 'Raiz'),
+        (1874, 3::smallint, 'Raiz'),
+        (1875, 4::smallint, 'Flor'),
+        (3749, 4::smallint, 'Flor'),
+        (3750, 5::smallint, 'Fruto'),
+        (7499, 5::smallint, 'Fruto'),
+        (7500, 6::smallint, 'Guardião do Coração')
+      ) expected(points, level, name)
+     where (public.calculate_level(expected.points)).level <> expected.level
+        or (public.calculate_level(expected.points)).name <> expected.name
+  ) then
+    raise exception 'Os limites de progressão da v2.0.0 estão incorretos';
+  end if;
+end;
+$$;
+
 rollback;

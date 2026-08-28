@@ -142,6 +142,10 @@ class AppointmentRepository(Protocol):
         status: AppointmentStatus | None,
     ) -> list[AppointmentRecord]: ...
 
+    def get_next_scheduled(
+        self, user_id: UUID, after: datetime
+    ) -> AppointmentRecord | None: ...
+
     def has_any(self, user_id: UUID) -> bool: ...
 
 

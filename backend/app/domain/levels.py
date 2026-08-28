@@ -10,11 +10,11 @@ class Level:
 
 LEVELS: tuple[Level, ...] = (
     Level(1, "Semente", 0),
-    Level(2, "Broto", 20),
-    Level(3, "Raiz", 50),
-    Level(4, "Flor", 100),
-    Level(5, "Fruto", 250),
-    Level(6, "Guardião do Coração", 500),
+    Level(2, "Broto", 250),
+    Level(3, "Raiz", 750),
+    Level(4, "Flor", 1_875),
+    Level(5, "Fruto", 3_750),
+    Level(6, "Guardião do Coração", 7_500),
 )
 
 

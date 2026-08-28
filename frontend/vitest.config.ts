@@ -16,6 +16,11 @@ export default defineConfig({
     // Fixa um fuso não-UTC nos testes: com TZ=UTC (padrão de CI), uma
     // implementação errada de conversão data-local<->ISO passaria em todas
     // as asserções sem revelar o bug (ver src/shared/utils/dateTimeLocal.ts).
-    env: { TZ: "America/Sao_Paulo" },
+    env: {
+      TZ: "America/Sao_Paulo",
+      VITE_SUPABASE_URL: "https://mock.supabase.co",
+      VITE_SUPABASE_ANON_KEY: "mock-anon-key",
+      VITE_API_BASE_URL: "https://mock.api.dev",
+    },
   },
 });

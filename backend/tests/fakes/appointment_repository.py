@@ -94,5 +94,17 @@ class FakeAppointmentRepository:
             ]
         return items[:limit]
 
+    def get_next_scheduled(
+        self, user_id: UUID, after: datetime
+    ) -> AppointmentRecord | None:
+        items = [
+            appointment
+            for appointment in self._appointments.values()
+            if appointment.user_id == user_id
+            and appointment.status == AppointmentStatus.SCHEDULED
+            and appointment.scheduled_at > after
+        ]
+        return min(items, key=lambda appointment: appointment.scheduled_at, default=None)
+
     def has_any(self, user_id: UUID) -> bool:
         return any(a.user_id == user_id for a in self._appointments.values())

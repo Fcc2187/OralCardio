@@ -1,24 +1,34 @@
-import { Badge } from "@/shared/components/ui/Badge";
-import { Card } from "@/shared/components/ui/Card";
-import { ErrorFeedback, LoadingFeedback } from "@/shared/components/ui/Feedback";
-import { LinkButton } from "@/shared/components/ui/LinkButton";
-import { Screen } from "@/shared/components/layout/Screen";
-import { RetryButton } from "@/shared/components/ui/RetryButton";
+import { Bell } from "lucide-react";
+import { useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
+
+import { useNotifications } from "@/features/notifications/notificationContext";
 import { FlossingCard } from "@/features/flossing/components/FlossingCard";
+import { ErrorFeedback, LoadingFeedback } from "@/shared/components/ui/Feedback";
+import { RetryButton } from "@/shared/components/ui/RetryButton";
 
 import { useDashboardQuery } from "../api/useDashboardQuery";
-
-const LEVEL_IMAGE_BY_NAME: Record<string, string> = {
-  Semente: "/images/semente.png",
-  Broto: "/images/broto.png",
-  Raiz: "/images/raiz.png",
-  Flor: "/images/flor.png",
-  Fruto: "/images/fruto.png",
-  "Guardião do Coração": "/images/guardiao-coracao.png",
-};
+import { BrushingSummaryCard } from "../components/BrushingSummaryCard";
+import { DashboardQuickLinks } from "../components/DashboardQuickLinks";
+import { LevelProgressCard } from "../components/LevelProgressCard";
 
 export function DashboardPage() {
   const { data, isPending, isError, refetch } = useDashboardQuery();
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const { permission, hasSubscription, error: notifError } = useNotifications();
+
+  const showNotificationDot =
+    permission !== "granted" || !hasSubscription || Boolean(notifError);
+
+  useEffect(() => {
+    document.title = "Início — OralCardio";
+  }, []);
+
+  useEffect(() => {
+    if (!isPending && !isError) {
+      headingRef.current?.focus();
+    }
+  }, [isPending, isError]);
 
   if (isPending) {
     return <LoadingFeedback message="Carregando seu painel…" />;
@@ -26,68 +36,72 @@ export function DashboardPage() {
 
   if (isError) {
     return (
-      <Screen>
+      <main className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-8 min-[1024px]:px-10 min-[1024px]:py-10">
         <ErrorFeedback message="Não foi possível carregar seu painel. Tente novamente em instantes." />
         <RetryButton onRetry={() => refetch()} />
-      </Screen>
+      </main>
     );
   }
 
   const firstName = data.full_name.split(" ")[0] || data.full_name;
-  const brushingsToday =
-    Number.isFinite(data.brushings_today) && data.brushings_today >= 0
-      ? Math.trunc(data.brushings_today)
-      : Number(Boolean(data.brushed_today));
-  const flossingsToday =
-    Number.isFinite(data.flossings_today) && data.flossings_today >= 0
-      ? Math.trunc(data.flossings_today)
-      : Number(Boolean(data.flossed_today));
 
   return (
-    <Screen title={`Olá, ${firstName}`}>
-      <Card variant={data.brushed_today ? "cream" : "coral"}>
-        <p className="font-body text-body-sm font-medium">
-          {brushingsToday === 0
-            ? "Ainda não escovou hoje"
-            : `${brushingsToday} ${brushingsToday === 1 ? "escovação" : "escovações"} hoje`}
-        </p>
-        <p className="mt-xs text-display-sm">
-          {data.current_streak_days} {data.current_streak_days === 1 ? "dia" : "dias"} seguidos
-        </p>
-        <LinkButton to="/escovar" className="mt-md">
-          {brushingsToday === 0 ? "Escovar agora" : "Escovar novamente"}
-        </LinkButton>
-      </Card>
+    <main className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-8 min-[1024px]:px-10 min-[1024px]:py-10">
+      {/* Top Header Row */}
+      <header className="flex items-start justify-between">
+        <div>
+          <h1
+            ref={headingRef}
+            tabIndex={-1}
+            className="font-display text-[1.85rem] font-normal leading-tight text-ink outline-none min-[1024px]:text-[2.2rem]"
+          >
+            Olá, {firstName}
+          </h1>
+          <p className="mt-1 font-body text-body-sm text-muted">
+            Vamos cuidar do seu sorriso hoje? ♡
+          </p>
+        </div>
 
-      <FlossingCard flossingsToday={flossingsToday} />
-
-      <Card variant="canvas">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="font-body text-body-sm text-muted">Nível</p>
-            <p className="text-title-lg font-display">{data.level_name}</p>
-          </div>
-          {LEVEL_IMAGE_BY_NAME[data.level_name] ? (
-            <img
-              src={LEVEL_IMAGE_BY_NAME[data.level_name]}
-              alt=""
+        <Link
+          to="/perfil/notificacoes"
+          aria-label="Configurar notificações"
+          className="relative flex size-11 items-center justify-center rounded-full bg-white shadow-xs border border-hairline-soft text-ink transition-colors hover:bg-surface-soft min-h-tap-target-min"
+        >
+          <Bell aria-hidden="true" className="size-5" />
+          {showNotificationDot ? (
+            <span
               aria-hidden="true"
-              className="size-16 object-contain"
+              className="absolute right-2.5 top-2.5 size-2 rounded-full bg-primary-action ring-2 ring-white"
             />
           ) : null}
-          <Badge variant="coral">{data.total_points} pontos</Badge>
-        </div>
-      </Card>
+        </Link>
+      </header>
 
-      <LinkButton to="/educacao" variant="secondary">
-        Módulos educacionais
-      </LinkButton>
-      <LinkButton to="/agenda" variant="secondary">
-        Agenda de consultas
-      </LinkButton>
-      <LinkButton to="/conquistas" variant="secondary">
-        Ver conquistas
-      </LinkButton>
-    </Screen>
+      {/* Main Grid: Hero Brushing on Left, Flossing & Level on Right */}
+      <div className="grid grid-cols-1 gap-4 min-[1024px]:grid-cols-2 min-[1024px]:gap-6">
+        <BrushingSummaryCard
+          brushingsToday={data.brushings_today}
+          streakDays={data.current_streak_days}
+        />
+
+        <div className="flex flex-col gap-4 min-[1024px]:gap-6">
+          <FlossingCard flossingsToday={data.flossings_today} />
+          <LevelProgressCard
+            levelName={data.level_name}
+            totalPoints={data.total_points}
+            currentLevelMinPoints={data.current_level_min_points}
+            nextLevelName={data.next_level_name}
+            nextLevelMinPoints={data.next_level_min_points}
+          />
+        </div>
+      </div>
+
+      {/* Quick Links Row (3 cards) */}
+      <DashboardQuickLinks
+        completedEducationModules={data.completed_education_modules}
+        totalEducationModules={data.total_education_modules}
+        nextAppointmentAt={data.next_appointment_at}
+      />
+    </main>
   );
 }

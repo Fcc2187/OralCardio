@@ -1,3 +1,4 @@
+from datetime import datetime
 from uuid import UUID
 
 from app.core.exceptions import EntityNotFoundError
@@ -157,6 +158,26 @@ class SupabaseAppointmentRepository(SupabaseRepository):
 
         rows = self._run("Consulta", operation)
         return [_to_record(row) for row in rows]
+
+    def get_next_scheduled(
+        self, user_id: UUID, after: datetime
+    ) -> AppointmentRecord | None:
+        def operation():
+            response = (
+                self._client.table(_TABLE)
+                .select("*")
+                .eq("user_id", str(user_id))
+                .eq("status", AppointmentStatus.SCHEDULED.value)
+                .gt("scheduled_at", after.isoformat())
+                .order("scheduled_at")
+                .limit(1)
+                .maybe_single()
+                .execute()
+            )
+            return self._maybe_single_data(response)
+
+        row = self._run("Consulta", operation)
+        return _to_record(row) if row else None
 
     def has_any(self, user_id: UUID) -> bool:
         def operation():
