@@ -17,6 +17,7 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "test": "vitest run",
+    "test:integration": "vitest run --environment node integration/passwordPolicy.integration.test.ts",
     "test:e2e": "node scripts/run-e2e.mjs"
   },
   "dependencies": {

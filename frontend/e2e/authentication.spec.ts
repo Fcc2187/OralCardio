@@ -55,8 +55,8 @@ test("o cadastro com resposta mockada mostra a confirmação de e-mail", async (
   await page.goto("/criar-conta");
   await page.getByLabel("Nome completo").fill("Ana Silva");
   await page.getByLabel("E-mail").fill("ana@example.com");
-  await page.getByRole("textbox", { name: "Senha", exact: true }).fill("123456");
-  await page.getByRole("textbox", { name: "Confirmar senha" }).fill("123456");
+  await page.getByRole("textbox", { name: "Senha", exact: true }).fill("AnaSenha!2026");
+  await page.getByRole("textbox", { name: "Confirmar senha" }).fill("AnaSenha!2026");
   await page.getByRole("button", { name: "Criar conta" }).click();
 
   await expect(page.getByRole("heading", { name: "Quase lá" })).toBeVisible();

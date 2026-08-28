@@ -2,6 +2,22 @@ import { describe, expect, it } from "vitest";
 
 import { validateSignInFields, validateSignUpFields } from "./authValidation";
 
+const commonPasswords = [
+  "password", "123456", "12345678", "1234", "qwerty", "12345", "dragon", "pussy",
+  "baseball", "football", "letmein", "monkey", "696969", "abc123", "mustang", "michael",
+  "shadow", "master", "jennifer", "111111", "2000", "jordan", "superman", "harley",
+  "1234567", "fuckme", "hunter", "fuckyou", "trustno1", "ranger",
+];
+
+function signUpFields(password: string) {
+  return {
+    fullName: "Ana Silva",
+    email: "ana@example.com",
+    password,
+    confirmPassword: password,
+  };
+}
+
 describe("authValidation", () => {
   it("reports each invalid login field", () => {
     expect(validateSignInFields({ email: "invalido", password: "" })).toEqual({
@@ -14,19 +30,87 @@ describe("authValidation", () => {
     expect(validateSignInFields({ email: " paciente@oralcardio.com ", password: "segredo" })).toEqual({});
   });
 
-  it("reports the existing sign-up rules by field", () => {
+  it("requires at least 8 characters for sign-up", () => {
     expect(
       validateSignUpFields({
-        fullName: "  ",
-        email: "invalido",
-        password: "12345",
-        confirmPassword: "outra",
+        fullName: "Ana Silva",
+        email: "ana@example.com",
+        password: "Abcdef!",
+        confirmPassword: "Abcdef!",
       }),
     ).toEqual({
-      fullName: "Informe seu nome completo.",
-      email: "Informe um e-mail válido.",
-      password: "A senha precisa ter pelo menos 6 caracteres.",
-      confirmPassword: "As senhas não coincidem.",
+      password: "A senha precisa ter pelo menos 8 caracteres.",
     });
+  });
+
+  it("requires an uppercase letter for sign-up", () => {
+    expect(
+      validateSignUpFields({
+        fullName: "Ana Silva",
+        email: "ana@example.com",
+        password: "minhasenha!",
+        confirmPassword: "minhasenha!",
+      }),
+    ).toEqual({ password: "Inclua pelo menos uma letra maiúscula." });
+  });
+
+  it("requires a lowercase letter for sign-up", () => {
+    expect(
+      validateSignUpFields({
+        fullName: "Ana Silva",
+        email: "ana@example.com",
+        password: "MINHASENHA!2026",
+        confirmPassword: "MINHASENHA!2026",
+      }),
+    ).toEqual({ password: "Inclua pelo menos uma letra minúscula." });
+  });
+
+  it("requires a digit for sign-up", () => {
+    expect(
+      validateSignUpFields({
+        fullName: "Ana Silva",
+        email: "ana@example.com",
+        password: "MinhaSenha!",
+        confirmPassword: "MinhaSenha!",
+      }),
+    ).toEqual({ password: "Inclua pelo menos um número." });
+  });
+
+  it("requires a special character for sign-up", () => {
+    expect(
+      validateSignUpFields({
+        fullName: "Ana Silva",
+        email: "ana@example.com",
+        password: "MinhaSenha2026",
+        confirmPassword: "MinhaSenha2026",
+      }),
+    ).toEqual({ password: "Inclua pelo menos um caractere especial." });
+  });
+
+  it.each(commonPasswords)("rejects the selected common password %s", (password) => {
+    expect(validateSignUpFields(signUpFields(password))).toEqual({
+      password: "Esta senha é muito comum. Escolha outra senha.",
+    });
+  });
+
+  it("rejects an all-numeric password outside the shortlist", () => {
+    expect(validateSignUpFields(signUpFields("987654321"))).toEqual({
+      password: "Inclua pelo menos uma letra maiúscula.",
+    });
+  });
+
+  it("accepts a strong password with spaces without trimming it", () => {
+    expect(validateSignUpFields(signUpFields(" Minha Senha! 2026 "))).toEqual({});
+  });
+
+  it("accepts a password that meets the password policy", () => {
+    expect(
+      validateSignUpFields({
+        fullName: "Ana Silva",
+        email: "ana@example.com",
+        password: "MinhaSenha!2026",
+        confirmPassword: "MinhaSenha!2026",
+      }),
+    ).toEqual({});
   });
 });
