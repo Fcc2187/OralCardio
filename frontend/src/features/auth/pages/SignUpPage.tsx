@@ -12,6 +12,7 @@ import { type SignUpFieldErrors, validateSignUpFields } from "../authValidation"
 import { AuthLayout } from "../components/AuthLayout";
 import { EmailIcon, LockIcon, UserIcon } from "../components/AuthIcons";
 import { PasswordField } from "../components/PasswordField";
+import { PasswordRequirements } from "../components/PasswordRequirements";
 
 export function SignUpPage() {
   const { signUp } = useAuth();
@@ -85,7 +86,7 @@ export function SignUpPage() {
       <form
         noValidate
         onSubmit={handleSubmit}
-        className="grid grid-cols-1 gap-x-5 gap-y-3.5 min-[640px]:grid-cols-2"
+        className="grid grid-cols-1 gap-x-6 gap-y-3.5 min-[640px]:grid-cols-2 items-start"
       >
         <div className="min-[640px]:col-start-1 min-[640px]:row-start-1">
           <TextField
@@ -127,8 +128,8 @@ export function SignUpPage() {
             label="Senha"
             name="password"
             autoComplete="new-password"
-            placeholder="Crie uma senha forte"
-            hint="Mínimo de 8 caracteres, letras maiúsculas e minúsculas, um número e um caractere especial. Senhas muito comuns não são aceitas."
+            placeholder="Crie sua senha"
+            aria-describedby="signup-password-requirements"
             required
             minLength={8}
             value={password}
@@ -156,6 +157,10 @@ export function SignUpPage() {
               setFieldErrors((current) => ({ ...current, confirmPassword: undefined }));
             }}
           />
+        </div>
+
+        <div className="min-[640px]:col-start-2 min-[640px]:row-start-3">
+          <PasswordRequirements id="signup-password-requirements" password={password} />
         </div>
 
         {error ? <div className="col-span-full"><ErrorFeedback message={error} /></div> : null}

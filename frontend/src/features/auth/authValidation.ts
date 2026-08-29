@@ -25,6 +25,22 @@ export type SignInFieldErrors = Partial<Record<keyof SignInFieldValues, string>>
 
 export type SignUpFieldErrors = Partial<Record<keyof SignUpFieldValues, string>>;
 
+export interface PasswordRequirementsStatus {
+  hasMinLength: boolean;
+  hasUpperAndLower: boolean;
+  hasNumber: boolean;
+  hasSpecialChar: boolean;
+}
+
+export function checkPasswordRequirements(password: string): PasswordRequirementsStatus {
+  return {
+    hasMinLength: password.length >= 8,
+    hasUpperAndLower: /[A-Z]/.test(password) && LOWERCASE_LETTER_PATTERN.test(password),
+    hasNumber: DIGIT_PATTERN.test(password),
+    hasSpecialChar: SPECIAL_CHARACTER_PATTERN.test(password),
+  };
+}
+
 export function validateSignInFields({ email, password }: SignInFieldValues): SignInFieldErrors {
   const errors: SignInFieldErrors = {};
 
