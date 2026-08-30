@@ -94,4 +94,24 @@ describe("useBrushingTimer", () => {
     expect(onZoneComplete).toHaveBeenCalledWith("upper_right");
     expect(result.current.currentZone).toBe("upper_left");
   });
+
+  it("calcula corretamente a formatação mm:ss, tempo decorrido e percentual contínuo", () => {
+    const { result } = renderHook(() => useBrushingTimer());
+
+    expect(result.current.formattedSecondsRemainingInZone).toBe("0:24");
+    expect(result.current.totalElapsedSeconds).toBe(0);
+    expect(result.current.progressPercent).toBe(0);
+
+    act(() => result.current.start());
+    advanceSeconds(12);
+
+    expect(result.current.formattedSecondsRemainingInZone).toBe("0:12");
+    expect(result.current.totalElapsedSeconds).toBe(12);
+    expect(result.current.progressPercent).toBe(10); // 12 / 120 = 10%
+
+    advanceSeconds(12); // completa zona 1 (24s)
+    expect(result.current.formattedSecondsRemainingInZone).toBe("0:24");
+    expect(result.current.totalElapsedSeconds).toBe(24);
+    expect(result.current.progressPercent).toBe(20); // 24 / 120 = 20%
+  });
 });

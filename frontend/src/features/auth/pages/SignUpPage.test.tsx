@@ -40,15 +40,29 @@ describe("SignUpPage", () => {
     expect(screen.getByText("As senhas não coincidem.")).toBeInTheDocument();
   });
 
-  it("keeps the password policy visible and associated with the password field", () => {
+  it("exibe a lista de requisitos de senha e atualiza dinamicamente ao digitar", () => {
     renderPage();
 
     const password = screen.getByLabelText("Senha");
     expect(password).toHaveAttribute("minlength", "8");
     expect(password).toHaveAttribute("autocomplete", "new-password");
-    expect(password).toHaveAccessibleDescription(
-      "Mínimo de 8 caracteres, letras maiúsculas e minúsculas, um número e um caractere especial. Senhas muito comuns não são aceitas.",
-    );
+    expect(password.getAttribute("aria-describedby")).toContain("signup-password-requirements");
+
+    expect(screen.getByText("Sua senha precisa ter:")).toBeInTheDocument();
+    expect(screen.getByText("8+ caracteres")).toBeInTheDocument();
+    expect(screen.getByText("Maiúscula e minúscula")).toBeInTheDocument();
+    expect(screen.getByText("Um número")).toBeInTheDocument();
+    expect(screen.getByText("Um caractere especial")).toBeInTheDocument();
+    expect(screen.getByText("Senhas muito comuns não são aceitas.")).toBeInTheDocument();
+
+    const requirementsContainer = document.getElementById("signup-password-requirements");
+    expect(requirementsContainer).toHaveAttribute("aria-live", "polite");
+
+    expect(screen.getAllByText("(não atendido)")).toHaveLength(4);
+
+    fireEvent.change(password, { target: { value: "MinhaSenha!2026" } });
+    expect(screen.getAllByText("(atendido)")).toHaveLength(4);
+    expect(screen.queryByText("(não atendido)")).not.toBeInTheDocument();
   });
 
   it("does not block pasting a strong password", () => {

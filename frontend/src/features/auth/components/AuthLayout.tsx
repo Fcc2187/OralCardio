@@ -69,7 +69,7 @@ export function AuthLayout({ mode, title, subtitle, children, footer }: AuthLayo
       </aside>
 
       <section className="flex min-h-dvh flex-col justify-center px-4 py-8 min-[640px]:px-8 min-[1024px]:items-center min-[1024px]:p-12 bg-canvas">
-        <div className={`mx-auto w-full ${isSignUp ? "max-w-[580px]" : "max-w-[420px]"}`}>
+        <div className={`mx-auto w-full ${isSignUp ? "max-w-[680px] min-[1280px]:max-w-[720px]" : "max-w-[420px]"}`}>
           {/* Mobile Brand Header for Login */}
           {mode === "sign-in" ? (
             <header className="mb-6 flex flex-col items-center text-center min-[1024px]:hidden">

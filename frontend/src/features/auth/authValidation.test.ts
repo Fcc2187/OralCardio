@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { validateSignInFields, validateSignUpFields } from "./authValidation";
+import { checkPasswordRequirements, validateSignInFields, validateSignUpFields } from "./authValidation";
 
 const commonPasswords = [
   "password", "123456", "12345678", "1234", "qwerty", "12345", "dragon", "pussy",
@@ -112,5 +112,44 @@ describe("authValidation", () => {
         confirmPassword: "MinhaSenha!2026",
       }),
     ).toEqual({});
+  });
+
+  describe("checkPasswordRequirements", () => {
+    it("identifica corretamente cada requisito atendido ou não", () => {
+      expect(checkPasswordRequirements("")).toEqual({
+        hasMinLength: false,
+        hasUpperAndLower: false,
+        hasNumber: false,
+        hasSpecialChar: false,
+      });
+
+      expect(checkPasswordRequirements("12345678")).toEqual({
+        hasMinLength: true,
+        hasUpperAndLower: false,
+        hasNumber: true,
+        hasSpecialChar: false,
+      });
+
+      expect(checkPasswordRequirements("SenhaForte")).toEqual({
+        hasMinLength: true,
+        hasUpperAndLower: true,
+        hasNumber: false,
+        hasSpecialChar: false,
+      });
+
+      expect(checkPasswordRequirements("Senha123")).toEqual({
+        hasMinLength: true,
+        hasUpperAndLower: true,
+        hasNumber: true,
+        hasSpecialChar: false,
+      });
+
+      expect(checkPasswordRequirements("Senha123!")).toEqual({
+        hasMinLength: true,
+        hasUpperAndLower: true,
+        hasNumber: true,
+        hasSpecialChar: true,
+      });
+    });
   });
 });
