@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { BRUSHING_ZONE_ORDER, SECONDS_PER_ZONE } from "./brushingZones";
+import { BRUSHING_ZONE_ORDER, SECONDS_PER_ZONE, TOTAL_BRUSHING_SECONDS } from "./brushingZones";
 import type { BrushingZone } from "./types";
 
 export type BrushingTimerStatus = "idle" | "running" | "paused" | "finished";
@@ -10,11 +10,14 @@ interface UseBrushingTimerOptions {
   onAllZonesComplete?: () => void;
 }
 
-interface UseBrushingTimerResult {
+export interface UseBrushingTimerResult {
   status: BrushingTimerStatus;
   currentZone: BrushingZone | null;
   secondsElapsedInZone: number;
   secondsRemainingInZone: number;
+  formattedSecondsRemainingInZone: string;
+  totalElapsedSeconds: number;
+  progressPercent: number;
   completedZones: BrushingZone[];
   start: () => void;
   resumeFrom: (completedZones: readonly BrushingZone[]) => void;
@@ -123,12 +126,21 @@ export function useBrushingTimer(options: UseBrushingTimerOptions = {}): UseBrus
 
   const zoneIndex = Math.min(Math.floor(elapsedSeconds / SECONDS_PER_ZONE), BRUSHING_ZONE_ORDER.length - 1);
   const secondsElapsedInZone = status === "finished" ? SECONDS_PER_ZONE : elapsedSeconds % SECONDS_PER_ZONE;
+  const secondsRemainingInZone = status === "finished" ? 0 : Math.max(0, SECONDS_PER_ZONE - secondsElapsedInZone);
+  const minutes = Math.floor(secondsRemainingInZone / 60);
+  const seconds = secondsRemainingInZone % 60;
+  const formattedSecondsRemainingInZone = `${minutes}:${seconds.toString().padStart(2, "0")}`;
+  const totalElapsed = status === "finished" ? TOTAL_BRUSHING_SECONDS : Math.min(TOTAL_BRUSHING_SECONDS, elapsedSeconds);
+  const progressPercent = Math.min(100, Math.floor((totalElapsed / TOTAL_BRUSHING_SECONDS) * 100));
 
   return {
     status,
     currentZone: status === "finished" ? null : BRUSHING_ZONE_ORDER[zoneIndex],
     secondsElapsedInZone,
-    secondsRemainingInZone: status === "finished" ? 0 : Math.max(0, SECONDS_PER_ZONE - secondsElapsedInZone),
+    secondsRemainingInZone,
+    formattedSecondsRemainingInZone,
+    totalElapsedSeconds: totalElapsed,
+    progressPercent,
     completedZones,
     start,
     resumeFrom,

@@ -1,9 +1,13 @@
+import { cn } from "@/shared/utils/cn";
+
 import type { BrushingZone } from "../types";
 import { BRUSHING_ZONE_LABELS, BRUSHING_ZONE_ORDER } from "../brushingZones";
 
 interface MouthQuadrantMapProps {
   currentZone: BrushingZone | null;
   completedZones: readonly BrushingZone[];
+  className?: string;
+  showLegend?: boolean;
 }
 
 type ZoneState = "pending" | "current" | "completed";
@@ -40,7 +44,12 @@ function markerFor(state: ZoneState, index: number): string {
 
 /** Diagrama não interativo. Direita/esquerda são sempre as do paciente:
  * por isso o lado direito da boca aparece à esquerda para quem olha a tela. */
-export function MouthQuadrantMap({ currentZone, completedZones }: MouthQuadrantMapProps) {
+export function MouthQuadrantMap({
+  currentZone,
+  completedZones,
+  className,
+  showLegend = true,
+}: MouthQuadrantMapProps) {
   const states = Object.fromEntries(
     BRUSHING_ZONE_ORDER.map((zone) => [zone, stateFor(zone, currentZone, completedZones)]),
   ) as Record<BrushingZone, ZoneState>;
@@ -49,12 +58,12 @@ export function MouthQuadrantMap({ currentZone, completedZones }: MouthQuadrantM
     markerFor(states[zone], BRUSHING_ZONE_ORDER.indexOf(zone));
 
   return (
-    <figure className="m-0 w-full max-w-[15rem]">
+    <figure className={cn("m-0 flex w-full max-w-[16rem] flex-col items-center min-[1024px]:max-w-[20rem]", className)}>
       <svg
         viewBox="0 0 320 480"
         role="img"
         aria-labelledby="mouth-map-title mouth-map-description"
-        className="h-auto w-full drop-shadow-sm"
+        className="h-auto w-full drop-shadow-xs"
       >
         <title id="mouth-map-title">Mapa dos quadrantes da boca</title>
         <desc id="mouth-map-description">
@@ -132,9 +141,11 @@ export function MouthQuadrantMap({ currentZone, completedZones }: MouthQuadrantM
           ? `Região atual: ${BRUSHING_ZONE_LABELS[currentZone]}. ${completedZones.length} de 5 concluídas.`
           : "As cinco regiões foram concluídas."}
       </figcaption>
-      <p className="mt-xs text-center font-body text-caption text-muted">
-        Direita e esquerda consideram a sua perspectiva.
-      </p>
+      {showLegend ? (
+        <p className="mt-2 text-center font-body text-caption text-muted">
+          Direita e esquerda consideram a sua perspectiva.
+        </p>
+      ) : null}
     </figure>
   );
 }
