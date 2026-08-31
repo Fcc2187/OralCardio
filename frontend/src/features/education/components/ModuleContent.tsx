@@ -1,3 +1,5 @@
+import { Sparkles } from "lucide-react";
+
 import type { ModuleContentBlock } from "../types";
 
 interface ModuleContentProps {
@@ -10,45 +12,51 @@ interface ModuleContentProps {
  * nunca `dangerouslySetInnerHTML` — `content` é JSONB de admin sem
  * sanitização em nenhuma camada do backend. */
 export function ModuleContent({ blocks, fallbackDescription }: ModuleContentProps) {
-  if (blocks.length === 0) {
+  const textBlocks = blocks.filter(
+    (b): b is Extract<ModuleContentBlock, { type: "text" }> => b.type === "text",
+  );
+
+  if (textBlocks.length === 0) {
     return (
-      <p className="whitespace-pre-line font-body text-title-md leading-relaxed text-body">
-        {fallbackDescription}
-      </p>
+      <div className="rounded-2xl border border-hairline-soft bg-white p-6 shadow-xs min-[1024px]:p-8">
+        <p className="whitespace-pre-line font-body text-body-md leading-relaxed text-body">
+          {fallbackDescription}
+        </p>
+      </div>
     );
   }
 
   return (
-    <div className="flex flex-col gap-lg">
-      {blocks.map((block, index) => {
-        switch (block.type) {
-          case "text":
-            return (
-              <div key={index} className="flex flex-col gap-sm">
-                <h2 className="font-display text-title-lg">{block.title}</h2>
-                <p className="whitespace-pre-line font-body text-title-md leading-relaxed text-body">
+    <div className="flex flex-col gap-4 min-[640px]:gap-6">
+      {textBlocks.map((block, index) => {
+        const isIntroCard = index === 0;
+
+        return (
+          <div
+            key={index}
+            className="rounded-2xl border border-hairline-soft bg-white p-6 shadow-xs min-[1024px]:p-8"
+          >
+            <div className="flex items-start gap-4">
+              {isIntroCard ? (
+                <div
+                  aria-hidden="true"
+                  className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-primary-action/10 text-primary-action min-[1024px]:size-12"
+                >
+                  <Sparkles className="size-5 stroke-[1.8]" />
+                </div>
+              ) : null}
+
+              <div className="flex-1">
+                <h3 className="font-display text-[1.25rem] font-normal leading-tight text-ink min-[1024px]:text-[1.35rem]">
+                  {block.title}
+                </h3>
+                <p className="mt-2 whitespace-pre-line font-body text-body-md leading-relaxed text-body">
                   {block.body}
                 </p>
               </div>
-            );
-          case "video":
-            return (
-              <figure key={index} className="flex flex-col gap-sm">
-                <video
-                  className="w-full rounded-lg bg-black"
-                  controls
-                  preload="metadata"
-                  playsInline
-                  src={block.src}
-                />
-                <figcaption className="font-body text-body-sm text-muted">
-                  {block.title}
-                </figcaption>
-              </figure>
-            );
-          default:
-            return null;
-        }
+            </div>
+          </div>
+        );
       })}
     </div>
   );
