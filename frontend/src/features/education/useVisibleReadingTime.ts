@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useRef } from "react";
 
 /** Acumula apenas o tempo em que o módulo está carregado e visível ao paciente. */
-export function useVisibleReadingTime(isReading: boolean): () => number {
+export function useVisibleReadingTime(isReading: boolean, resetKey: string): () => number {
   const elapsedMsRef = useRef(0);
   const visibleSinceRef = useRef<number | null>(null);
 
   useEffect(() => {
+    elapsedMsRef.current = 0;
+    visibleSinceRef.current = null;
     if (!isReading) return undefined;
 
     const begin = () => {
@@ -30,7 +32,7 @@ export function useVisibleReadingTime(isReading: boolean): () => number {
       pause();
       document.removeEventListener("visibilitychange", onVisibilityChange);
     };
-  }, [isReading]);
+  }, [isReading, resetKey]);
 
   return useCallback(() => {
     const activeMs = visibleSinceRef.current === null ? 0 : performance.now() - visibleSinceRef.current;
