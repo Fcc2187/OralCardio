@@ -14,7 +14,7 @@ const mockModule: EducationModule = {
   estimated_minutes: 5,
   order_index: 1,
   thumbnail_url: null,
-  content: [],
+  content: { sections: [] },
   is_started: false,
   is_completed: false,
   started_at: null,
@@ -85,7 +85,25 @@ describe("ModuleCard", () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getByText("Concluído")).not.toHaveClass("sr-only");
+    expect(screen.getByText("Concluído")).toBeInTheDocument();
+  });
+
+  it("anuncia o status concluído uma única vez no link", () => {
+    render(
+      <MemoryRouter>
+        <ModuleCard
+          module={{
+            ...mockModule,
+            is_completed: true,
+            is_started: true,
+          }}
+        />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByRole("link")).toHaveAccessibleName(
+      "A Conexão Entre Boca e Coração (Concluído) Entenda por que a saúde bucal é tão importante para quem tem uma condição cardíaca. 5 min Conexão boca-coração",
+    );
   });
 
   it("exibe badge de em andamento quando is_started for verdadeiro e is_completed for falso", () => {
@@ -101,7 +119,7 @@ describe("ModuleCard", () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getByText("Em andamento")).not.toHaveClass("sr-only");
+    expect(screen.getByText("Em andamento")).toBeInTheDocument();
   });
 
   it("não exibe status de bloqueado", () => {
