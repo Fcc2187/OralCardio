@@ -1,6 +1,8 @@
 import { useEffect, useRef, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 
+import { cn } from "@/shared/utils/cn";
+
 interface ScreenProps {
   title?: string;
   subtitle?: string;
@@ -9,22 +11,55 @@ interface ScreenProps {
    * sem isso o usuário não tem como voltar além do gesto do navegador. */
   backTo?: string;
   backLabel?: string;
+  maxWidth?: "default" | "wide";
+  spacing?: "default" | "compact";
+  hideHeader?: boolean;
+  className?: string;
   children: ReactNode;
 }
 
+const MAX_WIDTH_CLASSES: Record<"default" | "wide", string> = {
+  default: "max-w-[28rem]",
+  wide: "max-w-[28rem] min-[1024px]:max-w-4xl",
+};
+
+const SPACING_CLASSES: Record<"default" | "compact", string> = {
+  default: "gap-lg px-lg py-xl",
+  compact: "gap-2.5 px-4 py-3 min-[640px]:gap-3 min-[640px]:px-6 min-[1024px]:py-4",
+};
+
 /** Moldura de página consistente: largura confortável de leitura, título
  * display e espaçamento vertical do sistema de tokens. */
-export function Screen({ title, subtitle, backTo, backLabel = "Voltar", children }: ScreenProps) {
+export function Screen({
+  title,
+  subtitle,
+  backTo,
+  backLabel = "Voltar",
+  maxWidth = "default",
+  spacing = "default",
+  hideHeader = false,
+  className,
+  children,
+}: ScreenProps) {
   const headingRef = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
     if (!title) return;
     document.title = `${title} — OralCardio`;
-    headingRef.current?.focus();
-  }, [title]);
+    if (!hideHeader) {
+      headingRef.current?.focus();
+    }
+  }, [title, hideHeader]);
 
   return (
-    <main className="mx-auto flex w-full max-w-[28rem] flex-col gap-lg px-lg py-xl">
+    <main
+      className={cn(
+        "mx-auto flex w-full flex-col",
+        MAX_WIDTH_CLASSES[maxWidth],
+        SPACING_CLASSES[spacing],
+        className,
+      )}
+    >
       {backTo ? (
         <Link
           to={backTo}
@@ -33,7 +68,7 @@ export function Screen({ title, subtitle, backTo, backLabel = "Voltar", children
           ← {backLabel}
         </Link>
       ) : null}
-      {title ? (
+      {title && !hideHeader ? (
         <header className="flex flex-col gap-xs">
           <h1 ref={headingRef} tabIndex={-1} className="text-display-sm outline-none">
             {title}

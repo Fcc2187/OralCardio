@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import { Button } from "./Button";
 import type { ButtonVariant } from "./buttonStyles";
@@ -11,6 +11,8 @@ interface ConfirmActionProps {
   cancelLabel?: string;
   variant?: ButtonVariant;
   disabled?: boolean;
+  icon?: ReactNode;
+  className?: string;
 }
 
 /** Confirmação inline em dois passos. Deliberadamente não usa
@@ -25,31 +27,41 @@ export function ConfirmAction({
   cancelLabel = "Voltar",
   variant = "secondary",
   disabled = false,
+  icon,
+  className,
 }: ConfirmActionProps) {
   const [isConfirming, setIsConfirming] = useState(false);
-  const questionRef = useRef<HTMLDivElement>(null);
+  const confirmButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    if (isConfirming) questionRef.current?.focus();
+    if (isConfirming) confirmButtonRef.current?.focus();
   }, [isConfirming]);
 
   if (!isConfirming) {
     return (
-      <Button type="button" variant={variant} disabled={disabled} onClick={() => setIsConfirming(true)}>
+      <Button
+        type="button"
+        variant={variant}
+        disabled={disabled}
+        className={className}
+        onClick={() => setIsConfirming(true)}
+      >
+        {icon}
         {label}
       </Button>
     );
   }
 
   return (
-    <div ref={questionRef} tabIndex={-1} className="flex flex-col gap-sm rounded-md border border-hairline bg-surface-soft p-md outline-none">
-      <p className="font-body text-body-sm text-body-strong">{question}</p>
-      <div className="flex gap-sm">
+    <div className="flex flex-col gap-3 rounded-2xl border border-hairline-soft bg-surface-soft p-4 shadow-xs">
+      <p className="font-body text-body-sm font-medium text-body-strong">{question}</p>
+      <div className="flex gap-2">
         <Button
+          ref={confirmButtonRef}
           variant="primary"
           type="button"
           fullWidth={false}
-          className="flex-1"
+          className="flex-1 rounded-xl"
           disabled={disabled}
           onClick={() => {
             setIsConfirming(false);
@@ -62,7 +74,7 @@ export function ConfirmAction({
           variant="secondary"
           type="button"
           fullWidth={false}
-          className="flex-1"
+          className="flex-1 rounded-xl"
           onClick={() => setIsConfirming(false)}
         >
           {cancelLabel}
