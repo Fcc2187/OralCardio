@@ -16,8 +16,8 @@ import {
   FIELD_WRAPPER,
 } from "./fieldStyles";
 
-export interface TextFieldProps extends InputHTMLAttributes<HTMLInputElement> {
-  label: string;
+export interface TextFieldProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "label"> {
+  label: ReactNode;
   error?: string;
   hint?: string;
   leadingIcon?: ReactNode;

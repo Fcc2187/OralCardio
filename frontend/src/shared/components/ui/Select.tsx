@@ -10,8 +10,8 @@ import {
   FIELD_WRAPPER,
 } from "./fieldStyles";
 
-interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
-  label: string;
+interface SelectProps extends Omit<SelectHTMLAttributes<HTMLSelectElement>, "label"> {
+  label: ReactNode;
   error?: string;
   children: ReactNode;
 }

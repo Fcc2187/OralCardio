@@ -1,11 +1,11 @@
-import { useId, type TextareaHTMLAttributes } from "react";
+import { useId, type ReactNode, type TextareaHTMLAttributes } from "react";
 
 import { cn } from "@/shared/utils/cn";
 
 import { FIELD_HINT, FIELD_LABEL, FIELD_TEXTAREA, FIELD_WRAPPER } from "./fieldStyles";
 
-interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
-  label: string;
+interface TextareaProps extends Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, "label"> {
+  label: ReactNode;
   hint?: string;
 }
 

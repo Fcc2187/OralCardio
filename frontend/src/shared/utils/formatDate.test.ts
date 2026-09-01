@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { calendarDayDelta, relativeDayLabel } from "./formatDate";
+import { calendarDayDelta, formatDateLong, formatTime, relativeDayLabel } from "./formatDate";
 
 // Nunca testar a saída do Intl aqui: o build de ICU do Node varia, e o
 // pt-BR emite espaços especiais (U+202F/U+00A0) em vez de espaço comum —
@@ -42,5 +42,22 @@ describe("relativeDayLabel", () => {
   it("rotula deltas maiores relativamente", () => {
     expect(relativeDayLabel(3)).toBe("Em 3 dias");
     expect(relativeDayLabel(-4)).toBe("Há 4 dias");
+  });
+});
+
+describe("formatDateLong and formatTime", () => {
+  it("formata a data por extenso no fuso de São Paulo", () => {
+    // 2026-10-12T18:00:00Z -> 15:00 em America/Sao_Paulo (12 de outubro de 2026, segunda-feira)
+    const result = formatDateLong("2026-10-12T18:00:00Z");
+    expect(result.toLowerCase()).toContain("segunda");
+    expect(result).toContain("12");
+    expect(result.toLowerCase()).toContain("outubro");
+    expect(result).toContain("2026");
+  });
+
+  it("formata o horário no fuso de São Paulo", () => {
+    // 2026-10-12T18:00:00Z -> 15:00 em America/Sao_Paulo
+    const result = formatTime("2026-10-12T18:00:00Z");
+    expect(result).toBe("15:00");
   });
 });
