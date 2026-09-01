@@ -25,6 +25,19 @@ export type SignInFieldErrors = Partial<Record<keyof SignInFieldValues, string>>
 
 export type SignUpFieldErrors = Partial<Record<keyof SignUpFieldValues, string>>;
 
+export interface PasswordResetRequestFieldValues {
+  email: string;
+}
+
+export interface NewPasswordFieldValues {
+  password: string;
+  confirmPassword: string;
+}
+
+export type PasswordResetRequestFieldErrors = Partial<Record<"email", string>>;
+
+export type NewPasswordFieldErrors = Partial<Record<keyof NewPasswordFieldValues, string>>;
+
 export interface PasswordRequirementsStatus {
   hasMinLength: boolean;
   hasUpperAndLower: boolean;
@@ -41,12 +54,51 @@ export function checkPasswordRequirements(password: string): PasswordRequirement
   };
 }
 
+function validateEmail(email: string): string | undefined {
+  return EMAIL_PATTERN.test(email.trim()) ? undefined : "Informe um e-mail válido.";
+}
+
+function validatePassword(password: string): string | undefined {
+  if (COMMON_PASSWORDS.has(password.toLowerCase())) {
+    return "Esta senha é muito comum. Escolha outra senha.";
+  }
+  if (password.length < 8) return "A senha precisa ter pelo menos 8 caracteres.";
+  if (!/[A-Z]/.test(password)) return "Inclua pelo menos uma letra maiúscula.";
+  if (!LOWERCASE_LETTER_PATTERN.test(password)) {
+    return "Inclua pelo menos uma letra minúscula.";
+  }
+  if (!DIGIT_PATTERN.test(password)) return "Inclua pelo menos um número.";
+  if (!SPECIAL_CHARACTER_PATTERN.test(password)) {
+    return "Inclua pelo menos um caractere especial.";
+  }
+  return undefined;
+}
+
+export function validatePasswordResetRequestFields({
+  email,
+}: PasswordResetRequestFieldValues): PasswordResetRequestFieldErrors {
+  const error = validateEmail(email);
+  return error ? { email: error } : {};
+}
+
+export function validateNewPasswordFields({
+  password,
+  confirmPassword,
+}: NewPasswordFieldValues): NewPasswordFieldErrors {
+  const errors: NewPasswordFieldErrors = {};
+  const passwordError = validatePassword(password);
+  if (passwordError) errors.password = passwordError;
+  if (password !== confirmPassword) {
+    errors.confirmPassword = "As senhas não coincidem.";
+  }
+  return errors;
+}
+
 export function validateSignInFields({ email, password }: SignInFieldValues): SignInFieldErrors {
   const errors: SignInFieldErrors = {};
 
-  if (!EMAIL_PATTERN.test(email.trim())) {
-    errors.email = "Informe um e-mail válido.";
-  }
+  const emailError = validateEmail(email);
+  if (emailError) errors.email = emailError;
   if (password.length === 0) {
     errors.password = "Informe sua senha.";
   }
@@ -65,22 +117,10 @@ export function validateSignUpFields({
   if (fullName.trim().length === 0) {
     errors.fullName = "Informe seu nome completo.";
   }
-  if (!EMAIL_PATTERN.test(email.trim())) {
-    errors.email = "Informe um e-mail válido.";
-  }
-  if (COMMON_PASSWORDS.has(password.toLowerCase())) {
-    errors.password = "Esta senha é muito comum. Escolha outra senha.";
-  } else if (password.length < 8) {
-    errors.password = "A senha precisa ter pelo menos 8 caracteres.";
-  } else if (!/[A-Z]/.test(password)) {
-    errors.password = "Inclua pelo menos uma letra maiúscula.";
-  } else if (!LOWERCASE_LETTER_PATTERN.test(password)) {
-    errors.password = "Inclua pelo menos uma letra minúscula.";
-  } else if (!DIGIT_PATTERN.test(password)) {
-    errors.password = "Inclua pelo menos um número.";
-  } else if (!SPECIAL_CHARACTER_PATTERN.test(password)) {
-    errors.password = "Inclua pelo menos um caractere especial.";
-  }
+  const emailError = validateEmail(email);
+  if (emailError) errors.email = emailError;
+  const passwordError = validatePassword(password);
+  if (passwordError) errors.password = passwordError;
   if (password !== confirmPassword) {
     errors.confirmPassword = "As senhas não coincidem.";
   }

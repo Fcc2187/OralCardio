@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { checkPasswordRequirements, validateSignInFields, validateSignUpFields } from "./authValidation";
+import {
+  checkPasswordRequirements,
+  validateNewPasswordFields,
+  validatePasswordResetRequestFields,
+  validateSignInFields,
+  validateSignUpFields,
+} from "./authValidation";
 
 const commonPasswords = [
   "password", "123456", "12345678", "1234", "qwerty", "12345", "dragon", "pussy",
@@ -28,6 +34,30 @@ describe("authValidation", () => {
 
   it("accepts valid login fields after trimming the e-mail", () => {
     expect(validateSignInFields({ email: " paciente@oralcardio.com ", password: "segredo" })).toEqual({});
+  });
+
+  it("validates a password reset e-mail", () => {
+    expect(validatePasswordResetRequestFields({ email: "invalido" })).toEqual({
+      email: "Informe um e-mail válido.",
+    });
+    expect(
+      validatePasswordResetRequestFields({ email: " paciente@oralcardio.com " }),
+    ).toEqual({});
+  });
+
+  it("applies the sign-up password policy to password recovery", () => {
+    expect(
+      validateNewPasswordFields({ password: "fraca", confirmPassword: "outra" }),
+    ).toEqual({
+      password: "A senha precisa ter pelo menos 8 caracteres.",
+      confirmPassword: "As senhas não coincidem.",
+    });
+    expect(
+      validateNewPasswordFields({
+        password: "MinhaSenha!2026",
+        confirmPassword: "MinhaSenha!2026",
+      }),
+    ).toEqual({});
   });
 
   it("requires at least 8 characters for sign-up", () => {

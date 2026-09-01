@@ -140,9 +140,29 @@ revisada demonstrar que ele é inevitável.
 
 ## 5. Supabase Auth e Web Push
 
-No Supabase Auth, configure `Site URL` e `Redirect URLs` para os domínios de
-staging e produção. Configure SMTP real antes de convidar pacientes, incluindo
-confirmação de e-mail e recuperação de senha.
+Em **Authentication → URL Configuration** no Supabase de produção, configure:
+
+```text
+Site URL: https://oral-cardio.vercel.app
+Redirect URL: https://oral-cardio.vercel.app/redefinir-senha
+```
+
+No projeto local ou de staging, permita também:
+
+```text
+http://localhost:5173/redefinir-senha
+```
+
+O frontend usa a origem atual para gerar o redirecionamento, portanto previews
+da Vercel só funcionarão se a URL correspondente também estiver na lista de
+Redirect URLs do Supabase. Não use wildcard para liberar domínios que não sejam
+controlados pelo projeto.
+
+O status atual do SMTP próprio não foi confirmado. Trate a configuração e o
+teste de um provedor SMTP real (por exemplo, Resend, Brevo ou SendGrid) como
+**gate obrigatório antes de disponibilizar a recuperação a pacientes**; o SMTP
+padrão do Supabase não deve ser considerado o canal de produção. Valide entrega,
+remetente, SPF/DKIM, link expirado e pasta de spam em staging antes do deploy.
 
 ### Política de senhas
 
@@ -216,6 +236,8 @@ workflow de backend executa lint, testes e auditoria Python.
 Em staging e novamente em produção, valide:
 
 - cadastro, confirmação de e-mail, login, logout e troca de usuário;
+- solicitação de recuperação com e-mail existente e inexistente, link recebido,
+  senha nova, expiração do link e novo login;
 - questionário, escovação, registros sucessivos de fio dental e pontos;
 - conquista na virada de data de `America/Sao_Paulo`;
 - criar, editar, cancelar e paginar consultas;

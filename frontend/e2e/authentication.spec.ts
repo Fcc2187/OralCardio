@@ -23,6 +23,38 @@ test("a senha pode ser exibida sem perder seu rótulo acessível", async ({ page
   await expect(page.getByRole("button", { name: "Ocultar senha" })).toBeVisible();
 });
 
+test("a recuperação solicita um link sem revelar se a conta existe", async ({ page }) => {
+  await page.route("**/auth/v1/recover**", async (route) => {
+    const request = route.request();
+    const url = new URL(request.url());
+    expect(url.searchParams.get("redirect_to")).toBe(
+      "http://127.0.0.1:4173/redefinir-senha",
+    );
+    expect(request.postDataJSON().email).toBe("ana@example.com");
+    await route.fulfill({ contentType: "application/json", body: "{}" });
+  });
+
+  await page.goto("/esqueci-senha");
+  await page.getByLabel("E-mail").fill("ana@example.com");
+  await page.getByRole("button", { name: "Enviar instruções" }).click();
+
+  await expect(
+    page.getByText(
+      "Se existir uma conta para este e-mail, enviaremos as instruções de recuperação.",
+    ),
+  ).toBeVisible();
+});
+
+test("as telas de recuperação não possuem violações a11y", async ({ page }) => {
+  await page.goto("/esqueci-senha");
+  await expect(page.getByRole("heading", { name: "Recuperar senha" })).toBeVisible();
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+
+  await page.goto("/redefinir-senha");
+  await expect(page.getByRole("heading", { name: "Link inválido" })).toBeVisible();
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+});
+
 test("o cadastro preserva os quatro campos e o retorno para entrar", async ({ page }, testInfo) => {
   await page.goto("/criar-conta");
 
