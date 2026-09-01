@@ -8,6 +8,8 @@ import { RedirectIfAuthenticated } from "@/shared/auth/RedirectIfAuthenticated";
 
 const SignInPage = lazy(async () => ({ default: (await import("@/features/auth/pages/SignInPage")).SignInPage }));
 const SignUpPage = lazy(async () => ({ default: (await import("@/features/auth/pages/SignUpPage")).SignUpPage }));
+const ForgotPasswordPage = lazy(async () => ({ default: (await import("@/features/auth/pages/ForgotPasswordPage")).ForgotPasswordPage }));
+const ResetPasswordPage = lazy(async () => ({ default: (await import("@/features/auth/pages/ResetPasswordPage")).ResetPasswordPage }));
 const AppointmentDetailPage = lazy(async () => ({ default: (await import("@/features/appointments/pages/AppointmentDetailPage")).AppointmentDetailPage }));
 const AppointmentsListPage = lazy(async () => ({ default: (await import("@/features/appointments/pages/AppointmentsListPage")).AppointmentsListPage }));
 const EditAppointmentPage = lazy(async () => ({ default: (await import("@/features/appointments/pages/EditAppointmentPage")).EditAppointmentPage }));
@@ -39,7 +41,10 @@ export function App() {
       <Route element={<RedirectIfAuthenticated />}>
         <Route path="/entrar" element={<SignInPage />} />
         <Route path="/criar-conta" element={<SignUpPage />} />
+        <Route path="/esqueci-senha" element={<ForgotPasswordPage />} />
       </Route>
+
+      <Route path="/redefinir-senha" element={<ResetPasswordPage />} />
 
       <Route element={<ProtectedRoute requireCompletedProfile={false} />}>
         <Route path="/questionario" element={<HealthQuestionnairePage />} />

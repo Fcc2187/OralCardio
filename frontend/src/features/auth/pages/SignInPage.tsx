@@ -2,7 +2,7 @@ import { useState, type FormEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import { Button } from "@/shared/components/ui/Button";
-import { ErrorFeedback } from "@/shared/components/ui/Feedback";
+import { ErrorFeedback, SuccessFeedback } from "@/shared/components/ui/Feedback";
 import { TextField } from "@/shared/components/ui/TextField";
 import { useAuth } from "@/shared/auth/authContext";
 
@@ -14,12 +14,14 @@ import { PasswordField } from "../components/PasswordField";
 
 interface LocationState {
   from?: { pathname: string };
+  passwordReset?: boolean;
 }
 
 export function SignInPage() {
   const { signIn } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const locationState = location.state as LocationState | null;
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -39,8 +41,7 @@ export function SignInPage() {
 
     try {
       await signIn(email.trim(), password);
-      const state = location.state as LocationState | null;
-      navigate(state?.from?.pathname ?? "/", { replace: true });
+      navigate(locationState?.from?.pathname ?? "/", { replace: true });
     } catch (signInError) {
       setError(translateAuthError(signInError));
     } finally {
@@ -93,21 +94,18 @@ export function SignInPage() {
           }}
         />
 
-        {/* TODO(v2.0.0): reativar ao implementar a rota de recuperação de senha.
         <div className="flex justify-end -mt-1">
           <Link
-            to="/entrar"
-            onClick={(e) => {
-              e.preventDefault();
-              setError("Para recuperar sua senha, entre em contato com o suporte ou redefina pelo link enviado ao seu e-mail.");
-            }}
+            to="/esqueci-senha"
             className="font-body text-body-sm text-primary-action underline-offset-2 hover:underline"
           >
             Esqueceu sua senha?
           </Link>
         </div>
-        */}
 
+        {locationState?.passwordReset ? (
+          <SuccessFeedback message="Senha alterada com sucesso. Entre novamente." />
+        ) : null}
         {error ? <ErrorFeedback message={error} /> : null}
 
         <Button type="submit" disabled={isSubmitting} className="mt-1 h-12">

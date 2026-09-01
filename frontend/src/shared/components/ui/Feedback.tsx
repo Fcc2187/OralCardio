@@ -27,3 +27,14 @@ export function ErrorFeedback({ message }: FeedbackProps) {
     </div>
   );
 }
+
+export function SuccessFeedback({ message }: FeedbackProps) {
+  return (
+    <div
+      role="status"
+      className="flex w-full flex-col items-center gap-sm rounded-md border border-success/30 bg-success/10 p-lg text-center"
+    >
+      <p className="font-body text-body-md text-success">{message}</p>
+    </div>
+  );
+}

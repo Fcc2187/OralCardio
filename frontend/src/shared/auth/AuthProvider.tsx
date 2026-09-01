@@ -79,6 +79,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { needsEmailConfirmation: data.session === null };
   }
 
+  async function requestPasswordReset(email: string): Promise<void> {
+    const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/redefinir-senha`,
+    });
+    if (error) throw error;
+  }
+
+  async function updatePassword(password: string): Promise<void> {
+    const { error } = await supabaseClient.auth.updateUser({ password });
+    if (error) throw error;
+  }
+
   async function signOut(): Promise<void> {
     await requestSessionSignOut();
   }
@@ -89,6 +101,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isLoading,
     signIn,
     signUp,
+    requestPasswordReset,
+    updatePassword,
     signOut,
   };
 
