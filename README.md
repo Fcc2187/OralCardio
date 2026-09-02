@@ -86,6 +86,14 @@ migrations, segredos, headers, rollout e rollback está em
 - **Banco de dados**: Row Level Security habilitado em todas as tabelas; cada
   usuário só acessa os próprios dados no nível do banco.
 
+## Grafo da arquitetura
+
+[![Mapa arquitetural do OralCardio](docs/architecture/graph-overview.svg)](docs/architecture/graph-overview.svg)
+
+O mapa resume o grafo canônico do monorepo — backend, frontend, banco,
+documentação e entrega. Consulte o [relatório completo](docs/architecture/GRAPH_REPORT.md)
+ou o [guia de atualização](docs/architecture/README.md).
+
 ## Próximos passos
 
 Consulte a seção 8 da [documentação técnica](documentacao_tecnica.md) para o

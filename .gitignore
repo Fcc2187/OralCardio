@@ -27,3 +27,6 @@ workflow.txt
 
 # Worktrees locais
 .worktrees/
+
+# Graphify (cache e visualização local; artefatos publicados ficam em docs/architecture)
+graphify-out/

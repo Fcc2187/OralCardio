@@ -1,0 +1,54 @@
+name: Architecture graph
+
+on:
+  pull_request:
+    paths:
+      - "backend/**"
+      - "frontend/**"
+      - "database/**"
+      - "docs/**"
+      - "scripts/render_architecture_overview.py"
+      - "scripts/test_render_architecture_overview.py"
+      - ".github/workflows/**"
+      - ".graphifyignore"
+      - "README.md"
+      - "documentacao_tecnica.md"
+      - "render.yaml"
+  push:
+    branches: [main]
+    paths:
+      - "docs/architecture/**"
+      - "scripts/render_architecture_overview.py"
+      - "scripts/test_render_architecture_overview.py"
+      - ".github/workflows/architecture-graph.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python -m unittest scripts/test_render_architecture_overview.py
+      - name: Validate published artifacts
+        run: |
+          python -c "import xml.etree.ElementTree as ET; ET.parse('docs/architecture/graph-overview.svg')"
+          grep -q '^# Graph Report' docs/architecture/GRAPH_REPORT.md
+      - name: Require refreshed graph on architecture changes
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          git diff --name-only "$BASE_SHA" "$HEAD_SHA" > "$RUNNER_TEMP/changed-files.txt"
+          grep -Ev '^docs/architecture/(GRAPH_REPORT.md|graph-overview.svg)$' "$RUNNER_TEMP/changed-files.txt" > "$RUNNER_TEMP/source-files.txt" || true
+          if grep -Eq '^(backend/|frontend/|database/|docs/|scripts/|\.github/workflows/|\.graphifyignore$|README\.md$|documentacao_tecnica\.md$|render\.yaml$)' "$RUNNER_TEMP/source-files.txt"; then
+            grep -qx 'docs/architecture/GRAPH_REPORT.md' "$RUNNER_TEMP/changed-files.txt"
+            grep -qx 'docs/architecture/graph-overview.svg' "$RUNNER_TEMP/changed-files.txt"
+          fi

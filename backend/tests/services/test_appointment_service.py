@@ -33,7 +33,11 @@ def gamification_spy() -> _SpyGamificationService:
 
 @pytest.fixture
 def service(gamification_spy: _SpyGamificationService) -> AppointmentService:
-    return AppointmentService(FakeAppointmentRepository(), gamification_spy)
+    return AppointmentService(
+        FakeAppointmentRepository(),
+        gamification_spy,
+        _FakeInstantClock(datetime(2026, 8, 28, 12, tzinfo=UTC)),
+    )
 
 
 def _create(service: AppointmentService, user_id: UUID):
