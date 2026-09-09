@@ -25,6 +25,16 @@ class ArchitectureGraphArtifactsTest(unittest.TestCase):
 
             self.assertNotEqual(first, fingerprint_sources(root, ["backend/app.py"]))
 
+    def test_fingerprint_normalizes_windows_line_endings(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            source = root / "README.md"
+            source.write_bytes(b"line one\nline two\n")
+            lf_fingerprint = fingerprint_sources(root, ["README.md"])
+            source.write_bytes(b"line one\r\nline two\r\n")
+
+            self.assertEqual(lf_fingerprint, fingerprint_sources(root, ["README.md"]))
+
     def test_build_integrity_records_graph_metadata(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)

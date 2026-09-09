@@ -44,7 +44,7 @@ def fingerprint_sources(root, paths):
     for path in sorted(paths):
         digest.update(path.encode("utf-8"))
         digest.update(b"\0")
-        digest.update((root / path).read_bytes())
+        digest.update((root / path).read_bytes().replace(b"\r\n", b"\n"))
         digest.update(b"\0")
     return digest.hexdigest()
 
