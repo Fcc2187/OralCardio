@@ -15,6 +15,10 @@ describe("BottomNav", () => {
     expect(screen.getByLabelText("Navegação principal")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Início/i })).toHaveAttribute("href", "/");
     expect(screen.getByRole("link", { name: /Escovar/i })).toHaveAttribute("href", "/escovar");
+    expect(screen.getByRole("link", { name: /Escovar/i }).querySelector("svg")).toHaveAttribute(
+      "stroke-width",
+      "1.5",
+    );
     expect(screen.getByRole("link", { name: /Estudar/i })).toHaveAttribute("href", "/educacao");
     expect(screen.getByRole("link", { name: /Agenda/i })).toHaveAttribute("href", "/agenda");
     expect(screen.getByRole("link", { name: /Perfil/i })).toHaveAttribute("href", "/perfil");
