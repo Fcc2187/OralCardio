@@ -9,7 +9,7 @@ interface BrushingSummaryCardProps {
 export function BrushingSummaryCard({ brushingsToday, streakDays }: BrushingSummaryCardProps) {
   return (
     <article className="relative flex flex-col justify-between overflow-hidden rounded-2xl bg-primary-action p-6 text-on-primary shadow-xs min-[1024px]:p-8">
-      <div className="relative z-10 max-w-[17rem] min-[1024px]:max-w-[20rem]">
+      <div className="relative z-10 max-w-[7.75rem] pr-20 min-[390px]:max-w-[17rem] min-[1024px]:max-w-[20rem] min-[1024px]:pr-0">
         <p className="font-body text-body-sm font-normal text-on-primary">
           Sua escovação de hoje
         </p>

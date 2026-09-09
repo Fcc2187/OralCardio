@@ -93,3 +93,24 @@ test("Home renderiza saudação, cards e não possui violações críticas de ac
   const accessibility = await new AxeBuilder({ page }).analyze();
   expect(accessibility.violations).toEqual([]);
 });
+
+for (const device of [
+  { name: "320 px", width: 320, height: 568 },
+  { name: "iPhone 13 Pro", width: 390, height: 844 },
+]) {
+  test(`Home mantém o texto da escovação visível em ${device.name}`, async ({ page }) => {
+    await page.setViewportSize(device);
+    await page.goto("/");
+
+    const description = page.getByText("Escove por 2 minutos em todas as regiões.");
+    const illustration = page.locator('img[src="/images/home/brushing-hero.webp"]');
+    await expect(description).toBeVisible();
+    await expect(illustration).toBeVisible();
+
+    const textBox = await description.boundingBox();
+    const imageBox = await illustration.boundingBox();
+    expect(textBox).not.toBeNull();
+    expect(imageBox).not.toBeNull();
+    expect(textBox!.x + textBox!.width).toBeLessThanOrEqual(imageBox!.x);
+  });
+}
