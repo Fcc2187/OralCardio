@@ -1,8 +1,8 @@
 # Graph Report - cardio-care  (2026-09-09)
 
 ## Published provenance
-- Source fingerprint: `28870950a254f235503984e67eef6767ec1291e82ebdbd36ed4043542aa46bcb`
-- Generated from Git commit: `02cc2deaa8f95c065ab4088de4d93d1c0b960cee`
+- Source fingerprint: `170eff1151313eeda109425c04b1d395cdd17661eb852bc6f5112ce31b79f2d5`
+- Generated from Git commit: `77dd9362711c194511c80072118bf1cd1b102240`
 
 ## Corpus Check
 - 389 files · ~100,220 words
