@@ -1,6 +1,6 @@
 \set ON_ERROR_STOP on
 
--- Teste de integração transacional para o schema final (001-017).
+-- Teste de integração transacional para o schema final (001-029).
 -- Execute como o usuário postgres do Supabase local; nada é persistido.
 begin;
 
@@ -129,11 +129,17 @@ select set_config(
   '00000000-0000-4000-8000-000000000001',
   true
 );
-set local role authenticated;
+select set_config('request.jwt.claim.role', 'service_role', true);
+set local role service_role;
 
-select public.unlock_achievement(
+select public.unlock_achievement_for_user(
+  '00000000-0000-4000-8000-000000000001',
   (select id from public.achievements where name = 'Primeira Escovação')
 );
+
+reset role;
+select set_config('request.jwt.claim.role', 'authenticated', true);
+set local role authenticated;
 
 do $$
 begin

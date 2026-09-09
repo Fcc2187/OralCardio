@@ -1,6 +1,6 @@
 \set ON_ERROR_STOP on
 
--- Idempotência, outbox de conquistas e fencing. Requer as migrações 001-017.
+-- Idempotência, outbox de conquistas e fencing. Requer as migrações 001-029.
 begin;
 
 set local session_replication_role = replica;
@@ -10,20 +10,39 @@ insert into public.user_stats (user_id)
 values ('00000000-0000-4000-8000-000000000061');
 set local session_replication_role = origin;
 
+create function public.test_default_function_acl()
+returns void language sql as 'select';
+
 do $$
 begin
+  if has_function_privilege('anon', 'public.test_default_function_acl()', 'EXECUTE')
+     or has_function_privilege('authenticated', 'public.test_default_function_acl()', 'EXECUTE')
+     or has_function_privilege('service_role', 'public.test_default_function_acl()', 'EXECUTE') then
+    raise exception 'Novas funções públicas ainda recebem EXECUTE automaticamente';
+  end if;
   if to_regprocedure('public.unlock_achievement(uuid)') is not null then
     raise exception 'RPC insegura de desbloqueio ainda está disponível';
   end if;
-  if has_function_privilege(
-    'authenticated',
-    'public.unlock_achievement_for_user(uuid,uuid)',
-    'EXECUTE'
+  if exists (
+    select 1
+      from unnest(array[
+        'public.unlock_achievement_for_user(uuid,uuid)'::regprocedure,
+        'public.claim_achievement_evaluations(integer,integer,timestamp with time zone)'::regprocedure,
+        'public.complete_achievement_evaluation(uuid,bigint,uuid,boolean,timestamp with time zone,text)'::regprocedure,
+        'public.claim_due_notification_deliveries(integer,integer,timestamp with time zone)'::regprocedure,
+        'public.complete_notification_delivery(uuid,uuid,text,text,timestamp with time zone)'::regprocedure,
+        'public.revoke_push_subscription_with_token(text,text)'::regprocedure
+      ]) as privileged_rpc(oid)
+     where has_function_privilege('authenticated', privileged_rpc.oid, 'EXECUTE')
+        or has_function_privilege('anon', privileged_rpc.oid, 'EXECUTE')
+        or not has_function_privilege('service_role', privileged_rpc.oid, 'EXECUTE')
   ) then
-    raise exception 'Usuário autenticado pode forçar o desbloqueio de conquistas';
+    raise exception 'Permissões de uma RPC reservada ao backend estão incorretas';
   end if;
 end;
 $$;
+
+drop function public.test_default_function_acl();
 
 select set_config(
   'request.jwt.claim.sub',

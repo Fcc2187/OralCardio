@@ -1,0 +1,47 @@
+name: Database quality
+
+on:
+  pull_request:
+    paths:
+      - "database/**"
+      - "scripts/database-quality-workflow.test.mjs"
+      - ".github/workflows/database-quality.yml"
+  push:
+    branches: [main]
+    paths:
+      - "database/**"
+      - "scripts/database-quality-workflow.test.mjs"
+      - ".github/workflows/database-quality.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify workflow contract
+        run: node --test scripts/database-quality-workflow.test.mjs
+      - uses: supabase/setup-cli@v3
+        with:
+          version: "2.116.0"
+      - name: Start a clean Supabase database
+        run: |
+          supabase init
+          supabase db start
+      - name: Apply migrations in order
+        run: |
+          for migration in database/[0-9][0-9][0-9]_*.sql; do
+            echo "Applying $migration"
+            psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f "$migration"
+          done
+      - name: Run transactional database tests
+        run: |
+          for test_file in database/tests/[0-9][0-9][0-9]_*.sql; do
+            echo "Running $test_file"
+            psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f "$test_file"
+          done

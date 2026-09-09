@@ -1,7 +1,8 @@
 # Banco de Dados — OralCardio
 
 Scripts SQL para o projeto Supabase (PostgreSQL 15+). Aplique no **SQL Editor** do
-Supabase (ou via `supabase db push` / CLI) **nesta ordem**:
+Supabase ou com `psql` conectado ao projeto **nesta ordem**. Estes arquivos não
+ficam em `supabase/migrations/`, portanto `supabase db push` não os aplica:
 
 1. `001_extensions_and_enums.sql` — extensões e tipos ENUM usados pelas tabelas.
 2. `002_schema.sql` — schema-base histórico, com PKs, FKs, constraints e índices.
@@ -66,6 +67,8 @@ Supabase (ou via `supabase db push` / CLI) **nesta ordem**:
     conflitantes no claim são colunas SQL, eliminando ambiguidades do PL/pgSQL.
 28. `028_update_level_thresholds.sql` — atualiza os seis limites de progressão
     da v2.0.0 e reconcilia nível/nome dos usuários sem alterar seus pontos.
+29. `029_harden_function_execute_privileges.sql` — remove de clientes o acesso
+    a RPCs internas e torna `EXECUTE` opt-in para novas funções públicas.
 
 > Faça backup do projeto Supabase antes de aplicar a `011`; os vínculos
 > excluídos só poderão ser recuperados a partir desse backup.
@@ -89,6 +92,8 @@ Supabase (ou via `supabase db push` / CLI) **nesta ordem**:
    agenda por cursor e o logout offline de Push; somente então aplicar `022`.
 10. Aplicar `028` antes de publicar a Home v2.0.0, validando em staging que os
     pontos foram preservados e que nível/nome foram recalculados.
+11. Aplicar `029`, confirmar que o backend continua processando conquistas e
+    notificações com `service_role` e que clientes não executam essas RPCs.
 
 ## Notas
 

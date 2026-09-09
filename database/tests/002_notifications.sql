@@ -1,6 +1,6 @@
 \set ON_ERROR_STOP on
 
--- Teste transacional da fase 4. Requer as migrações 001-027.
+-- Teste transacional de notificações. Requer as migrações 001-029.
 begin;
 
 set local session_replication_role = replica;
@@ -48,11 +48,11 @@ select public.update_notification_preferences(
 
 select * from public.upsert_push_subscription(
   'https://fcm.googleapis.com/fcm/send/subscription-41',
-  encode(decode('04' || repeat('01', 64), 'hex'), 'base64'),
-  encode(decode(repeat('02', 16), 'hex'), 'base64'),
+  translate(encode(decode('04' || repeat('01', 64), 'hex'), 'base64'), E'+/\n=', '-_'),
+  translate(encode(decode(repeat('02', 16), 'hex'), 'base64'), E'+/\n=', '-_'),
   null,
   'Dispositivo de teste',
-  1,
+  1::smallint,
   repeat('a', 43)
 );
 

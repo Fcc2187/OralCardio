@@ -4,7 +4,19 @@ Os scripts validam pontuação ilimitada, idempotência da conclusão, streak,
 fronteira de meia-noite em São Paulo, revelação diferida, preferências de
 notificação, RLS de subscriptions, supressão, outbox, lease e reagendamento.
 
-Com o Supabase local iniciado e as migrações `001` a `028` aplicadas, execute
+## CI
+
+O workflow `Database quality` inicia um banco Supabase vazio, aplica todas as
+migrations `database/NNN_*.sql` em ordem e executa todos os testes
+`database/tests/NNN_*.sql`. Ele roda em pull requests e em pushes para `main`
+quando arquivos do banco ou do próprio workflow são alterados.
+
+O Supabase CLI fica fixado no workflow para que uma atualização automática da
+ferramenta não mude o ambiente de teste sem revisão.
+
+## Execução local
+
+Com o Supabase local iniciado e as migrações `001` a `029` aplicadas, execute
 como o usuário administrativo do PostgreSQL:
 
 ```powershell
