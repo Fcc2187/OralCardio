@@ -4,7 +4,7 @@ import { expect, test } from "@playwright/test";
 test("a tela de entrada é navegável e não possui violações a11y críticas", async ({ page }) => {
   await page.goto("/entrar");
 
-  await expect(page.getByRole("heading", { name: "Bem-vindo(a)! 👋" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Bem-vindo(a)!", exact: true })).toBeVisible();
   await expect(page.getByLabel("E-mail")).toBeVisible();
   await expect(page.getByRole("textbox", { name: "Senha", exact: true })).toBeVisible();
 

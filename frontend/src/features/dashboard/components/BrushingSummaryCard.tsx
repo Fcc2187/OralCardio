@@ -9,7 +9,7 @@ interface BrushingSummaryCardProps {
 export function BrushingSummaryCard({ brushingsToday, streakDays }: BrushingSummaryCardProps) {
   return (
     <article className="relative flex flex-col justify-between overflow-hidden rounded-2xl bg-primary-action p-6 text-on-primary shadow-xs min-[1024px]:p-8">
-      <div className="relative z-10 max-w-[7.75rem] pr-20 min-[390px]:max-w-[17rem] min-[1024px]:max-w-[20rem] min-[1024px]:pr-0">
+      <div className="relative z-10 max-w-[10.5rem] pr-0 max-[319px]:max-w-none min-[360px]:max-w-[11.5rem] min-[390px]:max-w-[17rem] min-[1024px]:max-w-[20rem]">
         <p className="font-body text-body-sm font-normal text-on-primary">
           Sua escovação de hoje
         </p>
@@ -43,12 +43,12 @@ export function BrushingSummaryCard({ brushingsToday, streakDays }: BrushingSumm
       {/* 3D Tooth and Toothbrush Illustration */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -bottom-1 -right-1 flex items-end justify-end select-none min-[1024px]:bottom-0 min-[1024px]:right-2"
+        className="pointer-events-none absolute -bottom-1 -right-1 flex items-end justify-end select-none max-[319px]:static max-[319px]:mt-4 max-[319px]:justify-center min-[1024px]:bottom-0 min-[1024px]:right-2"
       >
         <img
           src="/images/home/brushing-hero.webp"
           alt=""
-          className="h-44 w-auto object-contain object-bottom min-[1024px]:h-56"
+          className="h-36 w-auto object-contain object-bottom max-[319px]:h-32 min-[360px]:h-44 min-[1024px]:h-56"
         />
       </div>
     </article>

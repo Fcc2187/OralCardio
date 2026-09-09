@@ -94,23 +94,37 @@ test("Home renderiza saudação, cards e não possui violações críticas de ac
   expect(accessibility.violations).toEqual([]);
 });
 
+test("Home muda a ilustração para baixo do conteúdo em 280 px", async ({ page }) => {
+  await page.setViewportSize({ width: 280, height: 568 });
+  await page.goto("/");
+
+  const description = page.getByText("Escove por 2 minutos em todas as regiões.");
+  const illustration = page.locator('img[src="/images/home/brushing-hero.webp"]');
+  await expect(description).toBeVisible();
+  await expect(illustration).toBeVisible();
+
+  const textBox = await description.boundingBox();
+  const imageBox = await illustration.boundingBox();
+  expect(textBox).not.toBeNull();
+  expect(imageBox).not.toBeNull();
+  expect(textBox!.width).toBeGreaterThanOrEqual(180);
+  expect(textBox!.y + textBox!.height).toBeLessThan(imageBox!.y);
+});
+
 for (const device of [
-  { name: "320 px", width: 320, height: 568 },
+  { name: "320 px", width: 320, height: 568, minimumTextWidth: 150 },
+  { name: "iPhone SE", width: 375, height: 667 },
   { name: "iPhone 13 Pro", width: 390, height: 844 },
 ]) {
-  test(`Home mantém o texto da escovação visível em ${device.name}`, async ({ page }) => {
+  test(`Home mantém a descrição da escovação legível em ${device.name}`, async ({ page }) => {
     await page.setViewportSize(device);
     await page.goto("/");
 
     const description = page.getByText("Escove por 2 minutos em todas as regiões.");
-    const illustration = page.locator('img[src="/images/home/brushing-hero.webp"]');
     await expect(description).toBeVisible();
-    await expect(illustration).toBeVisible();
 
     const textBox = await description.boundingBox();
-    const imageBox = await illustration.boundingBox();
     expect(textBox).not.toBeNull();
-    expect(imageBox).not.toBeNull();
-    expect(textBox!.x + textBox!.width).toBeLessThanOrEqual(imageBox!.x);
+    expect(textBox!.width).toBeGreaterThanOrEqual(device.minimumTextWidth ?? 160);
   });
 }

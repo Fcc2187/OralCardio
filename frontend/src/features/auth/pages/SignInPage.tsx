@@ -52,7 +52,7 @@ export function SignInPage() {
   return (
     <AuthLayout
       mode="sign-in"
-      title="Bem-vindo(a)! 👋"
+      title="Bem-vindo(a)!"
       subtitle="Acesse sua conta do OralCardio"
       footer={
         <p className="font-body text-body-sm text-muted">
