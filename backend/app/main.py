@@ -31,7 +31,7 @@ async def lifespan(_: FastAPI):
 
 app = FastAPI(
     title="OralCardio API",
-    version="0.3.0",
+    version="2.0.0",
     docs_url="/docs" if settings.api_docs_enabled else None,
     redoc_url="/redoc" if settings.api_docs_enabled else None,
     openapi_url="/openapi.json" if settings.api_docs_enabled else None,
