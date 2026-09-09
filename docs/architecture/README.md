@@ -10,6 +10,7 @@ Arquivos versionados:
 
 - `graph-overview.svg`: visão das 30 maiores comunidades, própria para o README;
 - `GRAPH_REPORT.md`: relatório integral, com hubs, relações e lacunas;
+- `graph-integrity.json`: fingerprint das fontes e commit usados na geração;
 - `../../scripts/render_architecture_overview.py`: renderizador Python sem dependências externas.
 
 O HTML interativo e o JSON completo permanecem em `graphify-out/` para não
@@ -24,17 +25,20 @@ graphify update .
 ```
 
 Quando documentação ou configuração mudar, execute `/graphify . --update` no
-Codex para incluir também a extração semântica. Depois publique os artefatos:
+Codex para incluir também a extração semântica. Depois publique e confira os
+artefatos:
 
 ```powershell
-$version = git describe --tags --abbrev=0
-python scripts/render_architecture_overview.py graphify-out/graph.json docs/architecture/graph-overview.svg --version $version
-Copy-Item graphify-out/GRAPH_REPORT.md docs/architecture/GRAPH_REPORT.md
+python -m scripts.sync_architecture_graph
 python -m unittest scripts/test_render_architecture_overview.py
+python -m unittest scripts/test_architecture_graph_artifacts.py
+python -m scripts.verify_architecture_graph
 ```
 
-O workflow `architecture-graph.yml` exige que ambos os artefatos acompanhem
-pull requests que alterem fontes arquiteturais.
+O `graphify hook install` é opcional e atualiza o cache local após commits; ele
+não publica arquivos versionados. Antes de commitar uma mudança arquitetural,
+execute a sequência acima. O workflow `architecture-graph.yml` recalcula o
+fingerprint no GitHub Actions e rejeita relatório ou SVG defasados.
 
 ## Limitações conhecidas desta geração
 

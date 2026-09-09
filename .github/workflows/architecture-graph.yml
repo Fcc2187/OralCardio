@@ -7,8 +7,7 @@ on:
       - "frontend/**"
       - "database/**"
       - "docs/**"
-      - "scripts/render_architecture_overview.py"
-      - "scripts/test_render_architecture_overview.py"
+      - "scripts/**"
       - ".github/workflows/**"
       - ".graphifyignore"
       - "README.md"
@@ -17,10 +16,16 @@ on:
   push:
     branches: [main]
     paths:
-      - "docs/architecture/**"
-      - "scripts/render_architecture_overview.py"
-      - "scripts/test_render_architecture_overview.py"
+      - "backend/**"
+      - "frontend/**"
+      - "database/**"
+      - "docs/**"
+      - "scripts/**"
       - ".github/workflows/architecture-graph.yml"
+      - ".graphifyignore"
+      - "README.md"
+      - "documentacao_tecnica.md"
+      - "render.yaml"
 
 permissions:
   contents: read
@@ -36,10 +41,12 @@ jobs:
         with:
           python-version: "3.11"
       - run: python -m unittest scripts/test_render_architecture_overview.py
+      - run: python -m unittest scripts/test_architecture_graph_artifacts.py
       - name: Validate published artifacts
         run: |
           python -c "import xml.etree.ElementTree as ET; ET.parse('docs/architecture/graph-overview.svg')"
           grep -q '^# Graph Report' docs/architecture/GRAPH_REPORT.md
+          python -m scripts.verify_architecture_graph
       - name: Require refreshed graph on architecture changes
         if: github.event_name == 'pull_request'
         env:
