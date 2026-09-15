@@ -48,4 +48,12 @@ describe("SignInPage", () => {
 
     expect(screen.getByText("Senha alterada com sucesso. Entre novamente.")).toBeInTheDocument();
   });
+
+  it("explains when the session expired due to inactivity", () => {
+    renderPage([{ pathname: "/entrar", state: { sessionExpired: true } }]);
+
+    expect(
+      screen.getByText("Sua sessão expirou por inatividade. Entre novamente."),
+    ).toBeInTheDocument();
+  });
 });

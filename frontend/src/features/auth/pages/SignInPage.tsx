@@ -15,6 +15,7 @@ import { PasswordField } from "../components/PasswordField";
 interface LocationState {
   from?: { pathname: string };
   passwordReset?: boolean;
+  sessionExpired?: boolean;
 }
 
 export function SignInPage() {
@@ -105,6 +106,9 @@ export function SignInPage() {
 
         {locationState?.passwordReset ? (
           <SuccessFeedback message="Senha alterada com sucesso. Entre novamente." />
+        ) : null}
+        {locationState?.sessionExpired ? (
+          <ErrorFeedback message="Sua sessão expirou por inatividade. Entre novamente." />
         ) : null}
         {error ? <ErrorFeedback message={error} /> : null}
 

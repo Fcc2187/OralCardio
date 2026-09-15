@@ -4,11 +4,14 @@
  * (por exemplo, revogar a inscrição Push) antes de a sessão desaparecer.
  */
 type BeforeSignOut = () => Promise<void> | void;
+export type SessionSignOutScope = "global" | "local";
 
-let signOutHandler: (() => Promise<void>) | null = null;
+let signOutHandler: ((scope: SessionSignOutScope) => Promise<void>) | null = null;
 const beforeSignOutHandlers = new Set<BeforeSignOut>();
 
-export function configureSessionSignOut(handler: (() => Promise<void>) | null): void {
+export function configureSessionSignOut(
+  handler: ((scope: SessionSignOutScope) => Promise<void>) | null,
+): void {
   signOutHandler = handler;
 }
 
@@ -23,6 +26,8 @@ export async function runBeforeSignOutHandlers(): Promise<void> {
   await Promise.allSettled([...beforeSignOutHandlers].map((handler) => handler()));
 }
 
-export async function requestSessionSignOut(): Promise<void> {
-  if (signOutHandler) await signOutHandler();
+export async function requestSessionSignOut(
+  scope: SessionSignOutScope = "global",
+): Promise<void> {
+  if (signOutHandler) await signOutHandler(scope);
 }
