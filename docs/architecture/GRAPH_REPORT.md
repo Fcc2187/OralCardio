@@ -1,87 +1,87 @@
-# Graph Report - cardio-care  (2026-09-09)
+# Graph Report - cardio-care  (2026-09-15)
 
 ## Published provenance
-- Source fingerprint: `170eff1151313eeda109425c04b1d395cdd17661eb852bc6f5112ce31b79f2d5`
-- Generated from Git commit: `77dd9362711c194511c80072118bf1cd1b102240`
+- Source fingerprint: `8fb61a72f56977d27f41e4b7d7504a6fa86041d505ad93a03e9ae852c315560a`
+- Generated from Git commit: `324b39bd7e268e27f43666e83ba1b50c9d535f36`
 
 ## Corpus Check
-- 389 files · ~100,220 words
+- 389 files · ~101,738 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 2326 nodes · 5515 edges · 206 communities (116 shown, 48 thin omitted)
-- Extraction: 92% EXTRACTED · 8% INFERRED · 0% AMBIGUOUS · INFERRED: 457 edges (avg confidence: 0.94)
+- 2345 nodes · 5562 edges · 200 communities (113 shown, 45 thin omitted)
+- Extraction: 92% EXTRACTED · 8% INFERRED · 0% AMBIGUOUS · INFERRED: 462 edges (avg confidence: 0.94)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `8c812ca4`
+- Built from commit: `324b39bd`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
-- test_request_limits.py
-- education/types.ts
+- endpoints/brushing.py
+- EducationModulePage.tsx
 - NotificationService
 - test_dashboard_service.py
-- GamificationService
+- deps.py
 - BrushingTipsModal.tsx
 - FakeAppointmentRepository
-- AuthProvider.tsx
+- AuthProvider
 - pushSubscriptionManager.ts
 - OralCardio Web Push Guide
-- NotificationSubscriptionProvider.tsx
+- EntityNotFoundError
 - endpoints/health.py
 - HealthQuestionnairePage.tsx
 - cn
 - test_notification_service.py
-- appointment_service.py
+- services/interfaces.py
 - EducationModuleRecord
-- DashboardPage.test.tsx
+- notification_repository.py
 - Database Backend Integrity
 - records.py
 - notification_service.py
-- UUID
-- queryKeys.ts
+- repositories/interfaces.py
+- ProfilePage.tsx
 - authValidation.ts
-- EntityNotFoundError
-- deps.py
+- SupabaseRepository
+- CurrentUser
 - AchievementEvaluationDispatchService
 - AppointmentCard.tsx
 - achievements.py
-- Appointment
+- appointments/types.ts
 - httpClient.ts
 - Frontend Dom
 - devDependencies
-- env.ts
-- dateTimeLocal.ts
-- ModuleCompletionCard.tsx
+- LinkButton.tsx
+- ClaimedNotificationDeliveryRecord
+- queryKeys.ts
 - Backend Production
-- domain/test_notifications.py
+- BusinessRuleViolationError
 - Database Notification Outbox
 - httpClient
 - UserRecord
 - Incremental architecture graph update
 - AchievementUnlockProvider.tsx
-- NewAppointmentPage.tsx
+- FlossingCard.tsx
 - main.py
 - Database Backend Hardening
 - SignUpPage.tsx
 - BrushingSessionRecord
-- schemas/gamification.py
+- endpoints/gamification.py
 - AppointmentService
-- AuthenticationError
-- NotificationRepository
+- exceptions.py
+- App.tsx
 - Database Notifications Core
 - dependencies
-- get_background_job_dispatch_service
+- repositories/user_repository.py
 - .__call__
-- AppointmentCursor
+- UUID
 - AppointmentDetailPage.tsx
-- useAuth
+- calculate_level
 - appointment.py
 - _RecordingQuery
 - AppointmentStatus
-- App.tsx
+- DashboardPage.tsx
 - BrushingTimerPage.test.tsx
 - FlossingLogRecord
 - repositories/gamification_repository.py
@@ -94,7 +94,7 @@
 - Frontend Build
 - Frontend Frontend
 - Ordered SQL migrations 001 through 029
-- test_flossing_service.py
+- sao_paulo_date
 - UserStatsRecord
 - Database Triggers
 - Database Gamification Rpc
@@ -119,7 +119,7 @@
 - Frontend Mock
 - Frontend Mock
 - Frontend Vercel
-- list_appointments
+- endpoints/appointments.py
 - Backend Protected
 - Frontend Education
 - Frontend Notificationpushpayload
@@ -135,7 +135,7 @@
 - Frontend Testing
 - AchievementConditionType
 - Frontend Vite
-- AppointmentForm.tsx
+- buildAppointmentPatch.ts
 - Frontend Vitejs
 - Frontend Workbox
 - Projeto Public
@@ -161,26 +161,20 @@
 - Projeto Public
 - Projeto Public
 - Entrega Backend
-- main.tsx
+- .require_minute_precision
 - HealthCheckPage.tsx
-- NotificationSubscriptionProvider
 - logging.py
 - OralCardio
 - Documentação Production
-- buildAppointmentPayload.ts
-- notificationApi.ts
+- AppointmentForm.tsx
 - services/conftest.py
-- DashboardQuickLinks.tsx
-- ModuleCompletionToast.tsx
 - Q: vou ir descansar agora, mas analisando como um desenvolvedor senior e analisando o output completo do graphify do projeto, oq vc percebe que o nosso projeto necessita de pontos de melhoria, seja de otimização, melhoria de codigo, limpeza, etc... solid... analise primeiro backend depois front depois o banco
 - database-quality-workflow.test.mjs
 - eslint-plugin-react-hooks
 - typescript-eslint
-- httpClient.test.ts
 - vitest
 - workbox-core
 - Local database test execution
-- ResetPasswordPage.test.tsx
 - @testing-library/react
 - vite-plugin-pwa
 
@@ -189,8 +183,8 @@
 2. `CurrentUser` - 47 edges
 3. `BusinessRuleViolationError` - 45 edges
 4. `cn()` - 41 edges
-5. `UserStatsRecord` - 39 edges
-6. `AppointmentService` - 39 edges
+5. `AppointmentService` - 39 edges
+6. `UserStatsRecord` - 39 edges
 7. `GamificationService` - 37 edges
 8. `SupabaseRepository` - 36 edges
 9. `AppointmentRecord` - 35 edges
@@ -220,27 +214,27 @@
 - **Production Delivery and Operations** — docs_deployment_deployment_runbook, docs_deployment_vercel_render_supabase_topology, render_oralcardio_api_service, _github_workflows_frontend_quality_frontend_production_checks, _github_workflows_backend_quality_python_quality_gates [INFERRED 0.95]
 - **Reliable and Private Push Pipeline** — docs_notificacoes_push_web_push_guide, docs_notificacoes_push_generic_payload_privacy, docs_notificacoes_push_offline_revocation_capability, docs_notificacoes_push_leased_delivery_pipeline, documentacao_tecnica_notification_architecture [INFERRED 0.95]
 
-## Communities (206 total, 48 thin omitted)
+## Communities (200 total, 45 thin omitted)
 
-### Community 0 - "test_request_limits.py"
-Cohesion: 0.13
-Nodes (9): client(), FakeHealthyRepository, fixture, TestClient, _HealthyRepository, _RevocationRepository, test_chunked_oversized_body_is_rejected_before_revocation_repository(), test_oversized_body_is_rejected_before_revocation_repository() (+1 more)
+### Community 0 - "endpoints/brushing.py"
+Cohesion: 0.18
+Nodes (13): list_brushing_sessions(), get, IdempotencyKey, patch, post, UUID, start_brushing_session(), update_brushing_session() (+5 more)
 
-### Community 1 - "education/types.ts"
-Cohesion: 0.06
-Nodes (35): completeModule(), fetchModuleBySlug(), fetchModules(), startModule(), EDUCATION_CATEGORY_LABELS, ModuleCard(), ModuleCardProps, mockModule (+27 more)
+### Community 1 - "EducationModulePage.tsx"
+Cohesion: 0.05
+Nodes (47): EducationListPage, completeModule(), fetchModuleBySlug(), fetchModules(), startModule(), EDUCATION_CATEGORY_LABELS, EducationProgressSummary(), EducationProgressSummaryProps (+39 more)
 
 ### Community 2 - "NotificationService"
-Cohesion: 0.10
-Nodes (17): post, subscribe(), HabitNotificationType, _parse_time(), datetime, time, UUID, SupabaseNotificationRepository (+9 more)
+Cohesion: 0.09
+Nodes (20): get_preferences(), get_vapid_public_key(), get, post, put, request_test_notification(), subscribe(), update_preferences() (+12 more)
 
 ### Community 3 - "test_dashboard_service.py"
-Cohesion: 0.12
-Nodes (27): _build_service(), date, datetime, parametrize, UUID, _StubAppointment, _StubAppointmentService, _StubEducationService (+19 more)
+Cohesion: 0.11
+Nodes (29): FakeBusinessClock, date, _build_service(), date, datetime, parametrize, UUID, _StubAppointment (+21 more)
 
-### Community 4 - "GamificationService"
-Cohesion: 0.12
-Nodes (19): get_dashboard_service(), BusinessClock, calculate_level(), Level, Retorna o nível correspondente ao total de pontos. Espelha a função…, DashboardService, DashboardSummary, UUID (+11 more)
+### Community 4 - "deps.py"
+Cohesion: 0.13
+Nodes (25): get_appointment_service(), get_brushing_service(), get_business_clock(), get_dashboard_service(), get_education_service(), get_flossing_service(), get_gamification_service(), get_health_profile_service() (+17 more)
 
 ### Community 5 - "BrushingTipsModal.tsx"
 Cohesion: 0.33
@@ -250,101 +244,101 @@ Nodes (3): BrushingTipsModal(), BrushingTipsModalProps, TIPS
 Cohesion: 0.25
 Nodes (5): FakeAppointmentRepository, AppointmentStatus, AppointmentType, datetime, UUID
 
-### Community 7 - "AuthProvider.tsx"
-Cohesion: 0.11
-Nodes (15): setCurrentAccessToken(), AuthContext, AuthContextValue, SignUpParams, SignUpResult, AuthProvider(), bootstrapSession(), signOut() (+7 more)
+### Community 7 - "AuthProvider"
+Cohesion: 0.10
+Nodes (30): setCurrentAccessToken(), AuthProvider(), bootstrapSession(), checkExpiration(), checkFocusedSession(), checkVisibleSession(), expireSession(), handleStorage() (+22 more)
 
 ### Community 8 - "pushSubscriptionManager.ts"
-Cohesion: 0.25
-Nodes (15): fetchVapidPublicKey(), registerPushSubscription(), decodeBase64Url(), enablePushSubscription(), encodeBase64Url(), getDeviceLabel(), getPushPermissionState(), isIosDevice() (+7 more)
+Cohesion: 0.09
+Nodes (46): fetchVapidPublicKey(), registerPushSubscription(), requestTestNotification(), revokePushSubscriptionWithDeviceToken(), updateNotificationPreferences(), NotificationContext, NotificationContextValue, errorMessage() (+38 more)
 
 ### Community 9 - "OralCardio Web Push Guide"
 Cohesion: 0.17
 Nodes (13): Generic Notification Payload Privacy, Leased Web Push Delivery Pipeline, Official Web Push References, Offline Push Revocation Capability, Platform-Specific Push Consent, VAPID Configuration and Rotation, OralCardio Web Push Guide, Database as Authorization and Scoring Authority (+5 more)
 
-### Community 10 - "NotificationSubscriptionProvider.tsx"
-Cohesion: 0.29
-Nodes (8): NotificationContext, NotificationContextValue, NotificationPreferences, PushPermissionState, isQuietTime(), VALID, toMinutes(), validateNotificationPreferences()
+### Community 10 - "EntityNotFoundError"
+Cohesion: 0.26
+Nodes (9): Any, EntityNotFoundError, Funções determinísticas para proteger replays de mutações HTTP., Retorna SHA-256 canônico do corpo lógico da requisição. A chave de idempotência…, request_fingerprint(), parse_datetime(), parse_required_datetime(), datetime (+1 more)
 
 ### Community 11 - "endpoints/health.py"
-Cohesion: 0.15
-Nodes (17): _check_health(), get_health(), get_health_repository(), get_liveness(), get_readiness(), get, Sonda de processo: não depende de rede, banco ou Supabase., Sonda de readiness: só fica saudável quando a dependência essencial responde. (+9 more)
+Cohesion: 0.09
+Nodes (22): _check_health(), get_health(), get_health_repository(), get_liveness(), get_readiness(), get, Sonda de processo: não depende de rede, banco ou Supabase., Sonda de readiness: só fica saudável quando a dependência essencial responde. (+14 more)
 
 ### Community 12 - "HealthQuestionnairePage.tsx"
-Cohesion: 0.15
-Nodes (20): HealthQuestionnairePage, FIELD_CONTROL, FIELD_ERROR_MESSAGE, FIELD_HINT, FIELD_INPUT, FIELD_INPUT_ERROR, FIELD_INPUT_WITH_LEADING_ICON, FIELD_INPUT_WITH_TRAILING_ACTION (+12 more)
+Cohesion: 0.14
+Nodes (21): HealthQuestionnairePage, healthProfileQueryKey, FIELD_CONTROL, FIELD_ERROR_MESSAGE, FIELD_HINT, FIELD_INPUT, FIELD_INPUT_ERROR, FIELD_INPUT_WITH_LEADING_ICON (+13 more)
 
 ### Community 13 - "cn"
-Cohesion: 0.11
-Nodes (24): BrushingMetricsHeader(), BrushingMetricsHeaderProps, BrushingProgressCard(), BrushingProgressCardProps, BrushingZonePill(), BrushingZonePillProps, ZoneProgressIndicators(), EducationProgressSummary() (+16 more)
+Cohesion: 0.09
+Nodes (29): AchievementsPage, NotificationSettingsPage, BrushingMetricsHeader(), BrushingMetricsHeaderProps, BrushingProgressCard(), BrushingProgressCardProps, BrushingZonePill(), BrushingZonePillProps (+21 more)
 
 ### Community 14 - "test_notification_service.py"
-Cohesion: 0.15
-Nodes (23): PushSendResult, NotificationType, PushDeliveryOutcome, StrEnum, SupabaseNotificationDispatchRepository, ClaimedNotificationDeliveryRecord, PushGateway, NotificationDispatchService (+15 more)
+Cohesion: 0.26
+Nodes (11): PushSendResult, NotificationDispatchService, delivery(), FakeDispatchRepository, FakeGateway, FixedClock, PartiallyFailingGateway, datetime (+3 more)
 
-### Community 15 - "appointment_service.py"
-Cohesion: 0.10
-Nodes (17): get_business_clock(), InstantClock, date, datetime, Protocol, Relógio de negócio explícito para não depender do fuso do processo., sao_paulo_date(), SaoPauloBusinessClock (+9 more)
+### Community 15 - "services/interfaces.py"
+Cohesion: 0.23
+Nodes (6): AchievementEvaluationService, PostMutationAchievementEvaluator, PushGateway, Protocol, UUID, Porta usada por casos de uso que apenas sinalizam uma possível conquista.
 
 ### Community 16 - "EducationModuleRecord"
 Cohesion: 0.08
 Nodes (32): complete_module(), get_module(), list_modules(), get, post, UUID, start_module(), ModuleWithProgress (+24 more)
 
-### Community 17 - "DashboardPage.test.tsx"
-Cohesion: 0.40
-Nodes (3): SUMMARY_V2, useDashboardQuery, useNotifications
+### Community 17 - "notification_repository.py"
+Cohesion: 0.19
+Nodes (8): HabitNotificationType, _parse_time(), datetime, time, UUID, Adapter privilegiado para uma capability que só pode desligar Push., SupabaseNotificationRepository, SupabaseNotificationRevocationRepository
 
 ### Community 18 - "Database Backend Integrity"
 Cohesion: 0.07
 Nodes (17): notification_preferences_reconcile_deliveries, public.assert_idempotency_key(), public.cancel_ineligible_notification_deliveries(), public.complete_achievement_evaluation(), public.complete_notification_delivery(), public.create_appointment_v2(), public.skip_invalid_pending_notifications(), push_subscriptions_reconcile_deliveries (+9 more)
 
 ### Community 19 - "records.py"
-Cohesion: 0.10
-Nodes (26): get_health_profile(), get, put, submit_health_profile(), CardiacCondition, UUID, _to_record(), HealthProfileRecord (+18 more)
+Cohesion: 0.18
+Nodes (15): CardiacCondition, UUID, SupabaseHealthProfileRepository, _to_record(), HealthProfileRecord, Representações internas das linhas do banco, desacopladas dos DTOs da API.…, FakeHealthProfileRepository, UUID (+7 more)
 
 ### Community 20 - "notification_service.py"
-Cohesion: 0.10
-Nodes (30): dispatch_notifications(), post, post, Endpoint sem JWT que aceita exclusivamente uma capability de revogação., revoke_with_device_token(), get_preferences(), get, put (+22 more)
-
-### Community 21 - "UUID"
-Cohesion: 0.12
-Nodes (10): AppointmentRepository, BrushingRepository, HealthProfileRepository, AppointmentStatus, AppointmentType, BrushingZone, UUID, AchievementSnapshotBuilder (+2 more)
-
-### Community 22 - "queryKeys.ts"
 Cohesion: 0.17
-Nodes (12): ProfilePage, fetchUserProfile(), updateUserProfile(), UserProfile, UserProfileUpdateInput, ProfileForm(), ProfilePage(), dashboardQueryKey (+4 more)
+Nodes (19): dispatch_notifications(), post, post, Endpoint sem JWT que aceita exclusivamente uma capability de revogação., revoke_with_device_token(), AchievementEvaluationDispatchSummary, BackgroundDispatchSummary, DispatchSummary (+11 more)
+
+### Community 21 - "repositories/interfaces.py"
+Cohesion: 0.09
+Nodes (13): AchievementEvaluationDispatchRepository, AppointmentRepository, BrushingRepository, HealthProfileRepository, NotificationDispatchRepository, NotificationRevocationRepository, AppointmentStatus, AppointmentType (+5 more)
+
+### Community 22 - "ProfilePage.tsx"
+Cohesion: 0.10
+Nodes (25): ProfilePage, fetchUserProfile(), updateUserProfile(), UserProfile, UserProfileUpdateInput, ProfileForm(), ProfilePage(), fetchHealthProfile() (+17 more)
 
 ### Community 23 - "authValidation.ts"
-Cohesion: 0.11
-Nodes (22): checkPasswordRequirements(), COMMON_PASSWORDS, NewPasswordFieldErrors, NewPasswordFieldValues, PasswordRequirementsStatus, PasswordResetRequestFieldErrors, PasswordResetRequestFieldValues, SignInFieldErrors (+14 more)
+Cohesion: 0.08
+Nodes (26): checkPasswordRequirements(), COMMON_PASSWORDS, NewPasswordFieldErrors, NewPasswordFieldValues, PasswordRequirementsStatus, PasswordResetRequestFieldErrors, PasswordResetRequestFieldValues, SignInFieldErrors (+18 more)
 
-### Community 24 - "EntityNotFoundError"
-Cohesion: 0.11
-Nodes (30): get_push_revocation_repository(), FastAPI, register_exception_handlers(), BusinessRuleViolationError, ConflictError, DomainError, EntityNotFoundError, PermissionDeniedError (+22 more)
+### Community 24 - "SupabaseRepository"
+Cohesion: 0.20
+Nodes (12): Client, Base para repositórios: fornece o client escopado ao usuário e traduz erros do…, Extrai `.data` de uma resposta de `.maybe_single().execute()`. Peculiaridade do…, SupabaseRepository, fixture, repository(), test_run_falls_back_to_generic_message_when_raise_exception_has_no_message(), test_run_returns_operation_result_when_no_error() (+4 more)
 
-### Community 25 - "deps.py"
-Cohesion: 0.12
-Nodes (29): get_appointment_service(), get_brushing_service(), get_education_service(), get_gamification_service(), get_health_profile_service(), get_notification_service(), Client, Ponto único de composição da injeção de dependências da API. Cada… (+21 more)
+### Community 25 - "CurrentUser"
+Cohesion: 0.11
+Nodes (23): require_completed_health_profile(), get_dashboard(), get, get_health_profile(), get, put, submit_health_profile(), delete (+15 more)
 
 ### Community 26 - "AchievementEvaluationDispatchService"
 Cohesion: 0.23
 Nodes (10): ClaimedAchievementEvaluationRecord, AchievementEvaluationDispatchService, evaluation(), FakeEvaluationRepository, FakeGamificationService, FixedClock, datetime, UUID (+2 more)
 
 ### Community 27 - "AppointmentCard.tsx"
-Cohesion: 0.22
-Nodes (12): APPOINTMENT_STATUS_LABELS, AppointmentCard(), notInformedOr(), MOCK_APPOINTMENT, BUSINESS_TIME_ZONE, calendarDayDelta(), dateLongFormatter, dateTimeLongFormatter (+4 more)
+Cohesion: 0.16
+Nodes (18): AppointmentCard(), notInformedOr(), MOCK_APPOINTMENT, asNumber(), asUtcMs(), BUSINESS_TIME_ZONE, businessCalendarDayDelta(), businessDateKey() (+10 more)
 
 ### Community 28 - "achievements.py"
-Cohesion: 0.32
-Nodes (12): Achievement, AchievementSnapshot, _check_all_modules_completed(), _check_appointment_scheduled(), _check_brushing_count(), _check_flossing_count(), _check_health_profile_completed(), _check_module_completed() (+4 more)
+Cohesion: 0.21
+Nodes (15): Achievement, AchievementSnapshot, _check_all_modules_completed(), _check_appointment_scheduled(), _check_brushing_count(), _check_flossing_count(), _check_health_profile_completed(), _check_module_completed() (+7 more)
 
-### Community 29 - "Appointment"
-Cohesion: 0.09
-Nodes (17): AppointmentCardProps, groupAppointments(), GroupedAppointments, NOW_MS, MOCK_APPOINTMENT, patchAppointment, useAppointmentQuery, AppointmentsListPage() (+9 more)
+### Community 29 - "appointments/types.ts"
+Cohesion: 0.08
+Nodes (22): listAppointments(), useAppointmentsInfiniteQuery(), AppointmentCardProps, groupAppointments(), GroupedAppointments, NOW_MS, MOCK_APPOINTMENT, patchAppointment (+14 more)
 
 ### Community 30 - "httpClient.ts"
-Cohesion: 0.17
-Nodes (13): env, getCurrentAccessToken(), supabaseClient, buildAuthHeader(), extractErrorMessage(), FastApiErrorBody, FastApiValidationErrorItem, HttpError (+5 more)
+Cohesion: 0.11
+Nodes (19): AppEnv, env, RawEnv, readRequiredEnvVar(), validProductionEnv, validateAppEnv(), getCurrentAccessToken(), supabaseClient (+11 more)
 
 ### Community 31 - "Frontend Dom"
 Cohesion: 0.08
@@ -354,77 +348,81 @@ Nodes (25): compilerOptions, allowImportingTsExtensions, isolatedModules, jsx, l
 Cohesion: 0.09
 Nodes (23): @axe-core/playwright, eslint, @eslint/js, eslint-plugin-react-refresh, devDependencies, @axe-core/playwright, eslint, @eslint/js (+15 more)
 
-### Community 33 - "env.ts"
-Cohesion: 0.38
-Nodes (5): AppEnv, RawEnv, readRequiredEnvVar(), validProductionEnv, validateAppEnv()
+### Community 33 - "LinkButton.tsx"
+Cohesion: 0.21
+Nodes (10): NotFoundPage(), ButtonProps, buildButtonClasses(), BuildButtonClassesOptions, ButtonVariant, VARIANT_CLASSES, ConfirmAction(), ConfirmActionProps (+2 more)
 
-### Community 34 - "dateTimeLocal.ts"
-Cohesion: 0.23
-Nodes (12): AppointmentForm(), asNumber(), asUtcMs(), businessCalendarDayDelta(), businessDateKey(), businessDateTimeLocalToIso(), businessDateTimeLocalValue(), businessDateTimeParts (+4 more)
+### Community 34 - "ClaimedNotificationDeliveryRecord"
+Cohesion: 0.37
+Nodes (11): NotificationType, PushDeliveryOutcome, StrEnum, SupabaseNotificationDispatchRepository, ClaimedNotificationDeliveryRecord, VapidWebPushGateway, claimed_delivery(), private_pem() (+3 more)
+
+### Community 35 - "queryKeys.ts"
+Cohesion: 0.22
+Nodes (8): createAppointment(), INITIAL_APPOINTMENT_FORM_STATE, NewAppointmentPage(), handleSubmit(), createAppointment, gamificationAchievementsQueryKey, gamificationStatsQueryKey, notificationPreferencesQueryKey
 
 ### Community 36 - "Backend Production"
 Cohesion: 0.12
 Nodes (12): field_validator, model_validator, Única fonte de configuração da aplicação, lida de variáveis de ambiente., Mantém a documentação local e a fecha em produção por padrão., Settings, test_production_disables_api_docs(), test_production_rejects_incomplete_dispatcher_configuration(), test_production_rejects_lease_shorter_than_worst_case_batch() (+4 more)
 
-### Community 37 - "domain/test_notifications.py"
-Cohesion: 0.16
-Nodes (21): _decode_base64url(), is_quiet_time(), time, Backoff exponencial com jitter determinístico e testável., retry_delay_seconds(), validate_notification_preferences(), validate_push_endpoint(), validate_push_subscription_keys() (+13 more)
+### Community 37 - "BusinessRuleViolationError"
+Cohesion: 0.14
+Nodes (25): BusinessRuleViolationError, Ação inválida dado o estado atual do recurso (ex: reabrir sessão concluída)., _decode_base64url(), is_quiet_time(), NotificationPreferencesUpdate, time, Backoff exponencial com jitter determinístico e testável., retry_delay_seconds() (+17 more)
 
 ### Community 38 - "Database Notification Outbox"
 Cohesion: 0.13
 Nodes (18): appointments_cancel_stale_notification_jobs, notification_deliveries_set_updated_at, notification_jobs_set_updated_at, public.cancel_stale_appointment_notification_jobs(), public.notification_appointment_delivery_time(), public.notification_deliveries, public.notification_jobs, public.request_test_notification() (+10 more)
 
 ### Community 39 - "httpClient"
-Cohesion: 0.18
+Cohesion: 0.19
 Nodes (13): submitHealthProfile(), buildHealthProfilePayload(), INITIAL_QUESTIONNAIRE_STATE, QuestionnaireFormState, splitCommaList(), toNullableString(), HealthQuestionnairePage(), handleSubmit() (+5 more)
 
 ### Community 40 - "UserRecord"
-Cohesion: 0.13
-Nodes (19): get_user_service(), get_my_profile(), get, patch, update_my_profile(), UserRepository, UserRecord, BaseModel (+11 more)
+Cohesion: 0.15
+Nodes (18): get_user_service(), get_my_profile(), get, patch, update_my_profile(), UserRecord, BaseModel, model_validator (+10 more)
 
 ### Community 41 - "Incremental architecture graph update"
 Cohesion: 0.22
 Nodes (13): Dependency-free Python architecture overview renderer, Canonical local architecture graph, Known graph generation limitations, Architecture graph overview SVG, Full architecture graph report, Incremental architecture graph update, Semantic extraction for documentation and configuration, Architecture graph workflow (+5 more)
 
 ### Community 42 - "AchievementUnlockProvider.tsx"
-Cohesion: 0.21
-Nodes (15): AchievementToastStack(), AchievementToastStackProps, AchievementUnlockProvider(), SAO_PAULO_DATE_FORMATTER, saoPauloDateKey(), AchievementToast, FIRST, SECOND (+7 more)
+Cohesion: 0.11
+Nodes (21): App(), queryClient, rootElement, AchievementToastStack(), AchievementToastStackProps, AchievementUnlockProvider(), SAO_PAULO_DATE_FORMATTER, saoPauloDateKey() (+13 more)
 
-### Community 43 - "NewAppointmentPage.tsx"
-Cohesion: 0.13
-Nodes (15): NewAppointmentPage, createAppointment(), NewAppointmentPage(), handleSubmit(), createAppointment, FlossingLog, logFlossing(), FlossingCard() (+7 more)
+### Community 43 - "FlossingCard.tsx"
+Cohesion: 0.23
+Nodes (9): FlossingLog, logFlossing(), FlossingCard(), FlossingCardProps, safeDailyCount(), logFlossing, createIdempotencyKey(), HttpRequestOptions (+1 more)
 
 ### Community 44 - "main.py"
-Cohesion: 0.24
-Nodes (7): FastAPI, Headers de segurança para as respostas da API. A CSP pertence ao host da PWA,…, register_http_security_headers(), lifespan(), FastAPI, Valida segredos operacionais antes de aceitar tráfego de produção., Exporta o contrato OpenAPI sem iniciar servidor ou tocar no Supabase.
+Cohesion: 0.13
+Nodes (11): FastAPI, Headers de segurança para as respostas da API. A CSP pertence ao host da PWA,…, register_http_security_headers(), lifespan(), FastAPI, Valida segredos operacionais antes de aceitar tráfego de produção., Exporta o contrato OpenAPI sem iniciar servidor ou tocar no Supabase., client() (+3 more)
 
 ### Community 45 - "Database Backend Hardening"
 Cohesion: 0.11
 Nodes (8): achievement_evaluation_requests_set_updated_at, public.achievement_evaluation_requests, public.decode_base64url_or_null(), public.enqueue_achievement_evaluation_from_change(), public, public.handle_updated_at, public.notification_jobs, public.users
 
 ### Community 46 - "SignUpPage.tsx"
-Cohesion: 0.12
-Nodes (25): translateAuthError(), EmailIcon(), EyeIcon(), EyeOffIcon(), IconProps, LockIcon(), OralCardioLogo(), UserIcon() (+17 more)
+Cohesion: 0.11
+Nodes (22): translateAuthError(), EmailIcon(), EyeIcon(), EyeOffIcon(), IconProps, LockIcon(), OralCardioLogo(), UserIcon() (+14 more)
 
 ### Community 47 - "BrushingSessionRecord"
-Cohesion: 0.05
-Nodes (57): Any, list_brushing_sessions(), get, IdempotencyKey, patch, post, UUID, start_brushing_session() (+49 more)
+Cohesion: 0.09
+Nodes (34): is_session_complete(), BrushingZone, Retorna o novo conjunto de zonas concluídas, adicionando `new_zone`. Marcar a…, Uma sessão só é considerada completa quando as 5 zonas foram marcadas., validate_zone_transition(), BrushingZone, BrushingZone, UUID (+26 more)
 
-### Community 48 - "schemas/gamification.py"
-Cohesion: 0.16
-Nodes (15): claim_achievement_reveals(), get_stats(), get, post, AchievementStatus, AchievementOutput, AchievementRevealAcknowledgeInput, AchievementRevealOutput (+7 more)
+### Community 48 - "endpoints/gamification.py"
+Cohesion: 0.17
+Nodes (17): acknowledge_achievement_reveals(), claim_achievement_reveals(), get_stats(), list_achievements(), get, post, AchievementStatus, AchievementOutput (+9 more)
 
 ### Community 49 - "AppointmentService"
 Cohesion: 0.28
 Nodes (16): AppointmentType, AppointmentService, _create(), _FakeInstantClock, gamification_spy(), datetime, fixture, UUID (+8 more)
 
-### Community 50 - "AuthenticationError"
-Cohesion: 0.21
-Nodes (12): AuthenticationError, Token ausente, inválido ou expirado., Client, Valida o token chamando o Supabase Auth (`auth.get_user`)., SupabaseTokenVerifier, _FakeAuth, Exception, test_auth_transport_failure_is_reported_as_service_unavailable() (+4 more)
+### Community 50 - "exceptions.py"
+Cohesion: 0.08
+Nodes (41): get_background_job_dispatch_service(), get_push_revocation_repository(), require_notification_dispatch_token(), Environment, get_settings(), StrEnum, FastAPI, register_exception_handlers() (+33 more)
 
-### Community 51 - "NotificationRepository"
-Cohesion: 0.14
-Nodes (6): AchievementEvaluationDispatchRepository, NotificationDispatchRepository, NotificationRepository, NotificationRevocationRepository, datetime, Protocol
+### Community 51 - "App.tsx"
+Cohesion: 0.17
+Nodes (10): AppointmentDetailPage, AppointmentsListPage, BrushingTimerPage, EditAppointmentPage, EducationModulePage, ForgotPasswordPage, NewAppointmentPage, ResetPasswordPage (+2 more)
 
 ### Community 52 - "Database Notifications Core"
 Cohesion: 0.13
@@ -434,49 +432,53 @@ Nodes (9): habit_notification_schedules_set_updated_at, on_user_notification_set
 Cohesion: 0.10
 Nodes (21): @fontsource/eb-garamond, @fontsource-variable/inter, dependencies, @fontsource/eb-garamond, @fontsource-variable/inter, lucide-react, react, react-dom (+13 more)
 
-### Community 54 - "get_background_job_dispatch_service"
-Cohesion: 0.21
-Nodes (14): get_background_job_dispatch_service(), require_notification_dispatch_token(), Environment, get_settings(), StrEnum, create_background_job_client(), create_user_scoped_client(), get_privileged_supabase_client() (+6 more)
+### Community 54 - "repositories/user_repository.py"
+Cohesion: 0.35
+Nodes (5): UUID, SupabaseUserRepository, _to_record(), _ClientThatMustNotBeCalled, test_list_by_ids_returns_empty_without_touching_client_for_empty_input()
 
 ### Community 55 - ".__call__"
 Cohesion: 0.21
 Nodes (9): ASGIApp, _build_error_response(), _BodyTooLarge, RequestLimitsMiddleware, HTTPException, JSONResponse, Receive, Scope (+1 more)
 
-### Community 56 - "AppointmentCursor"
-Cohesion: 0.47
-Nodes (7): AppointmentCursor, decode_appointment_cursor(), encode_appointment_cursor(), Cursores opacos e validados para paginação ordenada por data e UUID., parametrize, test_appointment_cursor_rejects_invalid_values(), test_appointment_cursor_round_trip_preserves_ordering_fields()
+### Community 56 - "UUID"
+Cohesion: 0.22
+Nodes (5): AchievementStatus, UUID, Expira apenas a visualização do streak; o histórico não é reescrito., Reavalia todas as conquistas do usuário e persiste as recém-obtidas. Chamado…, Tenta a avaliação síncrona; o trigger transacional garante o retry. A atividade…
 
 ### Community 57 - "AppointmentDetailPage.tsx"
-Cohesion: 0.21
-Nodes (18): AppointmentDetailPage, EditAppointmentPage, fetchAppointment(), listAppointments(), patchAppointment(), useAppointmentQuery(), useAppointmentsInfiniteQuery(), translateAppointmentError() (+10 more)
+Cohesion: 0.22
+Nodes (17): fetchAppointment(), patchAppointment(), useAppointmentQuery(), translateAppointmentError(), appointmentToFormState(), ACTION_LABELS, ALLOWED_TRANSITIONS, AppointmentAction (+9 more)
 
-### Community 58 - "useAuth"
-Cohesion: 0.09
-Nodes (15): ForgotPasswordPage(), handleSubmit(), useAuthMock, SignInPage(), useAuthMock, SignUpPage(), useAuthMock, fetchHealthProfile() (+7 more)
+### Community 58 - "calculate_level"
+Cohesion: 0.27
+Nodes (7): calculate_level(), Level, Retorna o nível correspondente ao total de pontos. Espelha a função…, DashboardSummary, UUID, parametrize, test_calculate_level_boundaries()
 
 ### Community 59 - "appointment.py"
 Cohesion: 0.23
 Nodes (10): AppointmentInput, AppointmentPatchInput, BaseModel, datetime, field_validator, model_validator, test_appointment_normalizes_datetime_to_utc(), test_appointment_rejects_naive_datetime() (+2 more)
 
+### Community 60 - "_RecordingQuery"
+Cohesion: 0.19
+Nodes (3): _RecordingClient, _RecordingQuery, test_next_scheduled_query_is_scoped_and_ordered()
+
 ### Community 61 - "AppointmentStatus"
 Cohesion: 0.38
 Nodes (9): AppointmentStatus, Valida o ciclo de vida da consulta (seção 3.4 da documentação): scheduled ->…, validate_status_transition(), AppointmentStatus, AppointmentStatus, parametrize, test_invalid_transitions_raise(), test_repeating_current_status_is_idempotent() (+1 more)
 
-### Community 62 - "App.tsx"
-Cohesion: 0.07
-Nodes (38): AchievementsPage, AppointmentsListPage, BrushingTimerPage, DashboardPage, EducationListPage, EducationModulePage, ForgotPasswordPage, NotificationSettingsPage (+30 more)
+### Community 62 - "DashboardPage.tsx"
+Cohesion: 0.11
+Nodes (16): DashboardPage, BrushingSummaryCard(), BrushingSummaryCardProps, DashboardQuickLinks(), DashboardQuickLinksProps, formatNextAppointment(), LEVEL_IMAGE_BY_NAME, LevelProgressCard() (+8 more)
 
 ### Community 63 - "BrushingTimerPage.test.tsx"
 Cohesion: 0.11
 Nodes (13): BrushingTimerPage(), mockCompletedZones, mockFinish, mockPause, mockPersistZone, mockResumeFrom, mockResumeTimer, mockRetryFinish (+5 more)
 
 ### Community 64 - "FlossingLogRecord"
-Cohesion: 0.14
-Nodes (16): get_flossing_service(), create_flossing_log(), list_flossing_logs(), get, IdempotencyKey, post, UUID, SupabaseFlossingRepository (+8 more)
+Cohesion: 0.07
+Nodes (33): create_flossing_log(), list_flossing_logs(), get, IdempotencyKey, post, UUID, SupabaseFlossingRepository, _to_record() (+25 more)
 
 ### Community 65 - "repositories/gamification_repository.py"
-Cohesion: 0.12
-Nodes (17): Client, datetime, UUID, SupabaseAchievementEvaluationDispatchRepository, SupabaseGamificationRepository, _to_stats_record(), parse_date(), parse_datetime() (+9 more)
+Cohesion: 0.21
+Nodes (8): Client, datetime, UUID, SupabaseAchievementEvaluationDispatchRepository, SupabaseGamificationRepository, _to_stats_record(), parse_date(), date
 
 ### Community 66 - "SidebarNav.tsx"
 Cohesion: 0.26
@@ -491,16 +493,16 @@ Cohesion: 0.24
 Nodes (10): Database quality CI pipeline, Reviewed Supabase CLI version pinning, Clean Supabase database startup, Database quality change triggers, Database quality workflow, Ordered database migration application, Supabase CLI version pinning, Database quality test job (+2 more)
 
 ### Community 69 - "MouthQuadrantMap.tsx"
-Cohesion: 0.15
-Nodes (17): BRUSHING_ZONE_LABELS, BRUSHING_ZONE_ORDER, BRUSHING_ZONE_TIPS, SECONDS_PER_ZONE, TOTAL_BRUSHING_SECONDS, markerFor(), MouthQuadrantMap(), MouthQuadrantMapProps (+9 more)
+Cohesion: 0.13
+Nodes (18): BRUSHING_ZONE_LABELS, BRUSHING_ZONE_ORDER, BRUSHING_ZONE_TIPS, SECONDS_PER_ZONE, TOTAL_BRUSHING_SECONDS, markerFor(), MouthQuadrantMap(), MouthQuadrantMapProps (+10 more)
 
 ### Community 70 - "validate_vapid_configuration"
 Cohesion: 0.23
 Nodes (13): _load_private_pem(), load_vapid_private_key(), Validação de par de chaves VAPID antes de iniciar o worker., Carrega uma chave privada VAPID P-256 de um PEM literal ou arquivo., Garante que a chave pública Web Push corresponde à chave privada PEM. Validar…, validate_vapid_configuration(), _key_pair(), test_invalid_private_key_does_not_leak_value_in_chained_error() (+5 more)
 
 ### Community 71 - "AppointmentRecord"
-Cohesion: 0.29
-Nodes (8): AppointmentStatus, AppointmentType, datetime, UUID, SupabaseAppointmentRepository, _to_record(), AppointmentRecord, test_next_scheduled_query_is_scoped_and_ordered()
+Cohesion: 0.34
+Nodes (7): AppointmentStatus, AppointmentType, datetime, UUID, SupabaseAppointmentRepository, _to_record(), AppointmentRecord
 
 ### Community 72 - "Frontend Build"
 Cohesion: 0.20
@@ -514,13 +516,13 @@ Nodes (8): allowScripts, esbuild, engines, node, name, private, type, version
 Cohesion: 0.15
 Nodes (13): Backend mutation and delivery hardening, Atomic backend integrity RPCs, Appointment cursor pagination, Delayed achievement reveals, Authenticated direct mutation restriction, Database function EXECUTE privilege hardening, Habit scoring and gamification, Version 2.0.0 level thresholds (+5 more)
 
-### Community 75 - "test_flossing_service.py"
-Cohesion: 0.18
-Nodes (12): FakeFlossingRepository, UUID, gamification_spy(), fixture, UUID, service(), _SpyGamificationService, test_every_flossing_log_triggers_achievement_evaluation() (+4 more)
+### Community 75 - "sao_paulo_date"
+Cohesion: 0.39
+Nodes (5): date, sao_paulo_date(), test_business_date_rejects_naive_datetime(), test_utc_time_at_sao_paulo_midnight_belongs_to_new_day(), test_utc_time_before_sao_paulo_midnight_belongs_to_previous_day()
 
 ### Community 76 - "UserStatsRecord"
-Cohesion: 0.31
-Nodes (15): UserStatsRecord, FakeBusinessClock, date, _brushing_achievement(), _build_service(), UUID, test_acknowledge_empty_reveal_list_is_idempotent(), test_claim_returns_all_due_achievements() (+7 more)
+Cohesion: 0.46
+Nodes (13): UserStatsRecord, _brushing_achievement(), _build_service(), UUID, test_acknowledge_empty_reveal_list_is_idempotent(), test_claim_returns_all_due_achievements(), test_evaluate_and_unlock_does_not_unlock_below_threshold(), test_evaluate_and_unlock_is_idempotent() (+5 more)
 
 ### Community 77 - "Database Triggers"
 Cohesion: 0.25
@@ -602,21 +604,21 @@ Nodes (3): MOCK_MODULES, MOCK_SESSION, MOCK_USER
 Cohesion: 0.50
 Nodes (3): headers, rewrites, $schema
 
-### Community 100 - "list_appointments"
-Cohesion: 0.21
-Nodes (13): AppointmentInput, create_appointment(), get_appointment(), list_appointments(), AppointmentStatus, get, IdempotencyKey, patch (+5 more)
+### Community 100 - "endpoints/appointments.py"
+Cohesion: 0.16
+Nodes (22): AppointmentInput, create_appointment(), delete_appointment(), get_appointment(), list_appointments(), AppointmentStatus, delete, get (+14 more)
 
 ### Community 105 - "useBrushingSessionController.ts"
-Cohesion: 0.24
-Nodes (11): completeBrushingSession(), markZoneCompleted(), startBrushingSession(), BrushingSession, patientMessage(), PersistenceTask, readRecovery(), shouldReconcileZones() (+3 more)
+Cohesion: 0.32
+Nodes (10): completeBrushingSession(), markZoneCompleted(), startBrushingSession(), BrushingSession, patientMessage(), PersistenceTask, readRecovery(), shouldReconcileZones() (+2 more)
 
 ### Community 114 - "Documentação Password"
 Cohesion: 0.17
 Nodes (12): Password Recovery Production Operations, AuthProvider Password Recovery Extension, Password Recovery Implementation Plan, Password Recovery Routes, Test-Driven Password Recovery Task Sequence, AuthContext Authentication Facade, Enumeration-Resistant Recovery Response, Exact Recovery Redirect Allowlist (+4 more)
 
 ### Community 115 - "dashboardApi.ts"
-Cohesion: 0.32
-Nodes (10): DashboardSummary, fetchDashboard(), parseDashboardSummary(), requireFiniteNonNegativeNumber(), requireNonNegativeInteger(), requireNullableFiniteNonNegativeNumber(), requireNullableString(), requireString() (+2 more)
+Cohesion: 0.25
+Nodes (12): DashboardSummary, fetchDashboard(), parseDashboardSummary(), requireFiniteNonNegativeNumber(), requireNonNegativeInteger(), requireNullableFiniteNonNegativeNumber(), requireNullableString(), requireString() (+4 more)
 
 ### Community 116 - "OralCardio monorepo architecture"
 Cohesion: 0.40
@@ -626,25 +628,17 @@ Nodes (5): Patient Row Level Security policies, Backend layered architecture, Da
 Cohesion: 0.47
 Nodes (12): AchievementEvaluator, Determina quais conquistas um usuário acabou de desbloquear. Cada tipo de…, AchievementConditionType, _achievement(), test_all_modules_completed_requires_every_active_module(), test_already_unlocked_achievements_are_never_returned_again(), test_appointment_scheduled_achievement(), test_brushing_count_achievement_unlocks_when_threshold_reached() (+4 more)
 
-### Community 120 - "AppointmentForm.tsx"
-Cohesion: 0.17
-Nodes (15): AppointmentFormState, appointmentToFormState(), INITIAL_APPOINTMENT_FORM_STATE, APPOINTMENT_TYPE_LABELS, AppointmentAction, assertMaxLength(), buildAppointmentPatch(), optionalPatchValue() (+7 more)
+### Community 120 - "buildAppointmentPatch.ts"
+Cohesion: 0.36
+Nodes (6): assertMaxLength(), buildAppointmentPatch(), optionalPatchValue(), NOW_MS, ORIGINAL, handleSubmit()
 
 ### Community 182 - "Entrega Backend"
 Cohesion: 0.20
 Nodes (10): API Contract Pipeline, OpenAPI Contract Verification, Backend Quality Pipeline, Python Quality Gates, Backend Development Quality Dependencies, FastAPI and Supabase Runtime Stack, Backend Runtime Dependencies, Web Push and Cryptography Stack (+2 more)
 
-### Community 183 - "main.tsx"
-Cohesion: 0.20
-Nodes (6): App(), queryClient, rootElement, AppErrorBoundary, AppErrorBoundaryProps, AppErrorBoundaryState
-
 ### Community 184 - "HealthCheckPage.tsx"
 Cohesion: 0.43
 Nodes (5): HealthCheckPage, fetchHealthStatus(), HealthStatus, HealthCheckPage(), LoadState
-
-### Community 185 - "NotificationSubscriptionProvider"
-Cohesion: 0.28
-Nodes (13): revokePushSubscriptionWithDeviceToken(), errorMessage(), NotificationSubscriptionProvider(), reconcile(), createRevocationToken(), disablePushSubscription(), flushPendingPushRevocations(), forgetPendingPushRevocation() (+5 more)
 
 ### Community 186 - "logging.py"
 Cohesion: 0.35
@@ -658,21 +652,13 @@ Nodes (11): Backup before destructive migration 011, OralCardio Supabase databas
 Cohesion: 0.25
 Nodes (8): Frontend Production and Browser Checks, Frontend Quality Pipeline, Production Content Security Policy, OralCardio Deployment Runbook, Observability Backup and Rollback, Production Secret Isolation, Staging-First Release Policy, Vercel Render and Supabase Topology
 
-### Community 189 - "buildAppointmentPayload.ts"
-Cohesion: 0.33
-Nodes (8): assertMaxLength(), buildAppointmentPayload(), futureLocalValue(), NOW_MS, validState(), toNullableString(), AppointmentInput, localDateTimeInputToIso()
-
-### Community 190 - "notificationApi.ts"
-Cohesion: 0.22
-Nodes (9): requestTestNotification(), updateNotificationPreferences(), NotificationSettingsForm(), handleSubmit(), toggleLead(), update(), permissionDescription(), shortTime() (+1 more)
+### Community 189 - "AppointmentForm.tsx"
+Cohesion: 0.17
+Nodes (17): AppointmentFormState, APPOINTMENT_STATUS_LABELS, APPOINTMENT_TYPE_LABELS, assertMaxLength(), buildAppointmentPayload(), futureLocalValue(), NOW_MS, validState() (+9 more)
 
 ### Community 191 - "services/conftest.py"
 Cohesion: 0.70
 Nodes (4): empty_stats(), fixture, UUID, user_id()
-
-### Community 192 - "DashboardQuickLinks.tsx"
-Cohesion: 0.67
-Nodes (3): DashboardQuickLinks(), DashboardQuickLinksProps, formatNextAppointment()
 
 ### Community 194 - "Q: vou ir descansar agora, mas analisando como um desenvolvedor senior e analisando o output completo do graphify do projeto, oq vc percebe que o nosso projeto necessita de pontos de melhoria, seja de otimização, melhoria de codigo, limpeza, etc... solid... analise primeiro backend depois front depois o banco"
 Cohesion: 0.40
@@ -682,23 +668,19 @@ Nodes (4): Answer, Outcome, Q: vou ir descansar agora, mas analisando como um de
 Cohesion: 0.50
 Nodes (4): Administrative fixture setup, Authenticated RLS assertions, Local database test execution, Transactional test rollback
 
-### Community 205 - "ResetPasswordPage.test.tsx"
-Cohesion: 0.33
-Nodes (3): ResetPasswordPage(), handleSubmit(), useAuthMock
-
 ## Knowledge Gaps
-- **274 isolated node(s):** `MOCK_USER`, `MOCK_SESSION`, `MOCK_DASHBOARD`, `BrushingSummaryCardProps`, `EducationModuleMedia` (+269 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 668 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **48 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **278 isolated node(s):** `useAuthMock`, `LocationState`, `auth`, `BASE_TIME`, `MOCK_SESSION` (+273 more)
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 672 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **45 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `CurrentUser` connect `deps.py` to `FlossingLogRecord`, `NotificationService`, `list_appointments`, `UserRecord`, `BrushingSessionRecord`, `EducationModuleRecord`, `schemas/gamification.py`, `AuthenticationError`, `records.py`, `notification_service.py`?**
+- **Why does `BrushingZone` connect `BrushingSessionRecord` to `endpoints/brushing.py`, `ClaimedNotificationDeliveryRecord`, `EntityNotFoundError`, `records.py`, `repositories/interfaces.py`?**
   _High betweenness centrality (0.014) - this node is a cross-community bridge._
-- **Why does `SupabaseRepository` connect `EntityNotFoundError` to `FlossingLogRecord`, `repositories/gamification_repository.py`, `NotificationService`, `AppointmentRecord`, `test_notification_service.py`, `BrushingSessionRecord`, `EducationModuleRecord`, `records.py`, `deps.py`?**
-  _High betweenness centrality (0.012) - this node is a cross-community bridge._
-- **Why does `UserStatsRecord` connect `UserStatsRecord` to `repositories/gamification_repository.py`, `AchievementRecord`, `GamificationService`, `test_dashboard_service.py`, `schemas/gamification.py`, `records.py`, `UUID`, `services/conftest.py`?**
+- **Why does `BrushingService` connect `BrushingSessionRecord` to `endpoints/brushing.py`, `deps.py`, `BusinessRuleViolationError`, `EntityNotFoundError`, `services/interfaces.py`, `repositories/interfaces.py`?**
+  _High betweenness centrality (0.013) - this node is a cross-community bridge._
+- **Why does `EntityNotFoundError` connect `EntityNotFoundError` to `deps.py`, `AppointmentRecord`, `UserRecord`, `BrushingSessionRecord`, `EducationModuleRecord`, `notification_repository.py`, `exceptions.py`, `AppointmentService`, `repositories/user_repository.py`, `.update_appointment`, `SupabaseRepository`, `UUID`?**
   _High betweenness centrality (0.010) - this node is a cross-community bridge._
 - **Are the 15 inferred relationships involving `EntityNotFoundError` (e.g. with `SupabaseAppointmentRepository` and `SupabaseRepository`) actually correct?**
   _`EntityNotFoundError` has 15 INFERRED edges - model-reasoned connections that need verification._
@@ -706,5 +688,5 @@ _Questions this graph is uniquely positioned to answer:_
   _`CurrentUser` has 30 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 17 inferred relationships involving `BusinessRuleViolationError` (e.g. with `SupabaseRepository` and `AppointmentService`) actually correct?**
   _`BusinessRuleViolationError` has 17 INFERRED edges - model-reasoned connections that need verification._
-- **Are the 16 inferred relationships involving `UserStatsRecord` (e.g. with `SupabaseGamificationRepository` and `GamificationRepository`) actually correct?**
-  _`UserStatsRecord` has 16 INFERRED edges - model-reasoned connections that need verification._
+- **Are the 22 inferred relationships involving `AppointmentService` (e.g. with `get_dashboard_service()` and `create_appointment()`) actually correct?**
+  _`AppointmentService` has 22 INFERRED edges - model-reasoned connections that need verification._
