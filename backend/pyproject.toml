@@ -3,6 +3,18 @@ name = "cardio-care-backend"
 version = "2.0.0"
 description = "OralCardio — API (FastAPI)"
 requires-python = ">=3.11"
+dependencies = [
+  "fastapi==0.141.1",
+  "uvicorn[standard]==0.34.0",
+  "pydantic==2.11.7",
+  "pydantic-settings==2.7.1",
+  "supabase==2.30.0",
+  "tzdata==2026.3",
+  "pywebpush==2.3.0",
+  "cryptography==50.0.0",
+  "postgrest==2.30.0",
+  "setuptools>=83.0.0",
+]
 
 [tool.ruff]
 line-length = 100
