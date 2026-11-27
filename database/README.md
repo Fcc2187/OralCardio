@@ -69,6 +69,9 @@ ficam em `supabase/migrations/`, portanto `supabase db push` não os aplica:
     da v2.0.0 e reconcilia nível/nome dos usuários sem alterar seus pontos.
 29. `029_harden_function_execute_privileges.sql` — remove de clientes o acesso
     a RPCs internas e torna `EXECUTE` opt-in para novas funções públicas.
+30. `030_optimize_notification_cron.sql` — evita chamadas HTTP do `pg_cron`
+    quando não há notificações ou avaliações de conquistas pendentes, espaça o
+    dispatcher para 5 em 5 minutos e reduz a retenção de `cron.job_run_details`.
 
 > Faça backup do projeto Supabase antes de aplicar a `011`; os vínculos
 > excluídos só poderão ser recuperados a partir desse backup.

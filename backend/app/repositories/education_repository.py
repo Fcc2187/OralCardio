@@ -51,6 +51,19 @@ class SupabaseEducationRepository(SupabaseRepository):
         rows = self._run("Módulo educacional", operation)
         return [_to_module_record(row) for row in rows]
 
+    def list_active_module_ids(self) -> list[UUID]:
+        def operation():
+            response = (
+                self._client.table(_MODULES_TABLE)
+                .select("id")
+                .eq("is_active", True)
+                .execute()
+            )
+            return response.data
+
+        rows = self._run("Módulo educacional", operation)
+        return [UUID(row["id"]) for row in rows]
+
     def get_module_by_slug(self, slug: str) -> EducationModuleRecord | None:
         def operation():
             response = (
@@ -92,6 +105,20 @@ class SupabaseEducationRepository(SupabaseRepository):
 
         rows = self._run("Progresso de módulo", operation)
         return [_to_progress_record(row) for row in rows]
+
+    def list_completed_module_ids_by_user(self, user_id: UUID) -> set[UUID]:
+        def operation():
+            response = (
+                self._client.table(_PROGRESS_TABLE)
+                .select("module_id")
+                .eq("user_id", str(user_id))
+                .eq("is_completed", True)
+                .execute()
+            )
+            return response.data
+
+        rows = self._run("Progresso de módulo", operation)
+        return {UUID(row["module_id"]) for row in rows}
 
     def get_progress(self, user_id: UUID, module_id: UUID) -> ModuleProgressRecord | None:
         def operation():

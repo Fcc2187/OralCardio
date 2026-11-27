@@ -26,9 +26,13 @@ function errorMessage(error: unknown): string {
     : "Não foi possível atualizar as notificações.";
 }
 
+const RECONCILE_MIN_INTERVAL_MS = 15 * 60_000;
+
 export function NotificationSubscriptionProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const previousUserId = useRef<string | null>(null);
+  const lastSynchronizedAtRef = useRef<number>(0);
+  const isReconcilingRef = useRef<boolean>(false);
   const [permission, setPermission] = useState<PushPermissionState>(getPushPermissionState);
   const [hasSubscription, setHasSubscription] = useState(false);
   const [isBusy, setIsBusy] = useState(false);
@@ -102,21 +106,26 @@ export function NotificationSubscriptionProvider({ children }: { children: React
     }
 
     async function reconcile() {
+      if (isReconcilingRef.current) return;
+      isReconcilingRef.current = true;
       try {
         const state = getPushPermissionState();
         if (state === "granted") {
           // Permissão concedida não é consentimento para uma nova inscrição.
           // Só sincronizamos uma assinatura previamente criada pelo usuário.
           await synchronizeExistingSubscription();
+          lastSynchronizedAtRef.current = Date.now();
         }
         setError(null);
       } catch (nextError) {
         setError(errorMessage(nextError));
       } finally {
+        isReconcilingRef.current = false;
         await refresh();
       }
     }
 
+    lastSynchronizedAtRef.current = 0;
     void reconcile();
   }, [refresh, user?.id]);
 
@@ -134,25 +143,38 @@ export function NotificationSubscriptionProvider({ children }: { children: React
 
   useEffect(() => {
     if (!user) return;
-    const reconcile = () => {
-      if (document.visibilityState === "visible" && getPushPermissionState() === "granted") {
-        void synchronizeExistingSubscription()
-          .then(() => setError(null))
-          .catch((nextError: unknown) => setError(errorMessage(nextError)))
-          .finally(refresh);
+    const reconcile = (force = false) => {
+      if (document.visibilityState !== "visible" || getPushPermissionState() !== "granted") {
+        return;
       }
+      if (isReconcilingRef.current) return;
+      if (!force && Date.now() - lastSynchronizedAtRef.current < RECONCILE_MIN_INTERVAL_MS) {
+        return;
+      }
+      isReconcilingRef.current = true;
+      void synchronizeExistingSubscription()
+        .then(() => {
+          lastSynchronizedAtRef.current = Date.now();
+          setError(null);
+        })
+        .catch((nextError: unknown) => setError(errorMessage(nextError)))
+        .finally(() => {
+          isReconcilingRef.current = false;
+          void refresh();
+        });
     };
+    const onPassiveEvent = () => reconcile(false);
     const onMessage = (event: MessageEvent) => {
-      if (event.data?.type === "PUSH_SUBSCRIPTION_CHANGED") reconcile();
+      if (event.data?.type === "PUSH_SUBSCRIPTION_CHANGED") reconcile(true);
     };
-    window.addEventListener("online", reconcile);
-    window.addEventListener("focus", reconcile);
-    document.addEventListener("visibilitychange", reconcile);
+    window.addEventListener("online", onPassiveEvent);
+    window.addEventListener("focus", onPassiveEvent);
+    document.addEventListener("visibilitychange", onPassiveEvent);
     navigator.serviceWorker?.addEventListener("message", onMessage);
     return () => {
-      window.removeEventListener("online", reconcile);
-      window.removeEventListener("focus", reconcile);
-      document.removeEventListener("visibilitychange", reconcile);
+      window.removeEventListener("online", onPassiveEvent);
+      window.removeEventListener("focus", onPassiveEvent);
+      document.removeEventListener("visibilitychange", onPassiveEvent);
       navigator.serviceWorker?.removeEventListener("message", onMessage);
     };
   }, [refresh, user]);

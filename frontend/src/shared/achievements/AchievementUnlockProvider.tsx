@@ -67,8 +67,8 @@ export function AchievementUnlockProvider({ children }: { children: ReactNode })
     queryKey: achievementRevealsQueryKey(activeUserId),
     queryFn: claimAchievementReveals,
     enabled: Boolean(activeUserId) && isPageVisible,
-    staleTime: 0,
-    refetchOnWindowFocus: true,
+    staleTime: 5 * 60_000,
+    refetchOnWindowFocus: false,
     refetchOnReconnect: true,
   });
 

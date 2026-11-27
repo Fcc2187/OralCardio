@@ -29,14 +29,11 @@ class AchievementSnapshotBuilder:
         self._appointment_repository = appointment_repository
 
     def build(self, user_id: UUID, stats: UserStatsRecord) -> AchievementSnapshot:
-        active_modules = self._education_repository.list_active_modules()
-        progress = self._education_repository.list_progress_by_user(user_id)
-        active_module_ids = {module.id for module in active_modules}
-        completed_modules_count = sum(
-            1
-            for entry in progress
-            if entry.is_completed and entry.module_id in active_module_ids
+        active_module_ids = set(self._education_repository.list_active_module_ids())
+        completed_module_ids = self._education_repository.list_completed_module_ids_by_user(
+            user_id
         )
+        completed_modules_count = len(active_module_ids & completed_module_ids)
 
         health_profile = self._health_profile_repository.get_by_user_id(user_id)
 
@@ -45,7 +42,7 @@ class AchievementSnapshotBuilder:
             current_streak_days=stats.current_streak_days,
             total_flossings=stats.total_flossings,
             completed_modules_count=completed_modules_count,
-            total_active_modules=len(active_modules),
+            total_active_modules=len(active_module_ids),
             has_completed_health_profile=bool(health_profile and health_profile.is_completed),
             has_scheduled_appointment=self._appointment_repository.has_any(user_id),
         )

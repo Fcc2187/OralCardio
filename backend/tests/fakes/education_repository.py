@@ -13,6 +13,9 @@ class FakeEducationRepository:
     def list_active_modules(self) -> list[EducationModuleRecord]:
         return [module for module in self._modules.values() if module.is_active]
 
+    def list_active_module_ids(self) -> list[UUID]:
+        return [module.id for module in self._modules.values() if module.is_active]
+
     def get_module_by_slug(self, slug: str) -> EducationModuleRecord | None:
         return next(
             (m for m in self._modules.values() if m.slug == slug and m.is_active), None
@@ -27,6 +30,13 @@ class FakeEducationRepository:
             for (progress_user_id, _), progress in self._progress.items()
             if progress_user_id == user_id
         ]
+
+    def list_completed_module_ids_by_user(self, user_id: UUID) -> set[UUID]:
+        return {
+            progress.module_id
+            for (progress_user_id, _), progress in self._progress.items()
+            if progress_user_id == user_id and progress.is_completed
+        }
 
     def get_progress(self, user_id: UUID, module_id: UUID) -> ModuleProgressRecord | None:
         return self._progress.get((user_id, module_id))

@@ -26,6 +26,12 @@ class EducationService:
             for module in modules
         ]
 
+    def get_progress_counts(self, user_id: UUID) -> tuple[int, int]:
+        """Retorna `(concluidos, total_ativos)` sem transferir o conteúdo dos módulos."""
+        active_ids = set(self._repository.list_active_module_ids())
+        completed_ids = self._repository.list_completed_module_ids_by_user(user_id)
+        return len(active_ids & completed_ids), len(active_ids)
+
     def get_module_by_slug(self, user_id: UUID, slug: str) -> ModuleWithProgress:
         module = self._repository.get_module_by_slug(slug)
         if module is None:

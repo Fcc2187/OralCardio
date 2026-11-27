@@ -35,7 +35,9 @@ class DashboardService:
         user = self._user_service.get_profile(user_id)
         health_profile = self._health_profile_service.get_profile(user_id)
         stats = self._gamification_service.get_stats(user_id)
-        modules = self._education_service.list_modules_with_progress(user_id)
+        completed_education_modules, total_education_modules = (
+            self._education_service.get_progress_counts(user_id)
+        )
         next_appointment = self._appointment_service.get_next_scheduled(user_id)
 
         today = self._clock.today()
@@ -64,11 +66,8 @@ class DashboardService:
             current_level_min_points=current_level.min_points,
             next_level_name=next_level.name if next_level else None,
             next_level_min_points=next_level.min_points if next_level else None,
-            completed_education_modules=sum(
-                module.progress is not None and module.progress.is_completed
-                for module in modules
-            ),
-            total_education_modules=len(modules),
+            completed_education_modules=completed_education_modules,
+            total_education_modules=total_education_modules,
             next_appointment_at=(
                 next_appointment.scheduled_at if next_appointment else None
             ),

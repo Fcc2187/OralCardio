@@ -15,7 +15,16 @@ if (!rootElement) {
   throw new Error("Elemento #root não encontrado em index.html");
 }
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 2 * 60_000,
+      gcTime: 10 * 60_000,
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
 
 createRoot(rootElement).render(
   <StrictMode>

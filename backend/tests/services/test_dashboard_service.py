@@ -67,6 +67,13 @@ class _StubEducationService:
     def list_modules_with_progress(self, user_id: UUID) -> list[_StubModuleWithProgress]:
         return self._modules
 
+    def get_progress_counts(self, user_id: UUID) -> tuple[int, int]:
+        completed = sum(
+            module.progress is not None and module.progress.is_completed
+            for module in self._modules
+        )
+        return completed, len(self._modules)
+
 
 @dataclass(frozen=True)
 class _StubAppointment:
